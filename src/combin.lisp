@@ -13,7 +13,7 @@
 (macsyma-module combin)
 
 (declare-top (special *mfactl *factlist donel nn* dn* *ans* *var*
-		      $zerobern *n $cflength *a* $prevfib $next_lucas
+		      $zerobern *n $cflength *a* *a $prevfib $next_lucas
 		      *infsumsimp *times *plus sum usum makef
 		      varlist genvar $sumsplitfact $ratfac $simpsum
 		      $prederror $listarith
@@ -371,7 +371,7 @@
      (incf e (* nom ($euler %k)))
      (go a)))
 
-(defmfun simpeuler (x vestigial z)
+(defun simpeuler (x vestigial z)
   (declare (ignore vestigial))
   (oneargcheck x)
   (let ((u (simpcheck (cadr x) z)))
@@ -427,7 +427,7 @@
      (setq a (*red a b) b (denom1 a) a (num1 a))
      (go a)))
 
-(defmfun simpbern (x vestigial z)
+(defun simpbern (x vestigial z)
   (declare (ignore vestigial))
   (oneargcheck x)
   (let ((u (simpcheck (cadr x) z)))
@@ -453,7 +453,7 @@
 ;;; $zerobern is bound to true.
 ;;; ----------------------------------------------------------------------------
 
-(defun $bernpoly (x s)
+(defmfun $bernpoly (x s)
   (let ((%n 0) ($zerobern t))
     (cond ((not (fixnump s)) (list '($bernpoly) x s))
 	  ((> (setq %n s) -1)
@@ -487,7 +487,7 @@
 ;;; The coeffizients E[k] are the Euler numbers.
 ;;; ----------------------------------------------------------------------------
 
-(defun $eulerpoly (x s)
+(defmfun $eulerpoly (x s)
   (let ((n 0) ($zerobern t) (y 0))
     (cond ((not (fixnump s)) (list '($eulerpoly) x s))
           ((> (setq n s) -1)
@@ -516,7 +516,7 @@
 ;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defun $zeta (z)
+(defmfun $zeta (z)
   (simplify (list '(%zeta) z)))
 
 ;;; Set properties to give full support to the parser and display
@@ -1107,7 +1107,7 @@
 (defun adusum (e)
   (push (simplify e) usum))
 
-(defmfun simpsum2 (exp i lo hi)
+(defun simpsum2 (exp i lo hi)
   (prog (*plus *times $simpsum u)
      (setq *plus (list 0) *times 1)
      (when (or (and (eq hi '$inf) (eq lo '$minf))
@@ -1198,11 +1198,11 @@
 (defun ipoly2 (a n lo sign)
   (cond ((member (asksign lo) '($zero $negative) :test #'eq)
 	 (throw 'isumout 'divergent)))
-  (and (null (equal lo 1))
-       (let ((sign sign) ($simpsum t))
-	 (adsum `((%sum)
-		  ((mtimes) ,a -1 ((mexpt) ,*var* ,n))
-		  ,*var* 1 ((mplus) -1 ,lo)))))
+  (unless (equal lo 1)
+    (let (($simpsum t))
+      (adsum `((%sum)
+               ((mtimes) ,a -1 ((mexpt) ,*var* ,n))
+               ,*var* 1 ((mplus) -1 ,lo)))))
   (cond ((eq sign '$negative)
 	 (list '(mtimes) a ($zeta (meval (list '(mtimes) -1 n)))))
 	((throw 'isumout 'divergent))))
@@ -1440,11 +1440,11 @@
 		 (progn
 		   (setq op (caar fun))
 		   (when (cdr fun) (setq param (cadr fun)))
-		   (or (and (oldget op 'op) (not (eq op 'mfactorial)))
+		   (or (and (zl-get op 'op) (not (eq op 'mfactorial)))
 		       (not (atom (cadr fun)))
 		       (not (= (length fun) 2))))))
      (merror (intl:gettext "deftaylor: don't know how to handle this function: ~M") fun))
-   (when (oldget op 'sp2)
+   (when (zl-get op 'sp2)
      (mtell (intl:gettext "deftaylor: redefining ~:M.~%") op))
    (when param (setq series (subst 'sp2var param series)))
    (setq series (subsum '*index series))
@@ -1465,7 +1465,7 @@
 	     (subst *i (caddr e) e)))
 	(t (recur-apply #'susum1 e))))
 
-(declare-top (special varlist genvar $factorflag $ratfac *p* *var* *l* *x*))
+(declare-top (special varlist genvar $factorflag $ratfac *p* *var* *x*))
 
 (defmfun $polydecomp (e v)
   (let ((varlist (list v))

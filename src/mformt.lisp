@@ -61,7 +61,7 @@
     (push-text-temp)
   (let ((arg (pop-mformat-arg)))
     (and |@-FLAG| (atom arg) 
-	 (setq arg (or (get arg 'op) arg)))
+	 (setq arg (or (and (symbolp arg) (get arg 'op)) arg)))
     (cond (|:-FLAG|
 	   (push (cons '(text-string) (mstring arg)) text))
 	  (t
@@ -76,11 +76,11 @@
     (push-text-temp)
   (push (cons '(text-string)
 	      (mapl #'(lambda (c)
-			(rplaca c (getcharn (car c) 1)))
+			(rplaca c (get-first-char (car c))))
 		    (explode (pop-mformat-arg))))
 	text))
 
-(defmfun mformat n
+(defun-maclisp mformat n
   (unless (> n 1)
     ;; make error message without new symbols.
     ;; This error should not happen in compiled code because
@@ -97,7 +97,7 @@
     ;; it can be changed easily.
     (mformat-loop (output-text))
     ;; Keep from getting bitten by buffering.
-    (force-output stream)))
+    (finish-output stream)))
 
 ;;can't change mformat since there are various places where stream = nil means
 ;; standard output not a string  
@@ -108,7 +108,7 @@
 ;; Basically the same as MFORMAT, which is a "souped-up" FORMAT implementation
 ;; with support for the ~M control string. However, unlike MFORMAT, when
 ;; DESTINATION is NIL, the function writes its result to a string.
-(defmfun aformat (destination control-string &rest arguments)
+(defun aformat (destination control-string &rest arguments)
   (if destination
       (apply 'mformat destination control-string arguments)
       (with-output-to-string (st)
@@ -131,7 +131,7 @@
 (defun-prop (text-string dimension) (form result)
   (dimension-atom (maknam (cdr form)) result))
 
-(defmfun displaf (object stream)
+(defun displaf (object stream)
   ;; for DISPLA to a file.
   (if (or (eq stream nil) (eq stream *standard-output*))
       (displa object)
@@ -139,5 +139,5 @@
 	    (#.ttyoff t))
 	(displa object))))
 
-(defmfun mtell (&rest l)
+(defun mtell (&rest l)
   (apply #'mformat nil l))

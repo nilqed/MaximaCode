@@ -102,6 +102,7 @@ matchdeclare
     uu%, unitop_p,
     xx%, nonconstantp);
 
+fooexpr : nd% / pp%; /* simplify this, to be used later */
 simp: false$
 /* tellsimpafter rules are applied in order of declaration; tellsimp, the other way around */
 tellsimp (nd% `` dl%, apply_units_conversion (nd%, dl%));
@@ -111,6 +112,7 @@ tellsimp (pp% `` aa%, apply ("+", map (buildq ([aa%], lambda ([e], e `` aa%)), a
 tellsimp (dd% `` aa%, (qty(dd%) ` units(dd%)) `` aa%);
 tellsimp (aa%*dd% `` bb%, aa% * (qty(dd%) ` units(dd%)) `` bb%);
 tellsimp (qq% `` aa%, map (lambda ([e], e `` aa%), qq%));
+tellsimp (''fooexpr `` aa%, nd%/(pp% `` 1/aa%));
 tellsimpafter (uu%^ccn1%, (qty(uu%)^ccn1%) ` simplify_units (units(uu%)^ccn1%));
 tellsimpafter (aa% * nd% * uu%, aa% * multiply_with_units (nd%, uu%));
 tellsimpafter (aa% + uu%, add_with_units (aa%, uu%));
@@ -250,10 +252,6 @@ simplify_units (e%) := block
     apply (forget, L%),
     killcontext (mycontext),
     e%);
-
-/* Compile matchdeclare predicate functions in hopes of greater speed */
-/* Don't compile nondimensionalp due to bug in translator: %% is handled incorrectly. */
-compile (constantp_not0, constantp_not1, mult_expr_nontrivialconstfactorsp, /* nondimensionalp, */ unitop_p, unitp, nonconstantp);
 
 known_unit_conversions : {};
 
@@ -562,13 +560,22 @@ simp : true;
 
 /* Rules to handle arbitrary Maxima expressions dimensionally
  * by replacing expressions a`b with a*gensymized(b).
+ * When a = 0, replace it with a gensym as well, to prevent b from getting lost.
  */
 
 matchdeclare (uu%, unitop_p);
-defrule (rununitify, uu%, qty (uu%) * subst_units (uu%));
+defrule (rununitify, uu%, maybe_subst_qty (uu%) * subst_units (uu%));
+
+maybe_subst_qty (u) :=
+  if qty (u) = 0 or qty (u) = 0.0 or qty (u) = 0b0
+    then (if qtys_gensyms [units (u)] = false
+            then (qtys_gensyms [units (u)] : gensym ("zero"),
+                  assume (equal (qtys_gensyms [units (u)], 0))),
+          qtys_gensyms [units (u)])
+    else qty (u);
 
 subst_units (u) := block ([v : listofvars (units (u)), substs],
-  for v1 in v do 
+  for v1 in v do
    (if units_gensyms [v1] = false then units_gensyms [v1] : gensym (),
     assume (units_gensyms [v1] > 0)),
   substs : makelist (v1 = units_gensyms [v1], v1, v),
@@ -577,15 +584,17 @@ subst_units (u) := block ([v : listofvars (units (u)), substs],
 dimensionally (e%) ::=
   buildq ([e%_op : op (e%), e%_args : args (e%), context_name],
     block
-     ([units_gensyms, unitless_args, reunitification_eqs, reunitified],
+     ([qtys_gensyms, units_gensyms, unitless_args, reunitification_eqs, reunitified, rezeroified],
       context_name : supcontext (),
       context : context_name,
-      units_gensyms : make_array ('hashed), 
+      qtys_gensyms : make_array ('hashed),
+      units_gensyms : make_array ('hashed),
       unitless_args : applyb1 (e%_args, rununitify),
       reunitification_eqs : map (lambda ([e], lhs (e) = 1 ` rhs (e)), inverse_gensym_map (units_gensyms)),
       reunitified : subst (reunitification_eqs, apply (e%_op, unitless_args)),
+      rezeroified : subst (makelist (x = 0, x, listarray (qtys_gensyms)), reunitified),
       killcontext (context_name),
-      reunitified));
+      rezeroified));
 
 gensym_map (h) := map ("=", rest (arrayinfo (h), 2), listarray (h));
 inverse_gensym_map (h) := map ("=", listarray (h), rest (arrayinfo (h), 2));

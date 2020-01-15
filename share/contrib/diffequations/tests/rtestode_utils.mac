@@ -1,3 +1,6 @@
+(load("contrib_ode"),0);
+0$
+
 /* Test cases for contrib_ode utility functions */
 
 (load('contrib_ode), done);
@@ -61,3 +64,10 @@ block ([foo],
  remove (n, integer),
  foo);
 false;
+
+/* Allow subscripted variables in ode_check */
+ode_check('diff(y[2],x[1]),y[2]=%c);
+0;
+
+ode_check('diff(x[2],x[1],2)-x[2],x[2]=%e^-x[1]*%k2+%e^x[1]*%k1);
+0;

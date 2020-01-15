@@ -16,7 +16,10 @@ endif
 
 genericdir = $(xmaximadir)
 
-genericdirDATA=demos.html examples.html intro.html plotmaxima.html maxima-new.png maxima-new.gif maxima-icon.ico maxima-icon.png maxima-icon.gif
+genericdirDATA = demos.html examples.html intro.html plotmaxima.html net.sourceforge.maxima.png net.sourceforge.maxima.svg net.sourceforge.maxima.gif maxima-icon.ico maxima-icon.png maxima-icon.gif 
+
+appicondir = $(datarootdir)/pixmaps
+dist_appicon_DATA = net.sourceforge.maxima.png net.sourceforge.maxima.svg
 
 bin_SCRIPTS = xmaxima
 
@@ -78,16 +81,18 @@ TKSOURCES = \
 	Tkmaxima/Tkmaxima.tcl 
 
 
-XMAXIMA_FILES = $(TKSOURCES) xmaxima-trailer.tcl
-XMAXIMASOURCES = Tkmaxima/Header.tcl $(TKSOURCES) autoconf-variables.tcl xmaxima-trailer.tcl Tkmaxima/Header.tcl
+XMAXIMA_FILES = $(TKSOURCES)
+XMAXIMASOURCES = Tkmaxima/Header.tcl $(TKSOURCES) autoconf-variables.tcl xmaxima-trailer.tcl
 
-
-xmaxima: $(XMAXIMASOURCES) Tkmaxima/tclIndex
+xmaxima: $(XMAXIMASOURCES)
 	rm -f xmaxima && \
-		cat $(XMAXIMASOURCES) > xmaxima && \
-		chmod +x xmaxima
+	cat Tkmaxima/Header.tcl > xmaxima && \
+	(cd "$(abs_top_srcdir)/interfaces/xmaxima/" ; cat $(XMAXIMA_FILES)) >> xmaxima && \
+	cat autoconf-variables.tcl >> xmaxima && \
+	cat "$(abs_top_srcdir)/interfaces/xmaxima/xmaxima-trailer.tcl" >> xmaxima && \
+	chmod +x xmaxima
 
-EXTRA_DIST = $(genericdirDATA) $(XMAXIMA_FILES) Tkmaxima/Header.tcl.in maxima-icon.png
+EXTRA_DIST = $(genericdirDATA) $(XMAXIMA_FILES) Tkmaxima/Header.tcl.in xmaxima-trailer.tcl maxima-icon.png
 
 
 # Developer convenience target
@@ -109,5 +114,9 @@ Tkmaxima/tclIndex: $(TKSOURCES)
            echo "source ../ObjTcl/Object.tcl; auto_mkindex . $(ALLFILES)" | \
            $(TCLSH)) || \
          touch Tkmaxima/tclIndex
+
+clean-local:
+	rm -f xmaxima
+	rm -f Tkmaxima/tclIndex
 
 FORCE:

@@ -52,6 +52,9 @@
 
 (in-package :maxima)
 
+(setq $maxima_frontend "imaxima")
+(setq $maxima_frontend_version *autoconf-version*)
+
 (defvar *windows-OS* (string= *autoconf-windows* "true"))
 (defmvar $wxplot_size '((mlist simp) 400 250))
 (defmvar $wxplot_old_gnuplot nil)
@@ -99,9 +102,7 @@ nor Gnuplot is not recognized by maxima"))))
 
 (style-warning-suppressor
 
-(declare-top
-	 (special lop rop $gcprint $inchar *autoconf-version*)
-	 (*expr tex-lbp tex-rbp))
+(declare-top (special lop rop $gcprint $inchar *autoconf-version*))
 
 ;;;
 ;;; Very unfortunately, the following code does not work in
@@ -118,10 +119,6 @@ nor Gnuplot is not recognized by maxima"))))
     nil))
 
 (defun diff-symbol () '$d)
-
-(defun memq (elem seq)
-  #+(or cmu scl) (declare (inline member))
-  (member elem seq :test #'eq))
 
 (defun main-prompt ()
   (format () (concatenate 'string (string (code-char 3)) "(~A~D) " (string (code-char 4)))
@@ -208,7 +205,7 @@ nor Gnuplot is not recognized by maxima"))))
 	   x)))
     (cond ((equal sym-name "") "")
 	  ((eql (elt sym-name 0) #\\) sym-name)
-	  ((memq (elt sym-name 0) '(#\$ #\&))
+	  ((member (elt sym-name 0) '(#\$ #\&))
 	   (setq sym-name (unquote-% (subseq sym-name 1)))
 	   (concatenate 'string "\\verb|   " (verb-quote sym-name) "|"))
 	  (t (setq sym-name (unquote-% sym-name))
@@ -250,7 +247,7 @@ nor Gnuplot is not recognized by maxima"))))
 (defun tex-stripdollar (sym)
   (or (symbolp sym) (return-from tex-stripdollar sym))
   (let* ((name (print-case-sensitive sym))
-      (pname (if (memq (elt name 0) '(#\$ #\&)) (subseq name 1) name))
+      (pname (if (member (elt name 0) '(#\$ #\&)) (subseq name 1) name))
       (l (length pname)))
     (cond
      ((eql l 1) (myquote pname))
@@ -551,8 +548,7 @@ nor Gnuplot is not recognized by maxima"))))
 		      ((memq answer '($unknown $uk)) '$unknown)))
     (setq answer (retrieve
 		  `((mtext) "Is  " ,object 
-		    ,(if (member (getcharn property 1)
-				 '(#\a #\e #\i #\o #\u)
+		    ,(if (member (get-first-char property) '(#\a #\e #\i #\o #\u)
 				 :test #'char-equal)
 			 '"  an "
 			 '"  a ")

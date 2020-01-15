@@ -12,7 +12,9 @@ splines methods for polynomial interpolation.
 For comments, bugs or suggestions, please contact me at @var{'mario AT edu DOT xunta DOT es'}.
 
 @opencatbox
-@category{Numerical methods} @category{Share packages} @category{Package interpol}
+@category{Numerical methods}
+@category{Share packages}
+@category{Package interpol}
 @closecatbox
 
 @node Functions and Variables for interpol,  , Introduction to interpol, interpol-pkg
@@ -46,7 +48,7 @@ See also @mrefcomma{linearinterpol}  @mrefcomma{cspline}  and @mrefdot{ratinterp
 Examples:
 
 @example
-(%i1) load(interpol)$
+(%i1) load("interpol")$
 (%i2) p:[[7,2],[8,2],[1,5],[3,2],[6,7]]$
 (%i3) lagrange(p);
        (x - 7) (x - 6) (x - 3) (x - 1)
@@ -91,7 +93,7 @@ Examples:
                                                105       5
 (%i6) %,numer;
 (%o6) [- 1.567535, 10.9366573451538, 2.89319655125692]
-(%i7) load(draw)$  /* load draw package */
+(%i7) load("draw")$  /* load draw package */
 (%i8) /* Plot the polynomial together with points */
       draw2d(
         color      = red,
@@ -129,7 +131,57 @@ Examples:
 
 @anchor{charfun2}
 @deffn {Function} charfun2 (@var{x}, @var{a}, @var{b})
-Returns @code{true} if number @var{x} belongs to the interval @math{[a, b)}, and @code{false} otherwise.
+
+The characteristic or indicator function on the half-open interval @math{[@var{a}, @var{b})},
+that is, including @var{a} and excluding @var{b}.
+
+When @math{@var{x} >= @var{a}} and @math{@var{x} < @var{b}} evaluates to @code{true} or @code{false},
+@code{charfun2} returns 1 or 0, respectively.
+
+Otherwise, @code{charfun2} returns a partially-evaluated result in terms of @mref{charfun}.
+
+Package @code{interpol} loads this function.
+
+See also @mrefdot{charfun}
+
+Examples:
+
+When @math{@var{x} >= @var{a}} and @math{@var{x} < @var{b}} evaluates to @code{true} or @code{false},
+@code{charfun2} returns 1 or 0, respectively.
+
+@c ===beg===
+@c load ("interpol") $
+@c charfun2 (5, 0, 100);
+@c charfun2 (-5, 0, 100);
+@c ===end===
+@example
+(%i1) load ("interpol") $
+(%i2) charfun2 (5, 0, 100);
+(%o2)                           1
+(%i3) charfun2 (-5, 0, 100);
+(%o3)                           0
+@end example
+
+Otherwise, @code{charfun2} returns a partially-evaluated result in terms of @mref{charfun}.
+
+@c ===beg===
+@c load ("interpol") $
+@c charfun2 (t, 0, 100);
+@c charfun2 (5, u, v);
+@c assume (v > u, u > 5);
+@c charfun2 (5, u, v);
+@c ===end===
+@example
+(%i1) load ("interpol") $
+(%i2) charfun2 (t, 0, 100);
+(%o2)            charfun((0 <= t) and (t < 100))
+(%i3) charfun2 (5, u, v);
+(%o3)             charfun((u <= 5) and (5 < v))
+(%i4) assume (v > u, u > 5);
+(%o4)                    [v > u, u > 5]
+(%i5) charfun2 (5, u, v);
+(%o5)                           0
+@end example
 
 @opencatbox
 @category{Package interpol}
@@ -163,7 +215,7 @@ See also @mrefcomma{lagrange}  @mrefcomma{cspline}  and @mrefdot{ratinterpol}
 Examples:
 
 @example
-(%i1) load(interpol)$
+(%i1) load("interpol")$
 (%i2) p: matrix([7,2],[8,3],[1,5],[3,2],[6,7])$
 (%i3) linearinterpol(p);
         13   3 x
@@ -189,7 +241,7 @@ Examples:
                             21    3
 (%i6) %,numer;
 (%o6)  [2.3, 2.952380952380953, 2.235987755982989]
-(%i7) load(draw)$  /* load draw package */
+(%i7) load("draw")$  /* load draw package */
 (%i8)  /* Plot the polynomial together with points */
        draw2d(
          color      = red,
@@ -252,7 +304,7 @@ See also @mrefcomma{lagrange}  @mrefcomma{linearinterpol}  and @mrefdot{ratinter
 
 Examples:
 @example
-(%i1) load(interpol)$
+(%i1) load("interpol")$
 (%i2) p:[[7,2],[8,2],[1,5],[3,2],[6,7]]$
 (%i3) /* Unknown first derivatives at the extremes
          is equivalent to natural cubic splines */
@@ -278,7 +330,7 @@ Examples:
 (%i5) /* Some evaluations */
       map(f,[2.3,5/7,%pi]), numer;
 (%o5) [1.991460766423356, 5.823200187269903, 2.227405312429507]
-(%i6) load(draw)$  /* load draw package */
+(%i6) load("draw")$  /* load draw package */
 (%i7) /* Plotting interpolating function */
       draw2d(
         color      = red,
@@ -359,8 +411,8 @@ See also @mrefcomma{lagrange}  @mrefcomma{linearinterpol}  @mrefcomma{cspline}  
 Examples:
 
 @example
-(%i1) load(interpol)$
-(%i2) load(draw)$
+(%i1) load("interpol")$
+(%i2) load("draw")$
 (%i3) p:[[7.2,2.5],[8.5,2.1],[1.6,5.1],[3.4,2.4],[6.7,7.9]]$
 (%i4) for k:0 thru length(p)-1 do                                     
         draw2d(

@@ -1,4 +1,4 @@
-.TH MAXIMA 1L "September 10, 2005"
+.TH MAXIMA 1 "September 10, 2005"
 .ds Ps P\s-2OST\s+2S\s-2CRIPT\s+2
 .ds Ts T\s-2RAN\s+2S\s-2CRIPT\s+2
 .if t .ds Te T\\h'-0.1667m'\\v'0.20v'E\\v'-0.20v'\\h'-0.125m'X
@@ -17,9 +17,14 @@
 Maxima \- Common Lisp version of MACSYMA symbolic mathematics package
 released under the GNU Public License
 .LP
+rmaxima \- A version of maxima that supports command autocompletion
+.LP
 Xmaxima \- A graphical version of Maxima
 .SH SYNOPSIS
 .B maxima
+[\fIoptions\fR]
+.LP
+.B rmaxima
 [\fIoptions\fR]
 .LP
 .B xmaxima 
@@ -360,7 +365,7 @@ Newer references:
 Maxima is a complex system. It includes both known and unknown bugs.
 Use at your own risk. The Maxima bug database is available at
 .LP
-http://sourceforge.net/p/maxima/bugs/
+https://sourceforge.net/p/maxima/bugs/
 .LP
 New bug reports are always appreciated. Please include the output of
 the Maxima function "build_info()" with the report.

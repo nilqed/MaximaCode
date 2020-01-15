@@ -176,7 +176,8 @@ Incorrect syntax: # is not a prefix operator
 @end example
 
 @opencatbox
-@category{Operators} @category{Syntax}
+@category{Operators}
+@category{Syntax}
 @closecatbox
 
 @c -----------------------------------------------------------------------------
@@ -916,7 +917,7 @@ Maxima array, or Lisp array, the right-hand side is assigned to that element.
 The subscript must name an existing element; such objects cannot be extended by
 naming nonexistent elements.
 
-When the left-hand side is a subscripted element of an undeclared Maxima array,
+When the left-hand side is a subscripted element of a @mrefcomma{hashed array}
 the right-hand side is assigned to that element, if it already exists,
 or a new element is allocated, if it does not already exist.
 
@@ -961,7 +962,8 @@ Assignment to an element of a list.
 (%o3)                      [1, 2, 456]
 @end example
 
-Assignment creates an undeclared array.
+Assignment to a variable that neither is the name of a list nor of an array
+creates a @mrefdot{hashed array}
 
 @c ===beg===
 @c c[99] : 789;
@@ -1023,7 +1025,8 @@ The values of @code{a} and @code{b} are exchanged in this example.
 @end example
 
 @opencatbox
-@category{Evaluation} @category{Operators}
+@category{Evaluation}
+@category{Operators}
 @closecatbox
 @end deffn
 
@@ -1072,7 +1075,8 @@ Examples:
 @end example
 
 @opencatbox
-@category{Evaluation} @category{Operators}
+@category{Evaluation}
+@category{Operators}
 @closecatbox
 @end deffn
 
@@ -1186,7 +1190,8 @@ x is equal to 1234 - 1729 w
 @end example
 
 @opencatbox
-@category{Function definition} @category{Operators}
+@category{Function definition}
+@category{Operators}
 @closecatbox
 @end deffn
 
@@ -1205,15 +1210,16 @@ The function definition operator.
 evaluated by quote-quote @code{'@w{}'}).
 The function body is evaluated every time the function is called.
 
-@code{@var{f}[@var{x_1}, ..., @var{x_n}] := @var{expr}} defines a so-called array function.
+@code{@var{f}[@var{x_1}, ..., @var{x_n}] := @var{expr}} defines a so-called
+@mrefdot{memoizing function}
 Its function body is evaluated just once for each distinct value of its arguments,
 and that value is returned, without evaluating the function body,
 whenever the arguments have those values again.
-(A function of this kind is commonly known as a ``memoizing function''.)
+(A function of this kind is also known as a ``array function''.)
 
 @code{@var{f}[@var{x_1}, ..., @var{x_n}](@var{y_1}, ..., @var{y_m}) := @var{expr}}
-is a special case of an array function.
-@code{@var{f}[@var{x_1}, ..., @var{x_n}]} is an array function which returns a lambda expression
+is a special case of a @mrefdot{memoizing function}
+@code{@var{f}[@var{x_1}, ..., @var{x_n}]} is a @mref{memoizing function} which returns a lambda expression
 with arguments @code{@var{y_1}, ..., @var{y_m}}.
 The function body is evaluated once for each distinct value of @code{@var{x_1}, ..., @var{x_n}},
 and the body of the lambda expression is that value.
@@ -1280,7 +1286,7 @@ Evaluating G1 for x= [1, a] and y= [2, b]
 (%o3)                           0
 @end example
 
-@code{f[@var{x_1}, ..., @var{x_n}] := ...} defines an array function.
+@code{f[@var{x_1}, ..., @var{x_n}] := ...} defines a @mrefdot{memoizing function}
 
 @c ===beg===
 @c G2[a] := (print ("Evaluating G2 for a=", a), a^2);
@@ -1310,7 +1316,7 @@ Evaluating G2 for a= 2345
 @end example
 
 @code{@var{f}[@var{x_1}, ..., @var{x_n}](@var{y_1}, ..., @var{y_m}) := @var{expr}}
-is a special case of an array function.
+is a special case of a @mrefdot{memoizing function}
 
 @c ===beg===
 @c G3[n](x) := (print ("Evaluating G3 for n=", n), diff (sin(x)^2, x, n));
@@ -1377,7 +1383,8 @@ the function defined by @code{:=} accepts a variable number of arguments.
 @end example
 
 @opencatbox
-@category{Function definition} @category{Operators}
+@category{Function definition}
+@category{Operators}
 @closecatbox
 @end deffn
 
@@ -1512,7 +1519,9 @@ if x ## y then
 @end example
 
 @opencatbox
-@category{Operators} @category{Declarations and inferences} @category{Syntax}
+@category{Operators}
+@category{Declarations and inferences}
+@category{Syntax}
 @closecatbox
 @end deffn
 
@@ -1648,7 +1657,8 @@ Matchfix operators are ordinary user-defined functions.
 @end example
 
 @opencatbox
-@category{Syntax} @category{Operators}
+@category{Syntax}
+@category{Operators}
 @closecatbox
 @end deffn
 
@@ -1668,7 +1678,8 @@ to be an @code{nary} operator.  Functions may be declared to be @code{nary}.  If
 See also @ref{Introduction to operators}.
 
 @opencatbox
-@category{Operators} @category{Syntax}
+@category{Operators}
+@category{Syntax}
 @closecatbox
 @end deffn
 
@@ -1688,7 +1699,8 @@ function which declares @code{x} to be a @code{nofix} operator.
 See also @ref{Introduction to operators}.
 
 @opencatbox
-@category{Operators} @category{Syntax}
+@category{Operators}
+@category{Syntax}
 @closecatbox
 @end deffn
 
@@ -1707,7 +1719,8 @@ to be a @code{postfix} operator.
 See also @ref{Introduction to operators}.
 
 @opencatbox
-@category{Operators} @category{Syntax}
+@category{Operators}
+@category{Syntax}
 @closecatbox
 @end deffn
 
@@ -1725,7 +1738,8 @@ which argument immediately follows an occurrence of the operator.
 See also @ref{Introduction to operators}.
 
 @opencatbox
-@category{Operators} @category{Syntax}
+@category{Operators}
+@category{Syntax}
 @closecatbox
 @end deffn
 

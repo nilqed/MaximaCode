@@ -77,7 +77,8 @@
 (defun mread-noprompt (&rest read-args)
   (let ((*mread-prompt* "") (*prompt-on-read-hang*))
     (declare (special *mread-prompt* *prompt-on-read-hang*))
-    (unless read-args (setq read-args (list *query-io*)))
+    (unless read-args (setq read-args (list #+(or sbcl cmu) *standard-input*
+                                            #-(or sbcl cmu) *query-io*)))
     (caddr (apply #'mread read-args))))
 
 ;; Some list creation utilities.
@@ -93,20 +94,19 @@
 	       l (cddr l))
 	 (unless (symbolp var1) (merror (intl:gettext "create_list: expected a symbol; found: ~A") var1))
  	 (setq lis (meval* lis))
-	 (progv (list var1)
-	     (list nil)
+	 (mbinding ((list var1))
 	   (cond ((and (numberp lis)
 		       (progn
 			 (setq top (car l) l (cdr l))
 			 (setq top (meval* top))
 			 (numberp top)))
 		  (loop for i from lis to top
-		     do (setf (symbol-value var1) i)
+		     do (mset var1 i)
 		     append
 		     (apply #'create-list1 form l)))
 		 (($listp lis)
 		  (loop for v in (cdr lis)
-		     do (setf (symbol-value var1) v)
+		     do (mset var1 v)
 		     append
 		     (apply #'create-list1 form l)))
 		 (t (merror (intl:gettext "create_list: unexpected arguments."))))))))
@@ -123,7 +123,7 @@
 	(cl-info::info-inexact topic))))
 
 ; The old implementation
-;(defun $apropos (s)
+;(defmfun $apropos (s)
 ;  (cons '(mlist) (apropos-list s :maxima)))
 
 ;;; Utility function for apropos to filter a list LST with a function FN
@@ -150,8 +150,8 @@
              ($setify
                (cons '(mlist)
                       (filter #'(lambda (x)
-                                  (cond ((eq (getcharn x 1) #\$) x)
-                                        ((eq (getcharn x 1) #\%)
+                                  (cond ((char= (get-first-char x) #\$) x)
+                                        ((char= (get-first-char x) #\%)
                                          ;; Change to a verb, when present.
                                          (if (setq y (get x 'noun))
                                              y

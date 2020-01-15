@@ -1,9 +1,9 @@
 include $(top_srcdir)/common.mk
 genericdir =$(sharedir)
 
-sharefiles = $(shell find . -type f | \
+sharefiles = $(shell cd $(srcdir);find * -type f | \
 egrep -v '\.ERR$$' | \
-egrep -v 'CVS|Makefile(\.in|\.am)?|^\./Makefile|\.gitignore' | \
+egrep -v 'CVS|Makefile(\.in|\.am)?|^\./Makefile|\.gitignore|\.gitattributes' | \
 egrep -v '/fortran/' | \
 egrep -v 'colnew/ex./' | \
 egrep -v 'lbfgs/.*\.f' | \

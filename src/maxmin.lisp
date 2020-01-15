@@ -29,7 +29,10 @@
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
   ($put '$trylevel 1 '$maxmin)  ;; Default: only use basic simplification rules
-  ($put '$maxmin 1 '$version))  ;; Let's have version numbers 1,2,3,...
+  ($put '$maxmin 1 '$version)   ;; Let's have version numbers 1,2,3,...
+  ;; Let's remove built-in symbols from list for user-defined properties.
+  (setq $props (remove '$trylevel $props))
+  (setq $props (remove '$maxmin $props)))
 
 ;; Return true if there is pi in the CL list p and qi in the CL lisp q such that
 ;; x is between pi and qi.  This means that either pi <= x <= qi or
@@ -178,10 +181,10 @@
 (defun maximin (l op) (simplify `((,op) ,@l)))
  
 (defmfun $lmax (e)
-  (simplify `(($max) ,@(require-list-or-set e "$lmax")))) 
+  (simplify `(($max) ,@(require-list-or-set e '$lmax)))) 
 
 (defmfun $lmin (e)
-  (simplify `(($min) ,@(require-list-or-set e "$lmin"))))
+  (simplify `(($min) ,@(require-list-or-set e '$lmin))))
 
 ;; Return the narrowest comparison operator op (<, <=, =, >, >=) such that
 ;; a op b evaluates to true. Return 'unknown' when either there is no such 
@@ -197,7 +200,7 @@
 ;; I think compare(asin(x), asin(x) + 1) should evaluate to < without
 ;; being quizzed about the sign of x. Thus the call to lenient-extended-realp.
 
-(defun $compare (a b)
+(defmfun $compare (a b)
   ;; Simplify expressions with infinities, indeterminates, or infinitesimals
   (when (amongl '($ind $und $inf $minf $infinity $zeroa $zerob) a)
     (setq a ($limit a)))
@@ -231,7 +234,7 @@
 (defun lenient-extended-realp (e)
   (and ($freeof '$infinity '$%i '$und '$ind '$false '$true t nil e) ;; what else?
        (not (mbagp e))
-       (not ($featurep e '$nonscalarp))
+       (not ($featurep e '$nonscalar))
        (not (mrelationp e))
        (not ($member e $arrays))))
 
@@ -240,7 +243,7 @@
 
 ;; Convert all floats and big floats in e to an exact rational representation. 
 
-(defun $rationalize (e)
+(defmfun $rationalize (e)
   (setq e (ratdisrep e))
   (cond ((floatp e) 
 	 (let ((significand) (expon) (sign))

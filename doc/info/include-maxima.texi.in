@@ -76,11 +76,18 @@ and develop DOE Macsyma, now called Maxima.
 
 @end titlepage
 
+@ifnotinfo
 @summarycontents
 @contents
+@end ifnotinfo
 
 @ifnottex
+@ifinfo
 @node Top, Introduction to Maxima, (dir), (dir)
+@end ifinfo
+@ifnotinfo
+@node Top, Introduction to Maxima
+@end ifnotinfo
 @top
 
 Maxima is a computer algebra system, implemented in Lisp.
@@ -113,7 +120,7 @@ and develop DOE Macsyma, now called Maxima.
 * Evaluation::                  Evaluating expressions.
 * Simplification::              Simplifying expressions.
 * Mathematical Functions::      Mathematical functions in Maxima.
-* Maximas Database::            Declarations, Contexts, Facts, and Properties.
+* Maxima's Database::           Declarations, Contexts, Facts, and Properties.
 * Plotting::                    2D and 3D graphical output.
 * File Input and Output::       File input and output.
 
@@ -159,6 +166,7 @@ and develop DOE Macsyma, now called Maxima.
 * celine-pkg::                      Sister Celine's method 
 * clebsch_gordan-pkg::              Clebsch-Gordan and Wigner coefficients
 * cobyla-pkg::                      Nonlinear optimization with inequality constraints.
+* combinatorics-pkg::               Functions to work with permutations.
 * contrib_ode-pkg::                 Additional routines for ODEs
 * descriptive-pkg::                 Descriptive statistics.
 * diag-pkg::                        Jordan matrices.
@@ -185,9 +193,11 @@ and develop DOE Macsyma, now called Maxima.
 * minpack-pkg::                     MINPACK functions for minimization and roots
 * mnewton-pkg::                     Newton's method.
 * numericalio-pkg::                 Reading and writing files.
+* odepack-pkg::                     Numerical ODE solver
 * operatingsystem-pkg::             Common operating system tasks (create/remove dirs+files,...).
 * opsubst-pkg::                     Substitutions utility.
 * orthopoly-pkg::                   Orthogonal polynomials.
+* pytranslate::                     Maxima to Python Translation
 * ratpow-pkg::                      Determine the coefficients of polynoms.
 * romberg-pkg::                     Romberg method for numerical integration.
 * simplex-pkg::                     Linear programming.
@@ -198,6 +208,7 @@ and develop DOE Macsyma, now called Maxima.
 * stringproc-pkg::                  String processing.
 * to_poly_solve-pkg::               to_poly_solve package.
 * unit-pkg::                        Units and dimensions package.
+* wrstcse-pkg::                     Worstcase calculations for engineering.
 * zeilberger-pkg::                  Functions for hypergeometric summation.
 
 @b{Understanding maxima's output}
@@ -205,6 +216,9 @@ and develop DOE Macsyma, now called Maxima.
 
 @b{Index}
 * Function and Variable Index:: Index.
+@ifhtml
+* Documentation Categories::        Docuemntation categories
+@end ifhtml
 
 @comment @detailmenu
 @b{ --- The Detailed Node Listing --- }
@@ -262,8 +276,8 @@ Mathematical Functions
 * Trigonometric Functions::
 * Random Numbers::
 
-Maximas Database
-* Introduction to Maximas Database::
+Maxima's Database
+* Introduction to Maxima's Database::
 * Functions and Variables for Properties::
 * Functions and Variables for Facts::
 * Functions and Variables for Predicates::
@@ -429,6 +443,10 @@ cobyla
 * Functions and Variables for cobyla::
 * Examples for cobyla::
 
+combinatorics
+* Package combinatorics::       
+* Functions and Variables for Combinatorics::       
+
 contrib_ode
 * Introduction to contrib_ode::
 * Functions and Variables for contrib_ode::
@@ -471,7 +489,7 @@ ezunits
 * Functions and Variables for ezunits::
 
 f90
-* Functions and Variables for f90::
+* Package f90::
 
 finance
 * Introduction to finance::
@@ -537,6 +555,10 @@ numericalio
 * Functions and Variables for plain-text input and output::
 * Functions and Variables for binary input and output::
 
+odepack
+* Introduction to ODEPACK::
+* Functions and Variables for odepack::  
+
 operatingsystem
 * Introduction to operatingsystem::
 * Directory operations::
@@ -548,6 +570,11 @@ opsubst
 orthopoly
 * Introduction to orthogonal polynomials::
 * Functions and Variables for orthogonal polynomials::
+
+pytranslate
+* Introduction to pytranslate::
+* Functions in pytranslate::
+* Extending pytranslate::
 
 ratpow
 * Functions and Variables for ratpow::
@@ -651,15 +678,15 @@ Understanding maxima's output
 @chapter Simplification
 @include Simplification.texi
 
-@node Mathematical Functions, Maximas Database, Simplification, Top
+@node Mathematical Functions, Maxima's Database, Simplification, Top
 @chapter Mathematical Functions
 @include MathFunctions.texi
 
-@node Maximas Database, Plotting, Mathematical Functions, Top
-@chapter Maximas Database
+@node Maxima's Database, Plotting, Mathematical Functions, Top
+@chapter Maxima's Database
 @include Database.texi
 
-@node Plotting, File Input and Output, Maximas Database, Top
+@node Plotting, File Input and Output, Maxima's Database, Top
 @chapter Plotting
 @include Plotting.texi
 
@@ -785,27 +812,31 @@ Understanding maxima's output
 @chapter Bernstein
 @include bernstein.texi
 
-@node bitwise-pkg
+@node bitwise-pkg, bode-pkg, Bernstein-pkg, Top
 @chapter bitwise
 @include bitwise.texi
 
-@node bode-pkg
+@node bode-pkg, celine-pkg, bitwise-pkg, Top
 @chapter bode
 @include bode.texi
 
-@node celine-pkg
+@node celine-pkg, clebsch_gordan-pkg, bode-pkg, Top
 @chapter celine
 @include celine.texi
 
-@node clebsch_gordan-pkg
+@node clebsch_gordan-pkg, cobyla-pkg, celine-pkg, Top
 @chapter clebsch_gordan
 @include clebsch_gordan.texi
 
-@node cobyla-pkg
+@node cobyla-pkg, combinatorics-pkg, clebsch_gordan-pkg, Top
 @chapter cobyla
 @include cobyla.texi
 
-@node contrib_ode-pkg, descriptive-pkg, cobyla-pkg, Top
+@node combinatorics-pkg, contrib_ode-pkg, cobyla-pkg, Top
+@chapter combinatorics
+@include combinatorics.texi
+
+@node contrib_ode-pkg, descriptive-pkg, combinatorics-pkg, Top
 @chapter contrib_ode
 @include contrib_ode.texi
 
@@ -905,11 +936,15 @@ Understanding maxima's output
 @chapter mnewton
 @include mnewton.texi
 
-@node numericalio-pkg, operatingsystem-pkg, mnewton-pkg, Top
+@node numericalio-pkg, odepack-pkg, mnewton-pkg, Top
 @chapter numericalio
 @include numericalio.texi
 
-@node operatingsystem-pkg, opsubst-pkg, numericalio-pkg, Top
+@node odepack-pkg, operatingsystem-pkg, numericalio-pkg, Top
+@chapter odepack
+@include odepack.texi
+
+@node operatingsystem-pkg, opsubst-pkg, odepack-pkg, Top
 @chapter operatingsystem
 @include operatingsystem.texi
 
@@ -917,11 +952,15 @@ Understanding maxima's output
 @chapter opsubst
 @include opsubst.texi
 
-@node orthopoly-pkg, ratpow-pkg, opsubst-pkg, Top
+@node orthopoly-pkg, pytranslate, opsubst-pkg, Top
 @chapter orthopoly
 @include orthopoly.texi
 
-@node ratpow-pkg, romberg-pkg, orthopoly-pkg, Top
+@node pytranslate, ratpow-pkg, orthopoly-pkg, Top
+@chapter pytranslate
+@include pytranslate.texi
+
+@node ratpow-pkg, romberg-pkg, pytranslate, Top
 @chapter ratpow
 @include ratpow.texi
 
@@ -957,11 +996,15 @@ Understanding maxima's output
 @chapter to_poly_solve
 @include to_poly_solve.texi
 
-@node unit-pkg, zeilberger-pkg, to_poly_solve-pkg, Top
+@node unit-pkg, wrstcse-pkg, to_poly_solve-pkg, Top
 @chapter unit
 @include unit.texi
 
-@node zeilberger-pkg, Error and warning messages, unit-pkg, Top
+@node wrstcse-pkg, zeilberger-pkg, unit-pkg, Top
+@chapter wrstcse
+@include wrstcse.texi
+
+@node zeilberger-pkg, Error and warning messages, wrstcse-pkg, Top
 @chapter zeilberger
 @include zeilberger.texi
 
@@ -971,7 +1014,17 @@ Understanding maxima's output
 
 @c end includes
 
+@ifnothtml
 @node Function and Variable Index,  , Error and warning messages, Top
+@end ifnothtml
+@ifhtml
+@node Function and Variable Index, Documentation Categories , Error and warning messages, Top
+@end ifhtml
 @appendix Function and Variable Index
 
 @printindex fn
+
+@page
+@ifhtml
+@contents
+@end ifhtml

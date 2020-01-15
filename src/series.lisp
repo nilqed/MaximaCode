@@ -62,6 +62,7 @@
         (with-slots (message) e
           (when message
             (terpri)
+            (finish-output)
             (apply #'mtell message))))
       `((%powerseries) ,expr ,var ,pt))))
 
@@ -126,6 +127,7 @@ integration / differentiation variable."))
   (let ((w (sratsimp (sp1 e))))
     (when $verbose
       (terpri)
+      (finish-output)
       (mtell (intl:gettext "powerseries: first simplification returned ~%"))
       (show-exp w))
     w))
@@ -142,7 +144,7 @@ integration / differentiation variable."))
 	((eq (caar exp) 'mplus) (m+l (mapcar #'sp2expand (cdr exp)))) ;was below 'mtimes test--fixes powerseries(1+x^n,x,0)
 	((sratp exp var) (ratexp exp))
 	((eq (caar exp) 'mexpt) (sp2expt exp))
-	((oldget (caar exp) 'sp2) (sp2sub (sp2trig exp) (cadr exp)))
+	((zl-get (caar exp) 'sp2) (sp2sub (sp2trig exp) (cadr exp)))
 	((eq (caar exp) 'mtimes) (m*l (mapcar #'sp2expand (cdr exp))))
 	((eq (caar exp) '%log) (sp2log (cadr exp)))
 	((eq (caar exp) '%derivative) (sp2diff (cadr exp) (cddr exp)))
@@ -375,7 +377,8 @@ integration / differentiation variable."))
     (mtell (intl:gettext
             "powerseries: attempt partial fraction expansion of "))
     (show-exp (list '(mquotient) n d))
-    (terpri))
+    (terpri)
+    (finish-output))
 
   ;; *RATEXP serves as a recursion guard: if SRATEXPND is about to call us
   ;; *recursively, the flag will be set and it gives up instead.
@@ -414,7 +417,8 @@ integration / differentiation variable."))
 	   (show-exp (list '(mexpt) var gcd))
 	 (mtell (intl:gettext "in"))
 	 (show-exp (list '(mquotient) num den))
-	 (terpri)))
+	 (terpri)
+	 (finish-output)))
   (funcall #'(lambda (var* *var)
 	       (setq num (maxima-substitute (m^ var* (m^ gcd -1)) *var num)
 		     den (maxima-substitute (m^ var* (m^ gcd -1)) *var den))
@@ -536,7 +540,7 @@ integration / differentiation variable."))
 
 (defun sandmap (l) (or (null l) (and (sratp (car l) var) (sandmap (cdr l)))))
 
-(defun sp2trig (exp) (subst *index '*index (oldget (caar exp) 'sp2)))
+(defun sp2trig (exp) (subst *index '*index (zl-get (caar exp) 'sp2)))
 
 ;; Take an expression, EXPR, and try to write it as a + b*VAR^c. On success,
 ;; returns (VALUES A B C). On failure, raise a powerseries-expansion-error.

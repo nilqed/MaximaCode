@@ -36,7 +36,13 @@
 
 (macsyma-module f90)
 
-(defvar *f90-output-line-length-max* 65.)
+(defmvar *f90-output-line-length-max* 65.)
+
+(defvar $f90_output_line_length_max *f90-output-line-length-max*)
+
+(progn
+  (putprop '$f90_output_line_length_max '*f90-output-line-length-max* 'alias)
+  (putprop '*f90-output-line-length-max* '$f90_output_line_length_max 'reversealias))
 
 (defun f90-print (x
 		  &aux
@@ -54,7 +60,11 @@
     (defprop mminus 100 lbp)
 
     (defprop msetq (#\:) strsym)
-    (setq x (coerce (mstring x) 'string))
+    (let ((*fortran-print* t)
+	  (*read-default-float-format* 'single-float))
+      ;; The above makes sure we an exponent marker for Fortran
+      ;; numbers.
+      (setq x (coerce (mstring x) 'string)))
     ;; Make sure this gets done before exiting this frame.
     (defprop mexpt msz-mexpt grind)
     (remprop 'mminus 'lbp))

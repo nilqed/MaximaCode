@@ -21,8 +21,8 @@
 (defun mseemingly-unbound (x)
   (or (not (boundp x)) (eq (symbol-value x) x)))
 
-(defmfun assign-mode-check (var value)
-  (let ((mode (get var 'mode))
+(defun assign-mode-check (var value)
+  (let ((mode (tr-get-mode var))
 	(user-level ($get var '$value_check)))
     (when mode
       (let (($mode_check_warnp t)
@@ -76,7 +76,7 @@
 (defmspec $define_variable  (l)
   (setq l (cdr l))
   (unless (> (length l) 2)
-    (merror (intl:gettext "define_variable: expected three arguments; found: ~M") `((mprogn) ,@l)))
+    (merror (intl:gettext "define_variable: expected three arguments; found: ~M") `((mlist) ,@l)))
   (unless (symbolp (car l))
     (merror (intl:gettext "define_variable: first argument must be a symbol; found: ~M") (car l)))
   (meval `(($modedeclare) ,(car l) ,(caddr l)))
@@ -90,7 +90,7 @@
 (defmspec $mode_identity (l)
   (setq l (cdr l))
   (unless (= (length l) 2)
-    (merror (intl:gettext "mode_identity: expected two arguments; found: ~M") `((mprogn) ,@l)))
+    (merror (intl:gettext "mode_identity: expected two arguments; found: ~M") `((mlist) ,@l)))
   (let* ((obj (cadr l))
 	 (v (meval obj)))
     (chekvalue obj (ir-or-extend (car l)) v)
@@ -119,13 +119,13 @@
       ((null l))
     (declmode (car l) (ir-or-extend (cadr l)) t)))
 
-(defmfun ass-eq-ref (table key &optional dflt)
+(defun ass-eq-ref (table key &optional dflt)
   (let ((val (assoc key table :test #'eq)))
     (if val
 	(cdr val)
 	dflt)))
 
-(defmfun ass-eq-set (val table key)
+(defun ass-eq-set (val table key)
   (let ((cell (assoc key table :test #'eq)))
     (if cell
 	(setf (cdr cell) val)
@@ -143,7 +143,7 @@
 (defmspec $modedeclare (x)
   (setq x (cdr x))
   (when (oddp (length x))
-    (merror (intl:gettext "mode_declare: expected an even number of arguments; found: ~M") `((mprogn) ,@x)))
+    (merror (intl:gettext "mode_declare: expected an even number of arguments; found: ~M") `((mlist) ,@x)))
   (do ((l x (cddr l)) (nl))
       ((null l) (cons '(mlist) (nreverse nl)))
     (declmode (car l) (ir-or-extend (cadr l)) nil)
@@ -190,7 +190,7 @@
 (defun declvalue (v mode trflag)
   (when trflag (setq v (teval v)))
   (add2lnc v $props)
-  (putprop v mode 'mode))
+  (setf (tr-get-mode v) mode))
 
 (defun chekvalue (my-v mode &optional (val (meval1 my-v) val-givenp))
   (cond ((or val-givenp (not (eq my-v val)))
@@ -223,7 +223,7 @@
 			  
 (defun put-mode (name mode type)
   (if (get name 'tbind)
-      (setf (get name 'val-modes) (ass-eq-set mode (get name 'val-modes) type))
+      (setf (tr-get-val-modes name) (ass-eq-set mode (tr-get-val-modes name) type))
       (setf (get name type) mode)))
 
 (defun declarray (ar mode)

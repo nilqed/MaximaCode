@@ -36,12 +36,6 @@
 	((cdr rest) (cons '(mtimes) rest))
 	(t (car rest))))
 
-(defmacro posint (x)
-  `(and (integerp ,x) (> ,x 0)))
-
-(defmacro negint (x)
-  `(and (integerp ,x) (< ,x 0)))
-
 (defun isquadraticp (e x)
   (let ((b (sdiff e x)))
     (cond ((zerop1 b) (list 0 0 e))
@@ -142,9 +136,8 @@
        ;; the parameter of the Laplace transform to be positive before 
        ;; we call $specint too.
        (with-new-context (context)
-         (progn
-           (meval `(($assume) ,@(list (list '(mgreaterp) parm 0))))
-           (setq res ($specint (mul fun (power '$%e (mul -1 var parm))) var))))
+         (meval `(($assume) ,@(list (list '(mgreaterp) parm 0))))
+         (setq res ($specint (mul fun (power '$%e (mul -1 var parm))) var)))
        (if (or (isinop res '%specint)  ; Both symobls are possible, that is
                (isinop res '$specint)) ; not consistent! Check it! 02/2009
            ;; $specint has not found a result.
@@ -335,16 +328,19 @@
 ;;;INTEGRAL FROM A TO INFINITY OF F(X)
 (defun mydefint (f x a parm)
   (let ((tryint (and (not ($unknown f))
-                     ;; $defint should not throw a Maxima error,
-                     ;; therefore we set the flags errcatch and $errormsg.
-                     ;; errset catches the error and returns nil
+                     ;; We don't want any errors thrown by $defint to propagate,
+                     ;; so we set errset, errcatch, $errormsg and *mdebug*.  If
+                     ;; $defint throws a error, then no error message is printed
+                     ;; and errset simply returns nil below.
                      (with-new-context (context)
-                       (progn
-                         (meval `(($assume) ,@(list (list '(mgreaterp) parm 0))))
-                         (meval `(($assume) ,@(list (list '(mgreaterp) x 0))))
-                         (meval `(($assume) ,@(list (list '(mgreaterp) a 0))))
-                         (let ((errcatch t) ($errormsg nil))
-                           (errset ($defint f x a '$inf))))))))
+                       (meval `(($assume) ,@(list (list '(mgreaterp) parm 0))))
+                       (meval `(($assume) ,@(list (list '(mgreaterp) x 0))))
+                       (meval `(($assume) ,@(list (list '(mgreaterp) a 0))))
+                       (let ((errset nil)
+                             (errcatch t)
+                             ($errormsg nil)
+                             (*mdebug* nil))
+                         (errset ($defint f x a '$inf)))))))
     (if tryint
 	(car tryint)
 	(list '(%integrate) f x a '$inf))))
@@ -537,14 +533,17 @@
      (setq mult (simptimes (list '(mtimes) (exponentiate
 					    (list '(mtimes) -1 var parm)) fun) 1 nil))
      (with-new-context (context)
-       (progn
-         (meval `(($assume) ,@(list (list '(mgreaterp) parm 0))))
-         (setq tryint
-               ;; $defint should not throw a Maxima error.
-               ;; therefore we set the flags errcatch and errormsg.
-               ;; errset catches an error and returns nil.
-               (let ((errcatch t) ($errormsg nil))
-                 (errset ($defint mult var 0 '$inf))))))
+       (meval `(($assume) ,@(list (list '(mgreaterp) parm 0))))
+       (setq tryint
+             ;; We don't want any errors thrown by $defint to propagate,
+             ;; so we set errset, errcatch, $errormsg and *mdebug*.  If
+             ;; $defint throws a error, then no error message is printed
+             ;; and errset simply returns nil below.
+             (let ((errset nil)
+                   (errcatch t)
+                   ($errormsg nil)
+                   (*mdebug* nil))
+               (errset ($defint mult var 0 '$inf)))))
      (and tryint (not (eq (and (listp (car tryint))
 			       (caaar tryint))
 			  '%integrate))
@@ -821,21 +820,19 @@
 		  1
 		  nil))))
 
-(declare-top(notype k))
-
 ;;(DEFUN COEF MACRO (POL) (SUBST (CADR POL) (QUOTE DEG)
 ;;  '(DISREP (RATQU (POLCOEF (CAR P) DEG) (CDR P)))))
 
 (defmacro coef (pol)
   `(disrep (ratqu (polcoef (car p) ,pol) (cdr p))))
 
-(defmfun lapsum (&rest args)
+(defun lapsum (&rest args)
   (cons '(mplus) args))
 
-(defmfun lapprod (&rest args)
+(defun lapprod (&rest args)
   (cons '(mtimes) args))
 
-(defmfun expo (&rest args)
+(defun expo (&rest args)
   (cons '(mexpt) args))
 
 ;;;INVERTS P(S)/Q(S) WHERE Q(S) IS IRREDUCIBLE

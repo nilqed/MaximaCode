@@ -11,13 +11,13 @@
 @c -----------------------------------------------------------------------------
 
 Maxima has several routines for handling integration.
-The @code{integrate} function makes use of most of them.  There is also the
-@code{antid} package, which handles an unspecified function (and its
+The @mref{integrate} function makes use of most of them.  There is also the
+@mref{antid} package, which handles an unspecified function (and its
 derivatives, of course).  For numerical uses,
-there is a set of adaptive integrators from QUADPACK, named @code{quad_qag},
-@code{quad_qags}, etc., which are described under the heading @code{QUADPACK}.
+there is a set of adaptive integrators from QUADPACK, named @mrefcomma{quad_qag}
+@mrefcomma{quad_qags} etc., which are described under the heading @code{QUADPACK}.
 Hypergeometric functions are being worked on,
-see @code{specint} for details.
+see @mref{specint} for details.
 Generally speaking, Maxima only handles integrals which are
 integrable in terms of the "elementary functions" (rational functions,
 trigonometrics, logs, exponentials, radicals, etc.) and a few
@@ -41,7 +41,14 @@ Makes the change of variable given by @code{@var{f(x,y)} = 0} in all integrals
 occurring in @var{expr} with integration with respect to @var{x}.
 The new variable is @var{y}.
 
+The change of variable can also be written @code{@var{f(x)} = @var{g(y)}}.
+
 @c HMM, THIS EXAMPLE YIELDS A CORRECT BUT SLIGHTLY STRANGE RESULT...
+@c ===beg===
+@c assume(a > 0)$
+@c 'integrate (%e**sqrt(a*y), y, 0, 4);
+@c changevar (%, y-z^2/a, z, y);
+@c ===end===
 @example
 (%i1) assume(a > 0)$
 @group
@@ -78,6 +85,10 @@ product.  However, it must be realized that when a change is made in a
 sum or product, this change must be a shift, i.e., @code{i = j+ ...}, not a
 higher degree function.  E.g.,
 
+@c ===beg===
+@c sum (a[i]*x^(i-2), i, 0, inf);
+@c changevar (%, i-2-n, n, i);
+@c ===end===
 @example
 @group
 (%i4) sum (a[i]*x^(i-2), i, 0, inf);
@@ -115,7 +126,7 @@ higher degree function.  E.g.,
 
 A double-integral routine which was written in
 top-level Maxima and then translated and compiled to machine code.
-Use @code{load (dblint)} to access this package.  It uses the Simpson's rule
+Use @code{load ("dblint")} to access this package.  It uses the Simpson's rule
 method in both the x and y directions to calculate
 
 @tex
@@ -159,7 +170,7 @@ time-consuming, you will have to wait for re-computation if you change anything
 either translated or compiled prior to calling @code{dblint}.  This will result
 in orders of magnitude speed improvement over interpreted code in many cases!
 
-@code{demo (dblint)} executes a demonstration of @code{dblint} applied to an
+@code{demo ("dblint")} executes a demonstration of @code{dblint} applied to an
 example problem.
 @c demo (dblint_1) FAILS WITH Could not find `fltdfnk.mc' -- DON'T BOTHER TO MENTION IT. !!!
 @c @code{demo (dblint_1)} executes another demonstration.
@@ -181,7 +192,7 @@ Thus from the user's point of view, it is sufficient to call @code{integrate}.
 @c SHOULD WE BOTHER TO DOCUMENT defint ??? NO FUNCTIONALITY HERE THAT IS NOT ALREADY PRESENT IN integrate !!!
 
 @code{defint} returns a symbolic expression, either the computed integral or the
-noun form of the integral.  See @code{quad_qag} and related functions for
+noun form of the integral.  See @mref{quad_qag} and related functions for
 numerical approximation of definite integrals.
 
 @opencatbox
@@ -216,6 +227,13 @@ By using the functions @code{laplace} and @code{ilt} together with the
 @code{solve} or @code{linsolve} functions the user can solve a single
 differential or convolution integral equation or a set of them.
 
+@c ===beg===
+@c 'integrate (sinh(a*x)*f(t-x), x, 0, t) + b*f(t) = t**2;
+@c laplace (%, t, s);
+@c linsolve ([%], ['laplace(f(t), t, s)]);
+@c ilt (rhs (first (%)), s, t);
+@c input:pos;
+@c ===end===
 @example
 @group
 (%i1) 'integrate (sinh(a*x)*f(t-x), x, 0, t) + b*f(t) = t**2;
@@ -333,9 +351,9 @@ not contain @var{x}, although @code{integrate} does not enforce this
 restriction.  @var{a} need not be less than @var{b}.
 If @var{b} is equal to @var{a}, @code{integrate} returns zero.
 
-See @code{quad_qag} and related functions for numerical approximation of
-definite integrals.  See @code{residue} for computation of residues
-(complex integration).  See @code{antid} for an alternative means of computing
+See @mref{quad_qag} and related functions for numerical approximation of
+definite integrals.  See @mref{residue} for computation of residues
+(complex integration).  See @mref{antid} for an alternative means of computing
 indefinite integrals.
 
 The integral (an expression free of @code{integrate}) is returned if
@@ -354,10 +372,10 @@ where @var{i} is the noun form of interest.
 @c BEGIN EXPOSITION ON HEURISTICS
 @code{integrate} handles definite integrals separately from indefinite, and
 employs a range of heuristics to handle each case.  Special cases of definite
-integrals include limits of integration equal to zero or infinity (@code{inf} or
-@code{minf}), trigonometric functions with limits of integration equal to zero
+integrals include limits of integration equal to zero or infinity (@mref{inf} or
+@mref{minf}), trigonometric functions with limits of integration equal to zero
 and @code{%pi} or @code{2 %pi}, rational functions, integrals related to the
-definitions of the @code{beta} and @code{psi} functions, and some logarithmic
+definitions of the @mref{beta} and @mref{psi} functions, and some logarithmic
 and trigonometric integrals.  Processing rational functions may include
 computation of residues.  If an applicable special case is not found, an attempt
 will be made to compute the indefinite integral and evaluate it at the limits of
@@ -377,7 +395,7 @@ This search may make use of derivatives defined by the @code{gradef} function.
 See also @mref{changevar} and @mrefdot{antid}
 
 If none of the preceding heuristics find the indefinite integral, the Risch
-algorithm is executed.  The flag @mref{risch} may be set as an @code{evflag},
+algorithm is executed.  The flag @mref{risch} may be set as an @mrefcomma{evflag}
 in a call to @code{ev} or on the command line, e.g.,
 @code{ev (integrate (@var{expr}, @var{x}), risch)} or
 @code{integrate (@var{expr}, @var{x}), risch}.  If @code{risch} is present,
@@ -387,10 +405,10 @@ first.  See also @mrefdot{risch}
 
 @code{integrate} works only with functional relations represented explicitly
 with the @code{f(x)} notation.  @code{integrate} does not respect implicit
-dependencies established by the @code{depends} function.
+dependencies established by the @mref{depends} function.
 
 @code{integrate} may need to know some property of a parameter in the integrand.
-@code{integrate} will first consult the @code{assume} database,
+@code{integrate} will first consult the @mref{assume} database,
 and, if the variable of interest is not there,
 @code{integrate} will ask the user.
 Depending on the question,
@@ -408,6 +426,12 @@ Examples:
 @item
 Elementary indefinite and definite integrals.
 
+@c ===beg===
+@c integrate (sin(x)^3, x);
+@c integrate (x/ sqrt (b^2 - x^2), x);
+@c integrate (cos(x)^2 * exp(x), x, 0, %pi);
+@c integrate (x^2 * exp(-x^2), x, minf, inf);
+@c ===end===
 @example
 @group
 (%i1) integrate (sin(x)^3, x);
@@ -439,6 +463,12 @@ Elementary indefinite and definite integrals.
 @item
 Use of @code{assume} and interactive query.
 
+@c ===beg===
+@c assume (a > 1)$
+@c integrate (x**a/(x+1)**(5/2), x, 0, inf);
+@c input:no;
+@c input:neg;
+@c ===end===
 @example
 (%i1) assume (a > 1)$
 @group
@@ -459,9 +489,14 @@ neg;
 
 @item
 Change of variable.  There are two changes of variable in this example:
-one using a derivative established by @code{gradef}, and one using the
+one using a derivative established by @mrefcomma{gradef} and one using the
 derivation @code{diff(r(x))} of an unspecified function @code{r(x)}.
 
+@c ===beg===
+@c gradef (q(x), sin(x**2));
+@c diff (log (q (r (x))), x);
+@c integrate (%, x);
+@c ===end===
 @example
 @group
 (%i3) gradef (q(x), sin(x**2));
@@ -484,10 +519,15 @@ derivation @code{diff(r(x))} of an unspecified function @code{r(x)}.
 @item
 Return value contains the @code{'integrate} noun form.  In this example, Maxima
 can extract one factor of the denominator of a rational function, but cannot
-factor the remainder or otherwise find its integral.  @code{grind} shows the
+factor the remainder or otherwise find its integral.  @mref{grind} shows the
 noun form @code{'integrate} in the result.  See also
 @mref{integrate_use_rootsof} for more on integrals of rational functions.
 
+@c ===beg===
+@c expand ((x-4) * (x^3+2*x+1));
+@c integrate (1/%, x);
+@c grind (%);
+@c ===end===
 @example
 @group
 (%i1) expand ((x-4) * (x^3+2*x+1));
@@ -517,6 +557,12 @@ example contains the noun form of @code{integrate}.  The quote-quote operator
 @code{'@w{}'} causes the integral to be evaluated, and the result becomes the
 body of @code{f_2}.
 
+@c ===beg===
+@c f_1 (a) := integrate (x^3, x, 1, a);
+@c ev (f_1 (7), nouns);
+@c /* Note parentheses around integrate(...) here */      f_2 (a) := ''(integrate (x^3, x, 1, a));
+@c f_2 (7);
+@c ===end===
 @example
 @group
 (%i1) f_1 (a) := integrate (x^3, x, 1, a);
@@ -658,13 +704,17 @@ Examples:
 Default value: @code{false}
 
 When @code{integrate_use_rootsof} is @code{true} and the denominator of
-a rational function cannot be factored, @code{integrate} returns the integral
+a rational function cannot be factored, @mref{integrate} returns the integral
 in a form which is a sum over the roots (not yet known) of the denominator.
 
 For example, with @code{integrate_use_rootsof} set to @code{false},
 @code{integrate} returns an unsolved integral of a rational function in noun
 form:
 
+@c ===beg===
+@c integrate_use_rootsof: false$
+@c integrate (1/(1+x+x^5), x);
+@c ===end===
 @example
 (%i1) integrate_use_rootsof: false$
 @group
@@ -683,6 +733,10 @@ Now we set the flag to be true and the unsolved part of the integral will be
 expressed as a summation over the roots of the denominator of the rational
 function:
 
+@c ===beg===
+@c integrate_use_rootsof: true$
+@c integrate (1/(1+x+x^5), x);
+@c ===end===
 @example
 (%i3) integrate_use_rootsof: true$
 @group
@@ -722,13 +776,13 @@ Sometimes this will help Maxima obtain a more useful result.
 @anchor{ldefint}
 @deffn {Function} ldefint (@var{expr}, @var{x}, @var{a}, @var{b})
 
-Attempts to compute the definite integral of @var{expr} by using @code{limit}
+Attempts to compute the definite integral of @var{expr} by using @mref{limit}
 to evaluate the indefinite integral of @var{expr} with respect to @var{x}
 at the upper limit @var{b} and at the lower limit @var{a}.
 If it fails to compute the definite integral,
 @code{ldefint} returns an expression containing limits as noun forms.
 
-@code{ldefint} is not called from @code{integrate}, so executing
+@code{ldefint} is not called from @mrefcomma{integrate} so executing
 @code{ldefint (@var{expr}, @var{x}, @var{a}, @var{b})} may yield a different
 result than @code{integrate (@var{expr}, @var{x}, @var{a}, @var{b})}.
 @code{ldefint} always uses the same method to evaluate the definite integral,
@@ -769,6 +823,10 @@ Computes the residue in the complex plane of the expression @var{expr} when the
 variable @var{z} assumes the value @var{z_0}.  The residue is the coefficient of
 @code{(@var{z} - @var{z_0})^(-1)} in the Laurent series for @var{expr}.
 
+@c ===beg===
+@c residue (s/(s**2+a**2), s, a*%i);
+@c residue (sin(a*x)/x**4, x, 0);
+@c ===end===
 @example
 @group
 (%i1) residue (s/(s**2+a**2), s, a*%i);
@@ -786,7 +844,8 @@ variable @var{z} assumes the value @var{z_0}.  The residue is the coefficient of
 @end example
 
 @opencatbox
-@category{Integral calculus} @category{Complex variables}
+@category{Integral calculus}
+@category{Complex variables}
 @closecatbox
 @end deffn
 
@@ -798,13 +857,17 @@ Integrates @var{expr} with respect to @var{x} using the
 transcendental case of the Risch algorithm.  (The algebraic case of
 the Risch algorithm has not been implemented.)  This currently
 handles the cases of nested exponentials and logarithms which the main
-part of @code{integrate} can't do.  @code{integrate} will automatically apply
+part of @code{integrate} can't do.  @mref{integrate} will automatically apply
 @code{risch} if given these cases.
 
 @code{erfflag}, if @code{false}, prevents @code{risch} from introducing the
 @code{erf} function in the answer if there were none in the integrand to begin
 with.
 
+@c ===beg===
+@c risch (x^2*erf(x), x);
+@c diff(%, x), ratsimp;
+@c ===end===
 @example
 @group
 (%i1) risch (x^2*erf(x), x);
@@ -880,25 +943,25 @@ Berlin: Springer-Verlag, 1983, ISBN 0387125531.}.
 @c -----------------------------------------------------------------------------
 
 @table @code
-@item quad_qag
+@item @mref{quad_qag}
 Integration of a general function over a finite interval.
-@code{quad_qag} implements a simple globally adaptive integrator using the
+@mref{quad_qag} implements a simple globally adaptive integrator using the
 strategy of Aind (Piessens, 1973).
 The caller may choose among 6 pairs of Gauss-Kronrod quadrature
 formulae for the rule evaluation component.
 The high-degree rules are suitable for strongly oscillating integrands.
 
-@item quad_qags
+@item @mref{quad_qags}
 Integration of a general function over a finite interval.
-@code{quad_qags} implements globally adaptive interval subdivision with
+@mref{quad_qags} implements globally adaptive interval subdivision with
 extrapolation (de Doncker, 1978) by the Epsilon algorithm (Wynn, 1956).
 
-@item quad_qagi
+@item @mref{quad_qagi}
 Integration of a general function over an infinite or semi-infinite interval.
 The interval is mapped onto a finite interval and
 then the same strategy as in @code{quad_qags} is applied.
 
-@item quad_qawo
+@item @mref{quad_qawo}
 @ifnottex
 Integration of @math{cos(omega x) f(x)} or @math{sin(omega x) f(x)} over a
 finite interval, where @math{omega} is a constant.
@@ -909,16 +972,16 @@ $\sin\left(\omega \, x\right) \, f\left(x\right)$ over a finite interval,
 where $\omega$ is a constant.
 @end tex
 The rule evaluation component is based on the modified Clenshaw-Curtis
-technique.  @code{quad_qawo} applies adaptive subdivision with extrapolation,
-similar to @code{quad_qags}.
+technique.  @mref{quad_qawo} applies adaptive subdivision with extrapolation,
+similar to @mrefdot{quad_qags}
 
-@item quad_qawf
+@item @mref{quad_qawf}
 Calculates a Fourier cosine or Fourier sine transform on a semi-infinite
-interval.  The same approach as in @code{quad_qawo} is applied on successive
+interval.  The same approach as in @mref{quad_qawo} is applied on successive
 finite intervals, and convergence acceleration by means of the Epsilon algorithm
 (Wynn, 1956) is applied to the series of the integral contributions.
 
-@item quad_qaws
+@item @mref{quad_qaws}
 @ifnottex
 Integration of @math{w(x) f(x)} over a finite interval @math{[a, b]}, where
 @math{w} is a function of the form @math{(x - a)^alpha (b - x)^beta v(x)} and
@@ -938,22 +1001,25 @@ A globally adaptive subdivision strategy is applied, with modified
 Clenshaw-Curtis integration on the subintervals which contain @math{a}
 or @math{b}.
 
-@item quad_qawc
+@item @mref{quad_qawc}
 Computes the Cauchy principal value of @math{f(x)/(x - c)} over a finite
 interval @math{(a, b)} and specified @math{c}.
 The strategy is globally adaptive, and modified
 Clenshaw-Curtis integration is used on the subranges
 which contain the point @math{x = c}.
 
-@item quad_qagp
-Basically the same as @code{quad_qags} but points of singularity or
+@item @mref{quad_qagp}
+Basically the same as @mref{quad_qags} but points of singularity or
 discontinuity of the integrand must be supplied.  This makes it easier
 for the integrator to produce a good solution.
 @end table
 
 
 @opencatbox
-@category{Integral calculus} @category{Numerical methods} @category{Share packages} @category{Package quadpack}
+@category{Integral calculus}
+@category{Numerical methods}
+@category{Share packages}
+@category{Package quadpack}
 @closecatbox
 
 @c -----------------------------------------------------------------------------
@@ -1045,6 +1111,10 @@ if the input is invalid.
 
 Examples:
 
+@c ===beg===
+@c quad_qag (x^(1/2)*log(1/x), x, 0, 1, 3, 'epsrel=5d-8);
+@c integrate (x^(1/2)*log(1/x), x, 0, 1);
+@c ===end===
 @example
 @group
 (%i1) quad_qag (x^(1/2)*log(1/x), x, 0, 1, 3, 'epsrel=5d-8);
@@ -1059,7 +1129,8 @@ Examples:
 @end example
 
 @opencatbox
-@category{Numerical methods} @category{Package quadpack}
+@category{Numerical methods}
+@category{Package quadpack}
 @closecatbox
 @end deffn
 
@@ -1141,6 +1212,9 @@ if the input is invalid.
 
 Examples:
 
+@c ===beg===
+@c quad_qags (x^(1/2)*log(1/x), x, 0, 1, 'epsrel=1d-10);
+@c ===end===
 @example
 @group
 (%i1) quad_qags (x^(1/2)*log(1/x), x, 0, 1, 'epsrel=1d-10);
@@ -1151,7 +1225,8 @@ Examples:
 Note that @code{quad_qags} is more accurate and efficient than @code{quad_qag} for this integrand.
 
 @opencatbox
-@category{Numerical methods} @category{Package quadpack}
+@category{Numerical methods}
+@category{Package quadpack}
 @closecatbox
 @end deffn
 
@@ -1251,6 +1326,10 @@ if the input is invalid.
 
 Examples:
 
+@c ===beg===
+@c quad_qagi (x^2*exp(-4*x), x, 0, inf, 'epsrel=1d-8);
+@c integrate (x^2*exp(-4*x), x, 0, inf);
+@c ===end===
 @example
 @group
 (%i1) quad_qagi (x^2*exp(-4*x), x, 0, inf, 'epsrel=1d-8);
@@ -1265,7 +1344,8 @@ Examples:
 @end example
 
 @opencatbox
-@category{Numerical methods} @category{Package quadpack}
+@category{Numerical methods}
+@category{Package quadpack}
 @closecatbox
 @end deffn
 
@@ -1343,6 +1423,13 @@ if the input is invalid.
 
 Examples:
 
+@c ===beg===
+@c quad_qawc (2^(-5)*((x-1)^2+4^(-5))^(-1), x, 2, 0, 5,
+                 'epsrel=1d-7);
+@c integrate (2^(-alpha)*(((x-1)^2 + 4^(-alpha))*(x-2))^(-1),
+      x, 0, 5);
+@c ev (%, alpha=5, numer);
+@c ===end===
 @example
 @group
 (%i1) quad_qawc (2^(-5)*((x-1)^2+4^(-5))^(-1), x, 2, 0, 5,
@@ -1377,7 +1464,8 @@ Principal Value
 @end example
 
 @opencatbox
-@category{Numerical methods} @category{Package quadpack}
+@category{Numerical methods}
+@category{Package quadpack}
 @closecatbox
 @end deffn
 
@@ -1465,6 +1553,11 @@ if the input is invalid.
 
 Examples:
 
+@c ===beg===
+@c quad_qawf (exp(-x^2), x, 0, 1, 'cos, 'epsabs=1d-9);
+@c integrate (exp(-x^2)*cos(x), x, 0, inf);
+@c ev (%, numer);
+@c ===end===
 @example
 @group
 (%i1) quad_qawf (exp(-x^2), x, 0, 1, 'cos, 'epsabs=1d-9);
@@ -1484,7 +1577,8 @@ Examples:
 @end example
 
 @opencatbox
-@category{Numerical methods} @category{Package quadpack}
+@category{Numerical methods}
+@category{Package quadpack}
 @closecatbox
 @end deffn
 
@@ -1605,6 +1699,13 @@ if the input is invalid.
 
 Examples:
 
+@c ===beg===
+@c quad_qawo (x^(-1/2)*exp(-2^(-2)*x), x, 1d-8, 20*2^2, 1, cos);
+@c rectform (integrate (x^(-1/2)*exp(-2^(-alpha)*x) * cos(x),
+      x, 0, inf));
+@c input:pos;
+@c ev (%, alpha=2, numer);
+@c ===end===
 @example
 @group
 (%i1) quad_qawo (x^(-1/2)*exp(-2^(-2)*x), x, 1d-8, 20*2^2, 1, cos);
@@ -1626,7 +1727,8 @@ Examples:
 @end example
 
 @opencatbox
-@category{Numerical methods} @category{Package quadpack}
+@category{Numerical methods}
+@category{Package quadpack}
 @closecatbox
 @end deffn
 
@@ -1733,6 +1835,13 @@ if the input is invalid.
 
 Examples:
 
+@c ===beg===
+@c quad_qaws (1/(x+1+2^(-4)), x, -1, 1, -0.5, -0.5, 1,
+                 'epsabs=1d-9);
+@c integrate ((1-x*x)^(-1/2)/(x+1+2^(-alpha)), x, -1, 1);
+@c input:pos;
+@c ev (%, alpha=4, numer);
+@c ===end===
 @example
 @group
 (%i1) quad_qaws (1/(x+1+2^(-4)), x, -1, 1, -0.5, -0.5, 1,
@@ -1758,7 +1867,8 @@ pos;
 @end example
 
 @opencatbox
-@category{Numerical methods} @category{Package quadpack}
+@category{Numerical methods}
+@category{Package quadpack}
 @closecatbox
 @end deffn
 
@@ -1843,6 +1953,10 @@ if the input is invalid.
 
 Examples:
 
+@c ===beg===
+@c quad_qagp(x^3*log(abs((x^2-1)*(x^2-2))),x,0,3,[1,sqrt(2)]);
+@c quad_qags(x^3*log(abs((x^2-1)*(x^2-2))), x, 0, 3);
+@c ===end===
 @example
 @group
 (%i1) quad_qagp(x^3*log(abs((x^2-1)*(x^2-2))),x,0,3,[1,sqrt(2)]);
@@ -1859,7 +1973,8 @@ these points to @code{quad_qagp}.  We also note that @code{quad_qagp} is
 more accurate and more efficient that @mrefdot{quad_qags}
 
 @opencatbox
-@category{Numerical methods} @category{Package quadpack}
+@category{Numerical methods}
+@category{Package quadpack}
 @closecatbox
 @end deffn
 
@@ -1885,7 +2000,8 @@ If @var{value} is not given, then the current value of the
 @var{parameter} is set to the given value.
 
 @opencatbox
-@category{Numerical methods} @category{Package quadpack}
+@category{Numerical methods}
+@category{Package quadpack}
 @closecatbox
 @end deffn
 

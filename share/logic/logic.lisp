@@ -82,13 +82,6 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defun cartesian-product (l1 l2)
-  (if l1
-    (append
-      (mapcar #'(lambda (e) (cons (car l1) e)) l2)
-      (cartesian-product (cdr l1) l2))
-    nil))
-
 (defun replicate (n e)
   (if (and (integerp n) (>= n 0))
     (if (= n 0) nil (cons e (replicate (1- n) e)))
@@ -195,7 +188,7 @@
   (setf args (remove-duplicates (remove nil args) :test 'equal))
   (cond
     ((null args) t)
-    ((eq (length args) 1) (simp-not (car args)))
+    ((eql (length args) 1) (simp-not (car args)))
     (t (cons (list *nor-op* 'simp) (sort-symbols args)))))
 
 ; Sheffer stroke (alternative denial, NAND)
@@ -206,7 +199,7 @@
   (setf args (remove-duplicates (remove t args) :test 'equal))
   (cond
     ((null args) nil)
-    ((eq (length args) 1) (simp-not (car args)))
+    ((eql (length args) 1) (simp-not (car args)))
     (t (cons (list *nand-op* 'simp) (sort-symbols args)))))
 
 ; Equivalence
@@ -214,7 +207,7 @@
   (setf args (cancel-pairs (remove t (flatten-nested args *eq-op*))))
   (cond
     ((null args) t)
-    ((eq (length args) 1) (car args))
+    ((eql (length args) 1) (car args))
     (t (cons (list *eq-op* 'simp) (sort-symbols args)))))
 
 ; Sum modulo 2 (exclusive or)
@@ -222,7 +215,7 @@
   (setf args (cancel-pairs (remove nil (flatten-nested args *xor-op*))))
   (cond
     ((null args) nil)
-    ((eq (length args) 1) (car args))
+    ((eql (length args) 1) (car args))
     (t (cons (list *xor-op* 'simp) (sort-symbols args)))))
 
 ; returns t if args = (... x ... not x ...)
@@ -246,7 +239,7 @@
   (setf args (remove-duplicates (remove t args) :test 'equal))
   (cond
     ((null args) t)
-    ((eq (length args) 1) (car args))
+    ((eql (length args) 1) (car args))
     (t
       (if (x-not-x args)
         nil
@@ -261,7 +254,7 @@
   (setf args (remove-duplicates (remove nil args) :test 'equal))
   (cond
     ((null args) nil)
-    ((eq (length args) 1) (car args))
+    ((eql (length args) 1) (car args))
     (t
       (if (x-not-x args)
         t

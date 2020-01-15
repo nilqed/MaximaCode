@@ -44,11 +44,12 @@
   (values))
 
 (defmacro with-new-context (sub-context &rest forms)
-  `(let ((my-context (gensym "$CTXT")))
-     (mfuncall '$supcontext my-context ,@sub-context)
-     (unwind-protect
-       (prog1 ,@forms)
-       ($killcontext my-context))))
+  (let ((my-context (gensym)))
+    `(let ((,my-context (gensym "$CTXT")))
+       (mfuncall '$supcontext ,my-context ,@sub-context)
+       (unwind-protect
+         (progn ,@forms)
+         ($killcontext ,my-context)))))
 
 ;; For creating a macsyma evaluator variable binding context.
 ;; (MBINDING (VARIABLES &OPTIONAL VALUES FUNCTION-NAME)
@@ -120,7 +121,7 @@
 
 ;; Setf hacking.
 
-(defmfun mget (atom ind)
+(defun mget (atom ind)
   (let ((props (and (symbolp atom) (get atom 'mprops))))
     (and props (getf (cdr props) ind))))
 
@@ -139,7 +140,7 @@
 (defmacro  mdefprop (sym val indicator)
   `(mputprop ',sym ',val ',indicator))
 
-(defmfun mputprop (atom val ind)
+(defun mputprop (atom val ind)
   (let ((props (get atom 'mprops)))
     (if (null props) (putprop atom (setq props (ncons nil)) 'mprops))
     (putprop props val ind)))

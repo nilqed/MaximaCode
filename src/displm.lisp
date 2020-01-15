@@ -21,7 +21,7 @@
 
   width height depth maxht maxdp level size lop rop break right
   bkpt bkptwd bkptht bkptdp bkptlevel bkptout lines 
-  oldrow oldcol display-file in-p
+  oldrow oldcol in-p
   mratp $aliases))
 
 ;;; macros for the DISPLA package.
@@ -29,9 +29,10 @@
 ;; (PUSH-STRING "foo" RESULT) --> (SETQ RESULT (APPEND '(#/o #/o #/f) RESULT))
 
 (defmacro push-string (string symbol)
-  (check-arg string stringp "a string")
   (check-arg symbol symbolp "a symbol")
-  `(setq ,symbol (list* ,@(nreverse (exploden string)) ,symbol)))
+  (if (stringp string)
+    `(setq ,symbol (list* ,@(nreverse (exploden string)) ,symbol))
+    `(setq ,symbol (append (nreverse (exploden ,string)) ,symbol))))
 
 ;; Macros for setting up dispatch table.
 ;; Don't call this DEF-DISPLA, since it shouldn't be annotated by

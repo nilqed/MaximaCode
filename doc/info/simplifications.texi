@@ -26,33 +26,39 @@ extend the built-in simplification rules for the @code{abs} and @code{signum}
 functions.
 @code{absimp} respects relations
 established with the built-in @code{assume} function and by declarations such
-as  @code{modedeclare (m, even, n, odd)}  for even or odd integers.
+as  @code{mode_declare (m, even, n, odd)}  for even or odd integers.
 
 @code{absimp} defines @code{unitramp} and @code{unitstep} functions
 in terms of @code{abs} and @code{signum}.
 
-@code{load (absimp)} loads this package.
-@code{demo (absimp)} shows a demonstration of this package.
+@code{load ("absimp")} loads this package.
+@code{demo ("absimp")} shows a demonstration of this package.
 
 Examples:
 
 @c ===beg===
-@c load (absimp)$
+@c load ("absimp")$
 @c (abs (x))^2;
 @c diff (abs (x), x);
 @c cosh (abs (x));
 @c ===end===
 @example
-(%i1) load (absimp)$
+(%i1) load ("absimp")$
+@group
 (%i2) (abs (x))^2;
-                                       2
-(%o2)                                 x
+                                2
+(%o2)                          x
+@end group
+@group
 (%i3) diff (abs (x), x);
-                                      x
-(%o3)                               ------
-                                    abs(x)
+                               x
+(%o3)                        ------
+                             abs(x)
+@end group
+@group
 (%i4) cosh (abs (x));
-(%o4)                               cosh(x)
+(%o4)                        cosh(x)
+@end group
 @end example
 
 @c disol.usg: "disolate" already in doc/info/Expressions.texi
@@ -60,7 +66,10 @@ Examples:
 @c elim.usg: "eliminate" already in doc/info/Polynomials.texi
 
 @opencatbox
-@category{Simplification functions} @category{Rules and patterns} @category{Share packages} @category{Package absimp}
+@category{Simplification functions}
+@category{Rules and patterns}
+@category{Share packages}
+@category{Package absimp}
 @closecatbox
 
 
@@ -99,11 +108,13 @@ useful when the expressions are very large.
 @c after loading @code{diageval}. They are special functions used for  tensor
 @c manipulation.
 
-@code{load (facexp)} loads this package.
-@code{demo (facexp)} shows a demonstration of this package.
+@code{load ("facexp")} loads this package.
+@code{demo ("facexp")} shows a demonstration of this package.
 
 @opencatbox
-@category{Expressions} @category{Share packages} @category{Package facexp}
+@category{Expressions}
+@category{Share packages}
+@category{Package facexp}
 @closecatbox
 
 
@@ -149,7 +160,8 @@ In  addition,  the  setting  of  the  switches   @code{facsum_combine}  and
 @code{nextlayerfactor} may affect the result of @code{facsum}.
 
 @opencatbox
-@category{Package facexp} @category{Expressions}
+@category{Package facexp}
+@category{Expressions}
 @closecatbox
 
 @end deffn
@@ -172,7 +184,8 @@ Since @code{nextlayerfactor} is  always bound to  either @code{true} or  @code{f
 must be presented single-quoted whenever it appears in the argument list of @code{facsum}.
 
 @opencatbox
-@category{Package facexp} @category{Expressions}
+@category{Package facexp}
+@category{Expressions}
 @closecatbox
 
 @end defvr
@@ -194,7 +207,8 @@ expression,  but  does not  want  the denominator  to  be multiplied
 through the terms of the numerator.
 
 @opencatbox
-@category{Package facexp} @category{Expressions}
+@category{Package facexp}
+@category{Expressions}
 @closecatbox
 
 @end defvr
@@ -207,7 +221,8 @@ arguments.  If any of the factors of @var{expr} is raised to a  power, both
 the factor and the exponent will be processed in this way.
 
 @opencatbox
-@category{Package facexp} @category{Expressions}
+@category{Package facexp}
+@category{Expressions}
 @closecatbox
 
 @end deffn
@@ -216,6 +231,7 @@ the factor and the exponent will be processed in this way.
 @anchor{collectterms}
 @deffn {Function} collectterms (@var{expr}, @var{arg_1}, @dots{}, @var{arg_n})
 
+Collects all terms that contain @var{arg_1} ... @var{arg_n}.
 If several expressions have been simplified  with the following functions
 @code{facsum}, @code{factorfacsum}, @code{factenexpand}, @code{facexpten} or
 @code{factorfacexpten}, and they are to be added together, it may be desirable
@@ -228,8 +244,30 @@ already been processed by @code{facsum}, it does not need to repeat that effort.
 This capability is especially useful when the expressions to be summed are very
 large.
 
+See also @mrefdot{factor}
+
+Example:
+
+@c ===beg===
+@c (exp(x)+2)*x+exp(x);
+@c collectterms(expand(%),exp(x));
+@c ===end===
+@example
+@group
+(%i1) (exp(x)+2)*x+exp(x);
+                             x          x
+(%o1)                   x (%e  + 2) + %e
+@end group
+@group
+(%i2) collectterms(expand(%),exp(x));
+                                  x
+(%o2)                   (x + 1) %e  + 2 x
+@end group
+@end example
+
 @opencatbox
-@category{Package facexp} @category{Expressions}
+@category{Package facexp}
+@category{Expressions}
 @closecatbox
 @end deffn
 
@@ -240,7 +278,8 @@ large.
 @section Package functs
 
 @opencatbox
-@category{Share packages} @category{Package functs}
+@category{Share packages}
+@category{Package functs}
 @closecatbox
 
 @deffn {Function} rempart (@var{expr}, @var{n})
@@ -252,7 +291,8 @@ then parts @var{l} thru @var{m} are removed.
 To use this function write first @code{load(functs)}.
 
 @opencatbox
-@category{Package functs} @category{Expressions}
+@category{Package functs}
+@category{Expressions}
 @closecatbox
 
 @end deffn
@@ -264,17 +304,24 @@ The determinant of the Wronskian matrix is the Wronskian determinant of the list
 To use @code{wronskian}, first @code{load(functs)}. Example:
 
 @c ===beg===
-@c load (functs)$
+@c load ("functs")$
 @c wronskian([f(x), g(x)],x);
 @c ===end===
 @example
-(%i1) load(functs)$
+(%i1) load ("functs")$
+@group
 (%i2) wronskian([f(x), g(x)],x);
-(%o2) matrix([f(x),g(x)],['diff(f(x),x,1),'diff(g(x),x,1)])
+                    [   f(x)       g(x)    ]
+                    [                      ]
+(%o2)               [ d          d         ]
+                    [ -- (f(x))  -- (g(x)) ]
+                    [ dx         dx        ]
+@end group
 @end example
 
 @opencatbox
-@category{Package functs} @category{Differential calculus}
+@category{Package functs}
+@category{Differential calculus}
 @closecatbox
 
 @end deffn
@@ -287,7 +334,8 @@ Returns the trace (sum of the diagonal elements) of matrix @var{M}.
 To use this function write first @code{load(functs)}.
 
 @opencatbox
-@category{Package functs} @category{Matrices}
+@category{Package functs}
+@category{Matrices}
 @closecatbox
 
 @end deffn
@@ -300,7 +348,8 @@ Returns canonical rational expression (CRE) form if given one, else returns gene
 To use this function write first @code{load(functs)}.
 
 @opencatbox
-@category{Package functs} @category{Expressions}
+@category{Package functs}
+@category{Expressions}
 @closecatbox
 
 @end deffn
@@ -316,7 +365,8 @@ Returns @code{false} otherwise.
 To use this function write first @code{load(functs)}.
 
 @opencatbox
-@category{Package functs} @category{Expressions}
+@category{Package functs}
+@category{Expressions}
 @closecatbox
 
 @end deffn
@@ -332,21 +382,29 @@ variables @var{b}, @var{a}, and @var{x}. Otherwise, @code{linear} returns @code{
 Example:
 
 @c ===beg===
-@c load (antid);
+@c load ("antid");
 @c linear ((1 - w)*(1 - x)*z, z);
 @c linear (cos(u - v) + cos(u + v), u);
 @c ===end===
 @example
-(%i1) load (antid);
-(%o1)        /usr/share/maxima/5.29.1/share/integration/antid.mac
+@group
+(%i1) load ("antid");
+(%o1)  /maxima/share/integration/antid.mac
+@end group
+@group
 (%i2) linear ((1 - w)*(1 - x)*z, z);
-(%o2)  [bargumentb = 0, aargumenta = (w - 1) x - w + 1, xargumentx = z]
+(%o2) [bargumentb = 0, aargumenta = (w - 1) x - w + 1, 
+                                                  xargumentx = z]
+@end group
+@group
 (%i3) linear (cos(u - v) + cos(u + v), u);
-(%o3)                                false
+(%o3)                         false
+@end group
 @end example
 
 @opencatbox
-@category{Package antid} @category{Expressions}
+@category{Package antid}
+@category{Expressions}
 @closecatbox
 
 @end deffn
@@ -400,7 +458,8 @@ Example:
 @end example
 
 @opencatbox
-@category{Package functs} @category{Polynomials}
+@category{Package functs}
+@category{Polynomials}
 @closecatbox
 @end deffn
 
@@ -414,7 +473,8 @@ Returns the @var{n}-th term of the arithmetic series
 To use this function write first @code{load(functs)}.
 
 @opencatbox
-@category{Package functs} @category{Sums and products}
+@category{Package functs}
+@category{Sums and products}
 @closecatbox
 
 @end deffn
@@ -427,7 +487,8 @@ Returns the @var{n}-th term of the geometric series
 To use this function write first @code{load(functs)}.
 
 @opencatbox
-@category{Package functs} @category{Sums and products}
+@category{Package functs}
+@category{Sums and products}
 @closecatbox
 
 @end deffn
@@ -440,7 +501,8 @@ Returns the @var{n}-th term of the harmonic series
 To use this function write first @code{load(functs)}.
 
 @opencatbox
-@category{Package functs} @category{Sums and products}
+@category{Package functs}
+@category{Sums and products}
 @closecatbox
 
 @end deffn
@@ -452,7 +514,8 @@ Returns the sum of the arithmetic series from 1 to @var{n}.
 To use this function write first @code{load(functs)}.
 
 @opencatbox
-@category{Package functs} @category{Sums and products}
+@category{Package functs}
+@category{Sums and products}
 @closecatbox
 
 @end deffn
@@ -466,7 +529,8 @@ of @var{r} is less than 1.
 To use this function write first @code{load(functs)}.
 
 @opencatbox
-@category{Package functs} @category{Sums and products}
+@category{Package functs}
+@category{Sums and products}
 @closecatbox
 
 @end deffn
@@ -479,7 +543,8 @@ Returns the Gaussian probability function
 To use this function write first @code{load(functs)}.
 
 @opencatbox
-@category{Package functs} @category{Mathematical functions}
+@category{Package functs}
+@category{Mathematical functions}
 @closecatbox
 
 @end deffn
@@ -492,7 +557,8 @@ Returns the Gudermannian function
 To use this function write first @code{load(functs)}.
 
 @opencatbox
-@category{Package functs} @category{Mathematical functions}
+@category{Package functs}
+@category{Mathematical functions}
 @closecatbox
 
 @end deffn
@@ -505,7 +571,8 @@ Returns the inverse Gudermannian function
 To use this function write first @code{load(functs)}.
 
 @opencatbox
-@category{Package functs} @category{Mathematical functions}
+@category{Package functs}
+@category{Mathematical functions}
 @closecatbox
 
 @end deffn
@@ -517,7 +584,8 @@ Returns the versed sine @code{1 - cos (x)}.
 To use this function write first @code{load(functs)}.
 
 @opencatbox
-@category{Package functs} @category{Mathematical functions}
+@category{Package functs}
+@category{Mathematical functions}
 @closecatbox
 
 @end deffn
@@ -529,7 +597,8 @@ Returns the coversed sine @code{1 - sin (@var{x})}.
 To use this function write first @code{load(functs)}.
 
 @opencatbox
-@category{Package functs} @category{Mathematical functions}
+@category{Package functs}
+@category{Mathematical functions}
 @closecatbox
 
 @end deffn
@@ -541,7 +610,8 @@ Returns the exsecant @code{sec (@var{x}) - 1}.
 To use this function write first @code{load(functs)}.
 
 @opencatbox
-@category{Package functs} @category{Mathematical functions}
+@category{Package functs}
+@category{Mathematical functions}
 @closecatbox
 
 @end deffn
@@ -553,7 +623,8 @@ Returns the haversine @code{(1 - cos(x))/2}.
 To use this function write first @code{load(functs)}.
 
 @opencatbox
-@category{Package functs} @category{Mathematical functions}
+@category{Package functs}
+@category{Mathematical functions}
 @closecatbox
 
 @end deffn
@@ -567,7 +638,8 @@ taken @var{r} at a time.
 To use this function write first @code{load(functs)}.
 
 @opencatbox
-@category{Package functs} @category{Mathematical functions}
+@category{Package functs}
+@category{Mathematical functions}
 @closecatbox
 
 @end deffn
@@ -581,7 +653,8 @@ selected from a set of @var{n} objects.
 To use this function write first @code{load(functs)}.
 
 @opencatbox
-@category{Package functs} @category{Mathematical functions}
+@category{Package functs}
+@category{Mathematical functions}
 @closecatbox
 
 @end deffn
@@ -617,49 +690,45 @@ Example session:
 @c ===end===
 @example
 (%i1) load(ineq)$
-Warning: Putting rules on '+' or '*' is inefficient, and may not work.
-Warning: Putting rules on '+' or '*' is inefficient, and may not work.
-Warning: Putting rules on '+' or '*' is inefficient, and may not work.
-Warning: Putting rules on '+' or '*' is inefficient, and may not work.
-Warning: Putting rules on '+' or '*' is inefficient, and may not work.
-Warning: Putting rules on '+' or '*' is inefficient, and may not work.
-Warning: Putting rules on '+' or '*' is inefficient, and may not work.
-Warning: Putting rules on '+' or '*' is inefficient, and may not work.
+tellsimp: warning: rule will treat '+
+                          ' as noncommutative and nonassociative.
+tellsimp: warning: rule will treat '+
+                          ' as noncommutative and nonassociative.
+tellsimp: warning: rule will treat '+
+                          ' as noncommutative and nonassociative.
+tellsimp: warning: rule will treat '+
+                          ' as noncommutative and nonassociative.
+tellsimp: warning: rule will treat '+
+                          ' as noncommutative and nonassociative.
+tellsimp: warning: rule will treat '+
+                          ' as noncommutative and nonassociative.
+tellsimp: warning: rule will treat '+
+                          ' as noncommutative and nonassociative.
+tellsimp: warning: rule will treat '+
+                          ' as noncommutative and nonassociative.
+@group
 (%i2) a>=4;  /* a sample inequality */
-(%o2)                               a >= 4
-(%i3) (b>c)+%; /* add a second, strict inequality */
-(%o3)                            b + a > c + 4
-(%i4) 7*(x<y); /* multiply by a positive number */
-(%o4)                              7 x < 7 y
-(%i5) -2*(x>=3*z); /* multiply by a negative number */
-(%o5)                           - 2 x <= - 6 z
-(%i6) (1+a^2)*(1/(1+a^2)<=1); /* Maxima knows that 1+a^2 > 0 */
-                                        2
-(%o6)                             1 <= a  + 1
-(%i7) assume(x>0)$ x*(2<3); /* assuming x>0 */
-(%o7)                              2 x < 3 x
-(%i8) a>=b; /* another inequality */
-(%o8)                               a >= b
-(%i9) 3+%; /* add something */
-(%o9)                           a + 3 >= b + 3
-(%i10) %-3; /* subtract it out */
-(%o10)                              a >= b
-(%i11) a>=c-b; /* yet another inequality */
-(%o11)                            a >= c - b
-(%i12) b+%; /* add b to both sides */
-(%o12)                            b + a >= c
-(%i13) %-c; /* subtract c from both sides */
-(%o13)                         - c + b + a >= 0
-(%i14) -%;  /* multiply by -1 */
-(%o14)                          c - b - a <= 0
-(%i15) (z-1)^2>-2*z; /* determining truth of assertion */
-                                      2
-(%o15)                         (z - 1)  > - 2 z
-(%i16) expand(%)+2*z; /* expand this and add 2*z to both sides */
-                                   2
-(%o16)                            z  + 1 > 0
-(%i17) %,pred;
-(%o17)                               true
+(%o2)                        a >= 4
+(%o3)                     b + a > c + 4
+(%o4)                       7 x < 7 y
+(%o5)                    - 2 x <= - 6 z
+                                 2
+(%o6)                      1 <= a  + 1
+(%o8)                       2 x < 3 x
+(%o9)                        a >= b
+(%o10)                   a + 3 >= b + 3
+(%o11)                       a >= b
+(%o12)                     a >= c - b
+(%o13)                     b + a >= c
+(%o14)                 (- c) + b + a >= 0
+(%o15)                   c - b - a <= 0
+                               2
+(%o16)                  (z - 1)  > - 2 z
+                            2
+(%o17)                     z  + 1 > 0
+(%o18)                        true
+@end group
+(%i19) (b>c)+%; /* add a second, strict inequality */
 @end example
 
 Be careful about using parentheses
@@ -681,12 +750,18 @@ The most common mis-feature is illustrated by:
 @c % - eq;
 @c ===end===
 @example
+@group
 (%i1) eq: a > b;
-(%o1)                              a > b
+(%o1)                         a > b
+@end group
+@group
 (%i2) 2*eq;
-(%o2)                            2 (a > b)
+(%o2)                       2 (a > b)
+@end group
+@group
 (%i3) % - eq;
-(%o3)                              a > b
+(%o3)                         a > b
+@end group
 @end example
 
 Another problem is 0 times an inequality; the default to have this
@@ -714,7 +789,10 @@ in @code{remrule ("+", "+rule1")} to specifically remove the first rule on @code
 or @code{disprule ("*rule2")} to display the definition of the second multiplicative rule.
 
 @opencatbox
-@category{Simplification functions} @category{Rules and patterns} @category{Share packages} @category{Package ineq}
+@category{Simplification functions}
+@category{Rules and patterns}
+@category{Share packages}
+@category{Package ineq}
 @closecatbox
 
 
@@ -726,7 +804,9 @@ or @code{disprule ("*rule2")} to display the definition of the second multiplica
 @section Package rducon
 
 @opencatbox
-@category{Expressions} @category{Share packages} @category{Package rducon}
+@category{Expressions}
+@category{Share packages}
+@category{Package rducon}
 @closecatbox
 
 
@@ -762,11 +842,12 @@ symbols generated by @code{reduce_consts} to represent constant subexpressions.
 @code{const_counter} (default value: 1) is the integer index used to generate unique
 symbols to represent each constant subexpression found by @code{reduce_consts}.
 
-@code{load (rducon)} loads this function.
-@code{demo (rducon)} shows a demonstration of this function.
+@code{load ("rducon")} loads this function.
+@code{demo ("rducon")} shows a demonstration of this function.
 
 @opencatbox
-@category{Package rducon} @category{Expressions}
+@category{Package rducon}
+@category{Expressions}
 @closecatbox
 
 @end deffn
@@ -778,7 +859,9 @@ symbols to represent each constant subexpression found by @code{reduce_consts}.
 @section Package scifac
 
 @opencatbox
-@category{Expressions} @category{Share packages} @category{Package scifac}
+@category{Expressions}
+@category{Share packages}
+@category{Package scifac}
 @closecatbox
 
 
@@ -806,11 +889,12 @@ factoring because of the combinatorially-difficult nature of finding
 which of all possible rearrangements of the pairs yields the most
 compact pair-factored result.
 
-@code{load (scifac)} loads this function.
-@code{demo (scifac)} shows a demonstration of this function.
+@code{load ("scifac")} loads this function.
+@code{demo ("scifac")} shows a demonstration of this function.
 
 @opencatbox
-@category{Package scifac} @category{Expressions}
+@category{Package scifac}
+@category{Expressions}
 @closecatbox
 
 @end deffn
@@ -825,34 +909,40 @@ compact pair-factored result.
 Denests @code{sqrt} of simple, numerical, binomial surds, where possible.  E.g.
 
 @c ===beg===
-@c load (sqdnst)$
+@c load ("sqdnst")$
 @c sqrt(sqrt(3)/2+1)/sqrt(11*sqrt(2)-12);
 @c sqrtdenest(%);
 @c ===end===
 @example
-(%i1) load (sqdnst)$
+(%i1) load ("sqdnst")$
+@group
 (%i2) sqrt(sqrt(3)/2+1)/sqrt(11*sqrt(2)-12);
-                                    sqrt(3)
-                               sqrt(------- + 1)
-                                       2
-(%o2)                        ---------------------
-                             sqrt(11 sqrt(2) - 12)
+                             sqrt(3)
+                        sqrt(------- + 1)
+                                2
+(%o2)                 ---------------------
+                      sqrt(11 sqrt(2) - 12)
+@end group
+@group
 (%i3) sqrtdenest(%);
-                                  sqrt(3)   1
-                                  ------- + -
-                                     2      2
-(%o3)                            -------------
-                                    1/4    3/4
-                                 3 2    - 2
+                           sqrt(3)   1
+                           ------- + -
+                              2      2
+(%o3)                     -------------
+                             1/4    3/4
+                          3 2    - 2
+@end group
 @end example
 
 Sometimes it helps to apply @code{sqrtdenest} more than once, on such as
 @code{(19601-13860 sqrt(2))^(7/4)}.
 
-@code{load (sqdnst)} loads this function.
+@code{load ("sqdnst")} loads this function.
 
 @opencatbox
-@category{Expressions} @category{Share packages} @category{Package sqdnst}
+@category{Expressions}
+@category{Share packages}
+@category{Package sqdnst}
 @closecatbox
 
 @end deffn

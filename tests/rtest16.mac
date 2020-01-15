@@ -185,7 +185,7 @@ block([fpprintprec:5], string(1.2345b0));
 "1.2345b0";
 
 block([fpprintprec:5], string(1.23456789b0));
-"1.2345b0";
+"1.2346b0";
 
 block([fpprintprec:25], string(1.2345678901234567890123456789b0));
 "1.234567890123457b0";
@@ -267,6 +267,151 @@ block ([L1 : [["1.2E-10","1.2E-9","1.2E-8","1.2E-7","1.2E-6","1.2E-5","1.2E-4","
  map (lambda ([s1, s2], if sequalignore (s1, s2) then true else s2 # s1), flatten (L1), flatten (L2)),
  delete (true, %%));
 [];
+
+/* SF bug #3213: "fpprintprec do not round bfloat correctly." */
+
+(reset (fpprec, bftrunc),
+ fpprintprec:4,
+ string (1.23456789b0));
+"1.235b0";
+
+/* default fpprintprec => print all digits */
+
+(reset (fpprintprec), 0);
+0;
+
+string (bfloat (1000000000000*(1 + 8/9)));
+"1.888888888888889b12";
+
+string (bfloat ((1 + 8/9)/1000000000000)), fpprec=50;
+"1.8888888888888888888888888888888888888888888888889b-12";
+
+string (bfloat (1000000000000*(1 + 8/9))), fpprec=10;
+"1.888888889b12";
+
+string (bfloat ((1 + 8/9)/1000000000000)), fpprec=2;
+"1.9b-12";
+
+/* expect to see bigfloat ending in 5 to round to even */
+
+map (string, map (bfloat, 1 + [1, 2, 3, 4, 5, 6, 7]/8)), fpprintprec=3;
+["1.12b0", "1.25b0", "1.38b0", "1.5b0", "1.62b0", "1.75b0", "1.88b0"];
+
+map (string, map (bfloat, 100 + makelist (i/64, i, 1, 63))), fpprintprec=8;
+["1.0001562b2", "1.0003125b2", "1.0004688b2", "1.000625b2", "1.0007812b2", "1.0009375b2", "1.0010938b2", "1.00125b2",
+ "1.0014062b2", "1.0015625b2", "1.0017188b2", "1.001875b2", "1.0020312b2", "1.0021875b2", "1.0023438b2", "1.0025b2",
+ "1.0026562b2", "1.0028125b2", "1.0029688b2", "1.003125b2", "1.0032812b2", "1.0034375b2", "1.0035938b2", "1.00375b2",
+ "1.0039062b2", "1.0040625b2", "1.0042188b2", "1.004375b2", "1.0045312b2", "1.0046875b2", "1.0048438b2", "1.005b2",
+ "1.0051562b2", "1.0053125b2", "1.0054688b2", "1.005625b2", "1.0057812b2", "1.0059375b2", "1.0060938b2", "1.00625b2",
+ "1.0064062b2", "1.0065625b2", "1.0067188b2", "1.006875b2", "1.0070312b2", "1.0071875b2", "1.0073438b2", "1.0075b2",
+ "1.0076562b2", "1.0078125b2", "1.0079688b2", "1.008125b2", "1.0082812b2", "1.0084375b2", "1.0085938b2", "1.00875b2",
+ "1.0089062b2", "1.0090625b2", "1.0092188b2", "1.009375b2", "1.0095312b2", "1.0096875b2", "1.0098438b2"];
+
+/* bftrunc=false => don't strip trailing 0's */
+
+map (string, map (bfloat, 1 + [1, 2, 3, 4, 5, 6, 7]/8)), fpprintprec=3, bftrunc=false;
+["1.12b0", "1.25b0", "1.38b0", "1.50b0", "1.62b0", "1.75b0", "1.88b0"];
+
+map (string, map (bfloat, 100 + makelist (i/64, i, 1, 63))), fpprintprec=8, bftrunc=false;
+["1.0001562b2", "1.0003125b2", "1.0004688b2", "1.0006250b2", "1.0007812b2", "1.0009375b2", "1.0010938b2", "1.0012500b2",
+ "1.0014062b2", "1.0015625b2", "1.0017188b2", "1.0018750b2", "1.0020312b2", "1.0021875b2", "1.0023438b2", "1.0025000b2",
+ "1.0026562b2", "1.0028125b2", "1.0029688b2", "1.0031250b2", "1.0032812b2", "1.0034375b2", "1.0035938b2", "1.0037500b2",
+ "1.0039062b2", "1.0040625b2", "1.0042188b2", "1.0043750b2", "1.0045312b2", "1.0046875b2", "1.0048438b2", "1.0050000b2",
+ "1.0051562b2", "1.0053125b2", "1.0054688b2", "1.0056250b2", "1.0057812b2", "1.0059375b2", "1.0060938b2", "1.0062500b2",
+ "1.0064062b2", "1.0065625b2", "1.0067188b2", "1.0068750b2", "1.0070312b2", "1.0071875b2", "1.0073438b2", "1.0075000b2",
+ "1.0076562b2", "1.0078125b2", "1.0079688b2", "1.0081250b2", "1.0082812b2", "1.0084375b2", "1.0085938b2", "1.0087500b2",
+ "1.0089062b2", "1.0090625b2", "1.0092188b2", "1.0093750b2", "1.0095312b2", "1.0096875b2", "1.0098438b2"];
+
+/* fpprintprec <= fpprec */
+
+every (lambda ([s], s="5.6b2"), map (string, makelist (bfloat (5000/9), fpprec, fpprintprec, 40))), fpprintprec=2;
+true;
+
+every (lambda ([s], s="5.56b-4"), map (string, makelist (bfloat (5/9000), fpprec, fpprintprec, 40))), fpprintprec=3;
+true;
+
+every (lambda ([s], s="5.556b2"), map (string, makelist (bfloat (5000/9), fpprec, fpprintprec, 40))), fpprintprec=4;
+true;
+
+every (lambda ([s], s="5.5556b-4"), map (string, makelist (bfloat (5/9000), fpprec, fpprintprec, 40))), fpprintprec=5;
+true;
+
+every (lambda ([s], s="5.55556b2"), map (string, makelist (bfloat (5000/9), fpprec, fpprintprec, 40))), fpprintprec=6;
+true;
+
+every (lambda ([s], s="5.555556b-4"), map (string, makelist (bfloat (5/9000), fpprec, fpprintprec, 40))), fpprintprec=7;
+true;
+
+every (lambda ([s], s="5.5555556b2"), map (string, makelist (bfloat (5000/9), fpprec, fpprintprec, 40))), fpprintprec=8;
+true;
+
+/* fpprintprec >= fpprec */
+
+/* bfloat generally produces a number which is not exactly the same as its argument.
+ * When bfloat returns a bigger number, it should round up when formatted,
+ * and when it's smaller, it should round down.
+ * When bfloat returns an exact result, in this case it should round up (to 6).
+ * Consider this when figuring out the correct output for these examples.
+ */
+
+(fpprec : 2, 
+ mybf : bfloat(5/9000),
+ is (rationalize (mybf) >= (5*sum(10^i, i, 0, fpprec)/10^(fpprec + 1))/1000));
+true;
+
+every (lambda ([s], s="5.6b-4"), map (string, makelist (mybf, fpprintprec, fpprec, 40)));
+true;
+
+(fpprec : 3,
+ mybf : bfloat(5000/9),
+ is (rationalize (mybf) >= (5*sum(10^i, i, 0, fpprec)/10^(fpprec + 1))*1000));
+true;
+
+every (lambda ([s], s="5.56b2"), map (string, makelist (mybf, fpprintprec, fpprec, 40)));
+true;
+
+(fpprec : 4,
+ mybf : bfloat(5/9000),
+ is (rationalize (mybf) >= (5*sum(10^i, i, 0, fpprec)/10^(fpprec + 1))/1000));
+true;
+
+every (lambda ([s], s="5.556b-4"), map (string, makelist (mybf, fpprintprec, fpprec, 40)));
+true;
+
+(fpprec : 5,
+ mybf : bfloat(5000/9),
+ is (rationalize (mybf) >= (5*sum(10^i, i, 0, fpprec)/10^(fpprec + 1))*1000));
+false;
+
+every (lambda ([s], s="5.5555b2"), map (string, makelist (mybf, fpprintprec, fpprec, 40)));
+true;
+
+(fpprec : 10,
+ mybf : bfloat(5/9000),
+ is (rationalize (mybf) >= (5*sum(10^i, i, 0, fpprec)/10^(fpprec + 1))/1000));
+true;
+
+every (lambda ([s], s="5.555555556b-4"), map (string, makelist (mybf, fpprintprec, fpprec, 40)));
+true;
+
+(fpprec : 20,
+ mybf : bfloat(5000/9),
+ is (rationalize (mybf) >= (5*sum(10^i, i, 0, fpprec)/10^(fpprec + 1))*1000));
+true;
+
+every (lambda ([s], s="5.5555555555555555556b2"), map (string, makelist (mybf, fpprintprec, fpprec, 40)));
+true;
+
+(fpprec : 40,
+ mybf : bfloat(5/9000),
+ is (rationalize (mybf) >= (5*sum(10^i, i, 0, fpprec)/10^(fpprec + 1))/1000));
+false;
+
+every (lambda ([s], s="5.555555555555555555555555555555555555555b-4"), map (string, makelist (mybf, fpprintprec, fpprec, 40)));
+true;
+
+(reset (fpprec), 0);
+0;
 
 /*
  * Bug 2142758: integrate(sqrt(2-2*x^2)*(sqrt(2)*x^2+sqrt(2))/(4-4*x^2),x,0,1)
@@ -1995,10 +2140,10 @@ li[2](1);
 li[2](1/2);
 %pi^2/12 - log(2)^2/2;
 
-closeto(li[2](0.5) - (%pi^2/12 - log(2)^2/2), 1.1103e-16);
+closeto(li[2](0.5) - (%pi^2/12 - log(2)^2/2), 1.1103e-16), numer;
 true;
 
-closeto(li[2](2.0) - (%pi^2/4 - %i*%pi*log(2)), 8.9e-16), numer;
+closeto(li[2](2.0) - (%pi^2/4 - %i*%pi*log(2)), 2.513e-15), numer;
 true;
 
 closeto(li[2]((1-sqrt(5))/2) - (log((sqrt(5)-1)/2)^2/2-%pi^2/15), 1.1103e-16), numer;
@@ -2045,3 +2190,419 @@ closeto(li[4](-1b0)-li[4](-1), 10^-fpprec);
 true;
 
 
+/*
+ * More numeric test for polylog function li[s](z).
+ *
+ * The reference values were obtained from
+ * http://functions.wolfram.com/webMathematica/FunctionEvaluation.jsp?name=PolyLog
+ */
+fpprec:24;
+24;
+
+closeto(li[4](0.25) - 0.25411619074634353405967371315352,
+  5.5512e-17);
+true;
+
+closeto(li[4](0.25b0) - 0.25411619074634353405967371315352b0,
+  2.06796b-25);
+true;
+
+closeto(li[4](0.75) - 0.79222102797282777952948578955736,
+  2.2205e-16);
+true;
+
+closeto(li[4](0.75b0) - 0.79222102797282777952948578955736b0,
+  6.20386b-25);
+true;
+
+closeto(li[4](1.5) - (1.7347570807760620737768805117515 - 0.0349027048283367002627421237287*%i),
+  2.2205e-16);
+true;
+
+closeto(li[4](1.5b0) - (1.7347570807760620737768805117515b0 - 0.0349027048283367002627421237287b0*%i),
+  4.14398b-25);
+true;
+
+closeto(li[4](10.0) - (9.6140263862742968515251940747859 - 6.3921313179656069159740055708257*%i),
+  5.618e-15);
+true;
+
+closeto(li[4](10.0b0) - (9.6140263862742968515251940747859b0 - 6.3921313179656069159740055708257b0*%i),
+  1.9364b-23);
+true;
+
+closeto(li[4](-5.0) - (-4.1064679790949702621073505378164),
+  8.8818e-16);
+true;
+
+closeto(li[4](-5b0) - (-4.1064679790949702621073505378164b0),
+  4.9631b-24);
+true;
+
+closeto(li[4](2.0*%i) - (-0.2113943747614829764326347997923 + 1.9289340331586646502356787803360*%i),
+  7.22e-16);
+true;
+
+closeto(li[4](2b0*%i) - (-0.2113943747614829764326347997923b0 + 1.9289340331586646502356787803360b0*%i),
+  1.9788b-24);
+true;
+
+closeto(li[5](0.25) - 0.25202158817857420100669519623555,
+  5.55112e-17);
+true;
+
+closeto(li[5](0.25b0) - 0.25202158817857420100669519623555b0,
+  5.16988b-25);
+true;
+
+closeto(li[5](0.75) - 0.76973541059975738097269173152535,
+  1.111e-16);
+true;
+
+closeto(li[5](0.75b0) - 0.76973541059975738097269173152535b0,
+  2.06796b-25);
+true;
+
+closeto(li[5](1.5) - (1.5961739456813534102689069143338 - 0.0035379572466222227823786042761*%i),
+  4.33681e-19);
+true;
+
+closeto(li[5](1.5b0) - (1.5961739456813534102689069143338b0 - 0.0035379572466222227823786042761b0*%i),
+  4.13594b-25);
+true;
+
+closeto(li[5](10.0) - (11.2390407376112991620107110964539 - 3.6796065713019972004384472107791*%i),
+  9.93014e-15);
+true;
+
+closeto(li[5](10.0b0) - (11.2390407376112991620107110964539b0 - 3.6796065713019972004384472107791b0*%i),
+  2.18382b-23);
+true;
+
+closeto(li[5](-5.0) - (-4.4800824065112010228046981292686),
+  1e-16);
+true;
+
+closeto(li[5](-5b0) - (-4.4800824065112010228046981292686b0),
+  6.61745b-24);
+true;
+
+closeto(li[5](2.0*%i) - (-0.1139660114783041974283299769126 + 1.9734617121122917650272273558071*%i),
+  6.98e-16);
+true;
+
+closeto(li[5](2b0*%i) - (-0.1139660114783041974283299769126b0 + 1.9734617121122917650272273558071b0*%i),
+  6.42086b-25);
+true;
+
+closeto(li[20](5.0) - (5.0000238783147176199891129814336 - 2.182054400942151422e-13*%i),
+  2.41797e-15);
+true;
+
+closeto(li[20](5b0) - (5.0000238783147176199891129814336b0 - 2.182054400942151422b-13*%i),
+  6.76366b-24);
+true;
+
+/* Bug #3194: No simplification of "tan(x+n*%pi)" and "cot(x+n*%pi)" with "n" being a declared integer */
+/* Also test that the "modulus 1/2" check in "%piargs-tan/cot" works correctly. */
+declare(i, integer, ei, even, oi, odd);
+done$
+[tan(x+i*%pi),cot(x+i*%pi)];
+[tan(x),cot(x)]$
+[tan(x+ei*%pi),cot(x+ei*%pi)];
+[tan(x),cot(x)]$
+[tan(x+oi*%pi),cot(x+oi*%pi)];
+[tan(x),cot(x)]$
+[tan(x-3/2*%pi),tan(x-1/2*%pi),tan(x+1/2*%pi),tan(x+3/2*%pi)];
+[-cot(x),-cot(x),-cot(x),-cot(x)]$
+[cot(x-3/2*%pi),cot(x-1/2*%pi),cot(x+1/2*%pi),cot(x+3/2*%pi)];
+[-tan(x),-tan(x),-tan(x),-tan(x)]$
+kill(i, ei, oi);
+done$
+
+/* Bug #3148: sign can't figure out sign(a - b) but it knows sign(b - a) where a and b are exponentials */
+assume(t>0);
+[t>0]$
+sign(2^(500000*t)-2^(500007*t));
+neg$
+sign(2^(500007*t)-2^(500000*t));
+pos$
+forget(t>0);
+[t>0]$
+
+/* Bug #3246: Integrating u'(x) * f(u(x) + c) fails for f any inverse trigonometric/hyperbolic function */
+/* Also make sure that all the antiderivatives of (inverse) trigonometric/hyperbolic functions are correct. */
+integrate(map(lambda([f], diff(u(x), x) * f(u(x) + c)), [asin,acos,atan,acsc,asec,acot,asinh,acosh,atanh,acsch,asech,acoth]), x);
+[(u(x)+c)*asin(u(x)+c)+sqrt(1-(u(x)+c)^2),(u(x)+c)*acos(u(x)+c)-sqrt(1-(u(x)+c)^2),(u(x)+c)*atan(u(x)+c)-log((u(x)+c)^2+1)/2,log(sqrt(1-1/(u(x)+c)^2)+1)/2-log(1-sqrt(1-1/(u(x)+c)^2))/2+(u(x)+c)*acsc(u(x)+c),-log(sqrt(1-1/(u(x)+c)^2)+1)/2+log(1-sqrt(1-1/(u(x)+c)^2))/2+(u(x)+c)*asec(u(x)+c),log((u(x)+c)^2+1)/2+(u(x)+c)*acot(u(x)+c),(u(x)+c)*asinh(u(x)+c)-sqrt((u(x)+c)^2+1),(u(x)+c)*acosh(u(x)+c)-sqrt((u(x)+c)^2-1),log(1-(u(x)+c)^2)/2+(u(x)+c)*atanh(u(x)+c),log(sqrt(1/(u(x)+c)^2+1)+1)/2-log(sqrt(1/(u(x)+c)^2+1)-1)/2+(u(x)+c)*acsch(u(x)+c),(u(x)+c)*asech(u(x)+c)-atan(sqrt(1/(u(x)+c)^2-1)),log(1-(u(x)+c)^2)/2+(u(x)+c)*acoth(u(x)+c)]$
+radcan(exponentialize(map(lambda([f], f(x) - diff(integrate(f(x), x), x)), [sin,cos,tan,csc,sec,cot,sinh,cosh,tanh,csch,sech,coth,asin,acos,atan,acsc,asec,acot,asinh,acosh,atanh,acsch,asech,acoth]))), domain:complex;
+[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]$
+
+/* Bug #3258: integrate's answer contains diff operator with negative order */
+freeof(diff, integrate(%e^(c*x-r^2/(4*x))/x^(3/2),x));
+true$
+
+/* Bug #3220: create_list doesn't bind variables properly */
+errcatch (create_list (%i, %i, [1, 2, 3]));
+[]$
+
+create_list (bfloat (1 - 10^-50) - 1, fpprec, [16, 100]);
+[0.0b0, -1.0b-50]$
+
+create_list (bfloat (3.14), fpprec, 1, 3);
+[3.0b0, 3.1b0, 3.14b0]$
+
+/* Bug #3356: sign(nz * nz) = nz */
+assume(apos > 0, aneg < 0, apz >= 0, anz <= 0, notequal(apn, 0), bpos > 0, bneg < 0, bpz >= 0, bnz <= 0, notequal(bpn, 0));
+[apos > 0, aneg < 0, apz >= 0, anz <= 0, notequal(apn, 0), bpos > 0, bneg < 0, bpz >= 0, bnz <= 0, notequal(bpn, 0)]$
+map('sign,
+	[
+		apos * bpos, apos * bneg, apos * bpz, apos * bnz, apos * bpn, apos * bpnz,
+		aneg * bpos, aneg * bneg, aneg * bpz, aneg * bnz, aneg * bpn, aneg * bpnz,
+		apz * bpos, apz * bneg, apz * bpz, apz * bnz, apz * bpn, apz * bpnz,
+		anz * bpos, anz * bneg, anz * bpz, anz * bnz, anz * bpn, anz * bpnz,
+		apn * bpos, apn * bneg, apn * bpz, apn * bnz, apn * bpn, apn * bpnz,
+		apnz * bpos, apnz * bneg, apnz * bpz, apnz * bnz, apnz * bpn, apnz * bpnz
+	]
+);
+[
+	'pos, 'neg, 'pz, 'nz, 'pn, 'pnz,
+	'neg, 'pos, 'nz, 'pz, 'pn, 'pnz,
+	'pz, 'nz, 'pz, 'nz, 'pnz, 'pnz,
+	'nz, 'pz, 'nz, 'pz, 'pnz, 'pnz,
+	'pn, 'pn, 'pnz, 'pnz, 'pn, 'pnz,
+	'pnz, 'pnz, 'pnz, 'pnz, 'pnz, 'pnz
+];
+forget(apos > 0, aneg < 0, apz >= 0, anz <= 0, notequal(apn, 0), bpos > 0, bneg < 0, bpz >= 0, bnz <= 0, notequal(bpn, 0));
+[apos > 0, aneg < 0, apz >= 0, anz <= 0, notequal(apn, 0), bpos > 0, bneg < 0, bpz >= 0, bnz <= 0, notequal(bpn, 0)]$
+
+/* test cases mentioned in bug report #3356 */
+
+(kill (a, b), assume(a<=0, b<=0), sign(a*b));
+pz;
+
+(kill (q, r), assume(q<0, r<0), sign(q*r));
+pos;
+
+sign(a*r);
+pz;
+
+sign(a*-2);
+pz;
+
+sign(a*q*r);
+nz;
+
+sign(a*b*q);
+nz;
+
+(forget (a <= 0, b <= 0, q < 0, r < 0), 0);
+0;
+
+/* Bug #3403: Function/lambda parameters declared constant cause error */
+declare(c, constant);
+done$
+emptyp(errcatch(f(c) := c));
+false$
+emptyp(errcatch(lambda([c], c)));
+false$
+emptyp(errcatch(f(%e) := %e));
+true$
+emptyp(errcatch(lambda([%e], %e)));
+true$
+kill(c, f);
+done$
+
+/*        Bug #3009: factoring exponentials causes MAKE-ARRAY error */
+/* a.k.a. Bug #3146: max() runs out of memory when comparing exponential functions */
+sign(((-1)-%e^-(4.075321792706671E-4*d_1))*%e^-(4.075321792706671E-4*d_2)+%e^-(8.150643585413342E-4*d_2)-%e^-(4.075321792706671E-4*d_1)+%e^-(8.150643585413342E-4*d_1)+1);
+pnz$
+factor(a^1000000+a+1);
+a^1000000+a+1$
+max(2.0325-6.9825*%e^-(492380.0*t),2.103-7.053*%e^-(406810.0*t));
+'max(2.0325-6.9825*%e^-(492380.0*t),2.103-7.053*%e^-(406810.0*t))$
+sign(exp(-492380*t)-2793);
+pnz$
+
+/* Bug #3147: sign of expressions with exponents crashes */
+assume(t>0);
+[t>0]$
+sign(2^(500005*t)-2^(500001*t));
+pos$
+kill(t);
+done$
+
+/* Test factor_max_degree. */
+block([factor_max_degree : 0], [factor(x^2+2*x+1), factor(x^2-1), factor(x^2+3*x+2), factor(x^2000+x^1999)]);
+[(x+1)^2, (x-1)*(x+1), (x+1)*(x+2), x^1999*(x+1)]$
+block([factor_max_degree : 1, factor_max_degree_print_warning : false], [factor(x^2+2*x+1), factor(x^2-1), factor(x^2+3*x+2), factor(x^2000+x^1999)]);
+[(x+1)^2, x^2-1, x^2+3*x+2, x^1999*(x+1)]$
+block([factor_max_degree : 2], [factor(x^2+2*x+1), factor(x^2-1), factor(x^2+3*x+2), factor(x^2000+x^1999)]);
+[(x+1)^2, (x-1)*(x+1), (x+1)*(x+2), x^1999*(x+1)]$
+
+/*        Bug #2928: Loops forever: ev(ratexpand(1/(x^(2/3)+1)), algebraic:true); */
+/* a.k.a. Bug #2994: Infinite loop: ratsimp(x/(sqrt(x^(2/3)+1)),x),algebraic; */
+/* a.k.a. Bug #3419: Endless loop in BPROG (rat(1/(x^(2/3)+1)), algebraic) */
+(test(expr) := is(radcan(ev(rat(expr), algebraic) - expr) = 0), done);
+done$
+test(1/(x^(1/3)+1));
+true$
+test(1/(x^(2/3)+1));
+true$
+test(1/((x-1)^(2/3)+1));
+true$
+test(x/(sqrt(x^(2/3)+1)));
+true$
+kill(expr);
+done$
+
+/* Bug #3431: error system variable holds unsimplified list, causing errors to be repeated when trying to access it */
+errcatch(0^0);
+[]$
+errcatch(print(error), true);
+[true]$
+
+/* SF bug #3458: "does not interpret addcol as it should but instead interprets same as addrow" */
+
+addcol (matrix (), [11, 22, 33]);
+matrix ([11], [22], [33]);
+
+/* additional tests for addcol and addrow */
+
+addcol (matrix (), [11, 22, 33], [111, 222, 333]);
+matrix ([11, 111], [22, 222], [33, 333]);
+
+addcol (matrix (), [11, 22, 33], [111, 222, 333], [1111, 2222, 3333]);
+matrix ([11, 111, 1111], [22, 222, 2222], [33, 333, 3333]);
+
+addcol (matrix ([1, 2, 3]), [11, 22, 33]);
+matrix ([1, 2, 3, 11, 22, 33]);
+
+addcol (matrix ([1, 2, 3]), [11, 22, 33], [111, 222, 333]);
+matrix ([1, 2, 3, 11, 22, 33, 111, 222, 333]);
+
+addcol (matrix ([1, 2, 3]), [11, 22, 33], [111, 222, 333], [1111, 2222, 3333]);
+matrix ([1, 2, 3, 11, 22, 33, 111, 222, 333, 1111, 2222, 3333]);
+
+addcol (matrix ([1], [2], [3]), [11, 22, 33]);
+matrix ([1, 11], [2, 22], [3, 33]);
+
+addcol (matrix ([1], [2], [3]), [11, 22, 33], [111, 222, 333]);
+matrix ([1, 11, 111], [2, 22, 222], [3, 33, 333]);
+
+addcol (matrix ([1], [2], [3]), [11, 22, 33], [111, 222, 333], [1111, 2222, 3333]);
+matrix ([1, 11, 111, 1111], [2, 22, 222, 2222], [3, 33, 333, 3333]);
+
+addrow (matrix (), [11, 22, 33]);
+matrix ([11, 22, 33]);
+
+addrow (matrix (), [11, 22, 33], [111, 222, 333]);
+matrix ([11, 22, 33], [111, 222, 333]);
+
+addrow (matrix (), [11, 22, 33], [111, 222, 333], [1111, 2222, 3333]);
+matrix ([11, 22, 33], [111, 222, 333], [1111, 2222, 3333]);
+
+addrow (matrix ([1, 2, 3]), [11, 22, 33]);
+matrix ([1, 2, 3], [11, 22, 33]);
+
+addrow (matrix ([1, 2, 3]), [11, 22, 33], [111, 222, 333]);
+matrix ([1, 2, 3], [11, 22, 33], [111, 222, 333]);
+
+addrow (matrix ([1, 2, 3]), [11, 22, 33], [111, 222, 333], [1111, 2222, 3333]);
+matrix ([1, 2, 3], [11, 22, 33], [111, 222, 333], [1111, 2222, 3333]);
+
+/*
+ * Seems like these should succeed, but they fail
+ * with error about "incompatible structure", although similar calls succeed.
+ * Just omit these tests unless addrow/addcol are ever revised for greater consistency.
+ *
+addrow (matrix ([1], [2], [3]), [11, 22, 33]);
+matrix ([1], [2], [3], [11], [22], [33]);
+
+addrow (matrix ([1], [2], [3]), [11, 22, 33], [111, 222, 333]);
+matrix ([1], [2], [3], [11], [22], [33], [111], [222], [333]);
+
+addrow (matrix ([1], [2], [3]), [11, 22, 33], [111, 222, 333], [1111, 2222, 3333]);
+matrix ([1], [2], [3], [11], [22], [33], [111], [222], [333], [1111], [2222], [3333]);
+ *
+ */
+
+addcol (matrix (), matrix ([11], [22], [33]));
+matrix ([11], [22], [33]);
+
+addcol (matrix (), matrix ([11, 22, 33]));
+matrix ([11, 22, 33]);
+
+addcol (matrix (), matrix ([11], [22], [33]), matrix ([111], [222], [333]));
+matrix ([11, 111], [22, 222], [33, 333]);
+
+addcol (matrix (), matrix ([11, 22, 33]), matrix ([111, 222, 333]));
+matrix ([11, 22, 33, 111, 222, 333]);
+
+addcol (matrix (), matrix ([11], [22], [33]), matrix ([111], [222], [333]), matrix ([1111], [2222], [3333]));
+matrix ([11, 111, 1111], [22, 222, 2222], [33, 333, 3333]);
+
+addcol (matrix (), matrix ([11, 22, 33]), matrix ([111, 222, 333]), matrix ([1111, 2222, 3333]));
+matrix ([11, 22, 33, 111, 222, 333, 1111, 2222, 3333]);
+
+addcol (matrix ([1, 2, 3]), matrix ([11, 22, 33]));
+matrix ([1, 2, 3, 11, 22, 33]);
+
+addcol (matrix ([1, 2, 3]), matrix ([11, 22, 33]), matrix ([111, 222, 333]));
+matrix ([1, 2, 3, 11, 22, 33, 111, 222, 333]);
+
+addcol (matrix ([1, 2, 3]), matrix ([11, 22, 33]), matrix ([111, 222, 333]), matrix ([1111, 2222, 3333]));
+matrix ([1, 2, 3, 11, 22, 33, 111, 222, 333, 1111, 2222, 3333]);
+
+addrow (matrix (), matrix ([11], [22], [33]));
+matrix ([11], [22], [33]);
+
+addrow (matrix (), matrix ([11, 22, 33]));
+matrix ([11, 22, 33]);
+
+addrow (matrix (), matrix ([11], [22], [33]), matrix ([111], [222], [333]));
+matrix ([11], [22], [33], [111], [222], [333]);
+
+addrow (matrix (), matrix ([11, 22, 33]), matrix ([111, 222, 333]));
+matrix ([11, 22, 33], [111, 222, 333]);
+
+addrow (matrix (), matrix ([11], [22], [33]), matrix ([111], [222], [333]), matrix ([1111], [2222], [3333]));
+matrix ([11], [22], [33], [111], [222], [333], [1111], [2222], [3333]);
+
+addrow (matrix (), matrix ([11, 22, 33]), matrix ([111, 222, 333]), matrix ([1111, 2222, 3333]));
+matrix ([11, 22, 33], [111, 222, 333], [1111, 2222, 3333]);
+
+addrow (matrix ([1, 2, 3]), [11, 22, 33]);
+matrix ([1, 2, 3], [11, 22, 33]);
+
+addrow (matrix ([1, 2, 3]), [11, 22, 33], [111, 222, 333]);
+matrix ([1, 2, 3], [11, 22, 33], [111, 222, 333]);
+
+addrow (matrix ([1, 2, 3]), [11, 22, 33], [111, 222, 333], [1111, 2222, 3333]);
+matrix ([1, 2, 3], [11, 22, 33], [111, 222, 333], [1111, 2222, 3333]);
+
+/* addrow/addcol that should fail */
+
+errcatch (addrow (matrix ([1], [2], [3]), [11, 22, 33]));
+[];
+
+/*
+ * Seems like these should fail, but they succeed.
+ * Just omit these tests unless addrow/addcol are ever revised for greater consistency.
+ *
+errcatch (addrow (matrix ([1], [2], [3]), matrix ([11, 22, 33])));
+[];
+
+errcatch (addrow (matrix ([1, 2, 3]), matrix ([1], [2], [3])));
+[];
+
+errcatch (addcol (matrix ([1, 2, 3]), matrix ([1], [2], [3])));
+[];
+
+errcatch (addcol (matrix ([1], [2], [3]), matrix ([11, 22, 33])));
+[];
+ *
+ */
+
+/* Bug #3532: Integrator doesn't use a new variable internally, causing facts on the original variable to be used for the substitution variable */
+is(integrate(cos(x) * abs(cos(x)), x, 0, %pi) = %pi / 2);
+false$

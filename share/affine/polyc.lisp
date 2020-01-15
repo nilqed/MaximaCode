@@ -15,7 +15,7 @@
 
 (defun reset-vgp ()  (setq *genpairs* nil  *genvar*  nil  *varlist* nil)
        (setq *xxx*
-	     (let ((*nopoint t) *print-radix*)
+	     (let (*print-radix*)
 	       (loop for i from 1 to 30 collecting
 		      (add-newvar (intern (format nil "$X~A" i))))))
        'done)
@@ -45,20 +45,20 @@
 	     poly))
 	(t (setq new-monom (ncmul* mon monom mon1))
 	   (cond ((contains-a-zero-replacement new-monom)
-		  (cond ((and (eq (second poly) 1)(eq (fourth poly) 0))
+		  (cond ((and (eql (second poly) 1)(eql (fourth poly) 0))
 			 (poly-ncmul1 mon (fifth poly) mon1))
-			((eq (second poly) 1) 0)
+			((eql (second poly) 1) 0)
 			(t (merror "There is a bad order in nc polynomial ~A" poly))))
 		 (t
 		  (setq gen-sym (add-newvar new-monom))
-		  (cond ((and (eq (second poly) 1)(eq (fourth poly) 0))
+		  (cond ((and (eql (second poly) 1)(eql (fourth poly) 0))
 			 (setq tem (poly-ncmul1 mon (fifth poly) mon1))
 			 (cond
-			   ((eq tem 0)(list gen-sym 1 (third poly)))
+			   ((eql tem 0)(list gen-sym 1 (third poly)))
 			   (t
 			    (list gen-sym 1 (third poly) 0
 				   tem))))
-			((eq (second poly) 1)
+			((eql (second poly) 1)
 			 (list gen-sym 1 (third poly)))
 			(t (merror "There is a bad order in nc polynomial ~A" poly))))))))
 
@@ -78,9 +78,9 @@
 ;	(t (setq new-monom (ncmul* mon monom mon1))
 ;
 ;	   (setq gen-sym (add-newvar new-monom))
-;	   (cond ((and (eq (second poly) 1)(eq (fourth poly) 0))
+;	   (cond ((and (eql (second poly) 1)(eql (fourth poly) 0))
 ;		  (list gen-sym 1 (third poly) 0 (poly-ncmul1 mon (fifth poly) mon1)))
-;		 ((eq (second poly) 1)
+;		 ((eql (second poly) 1)
 ;		  (list gen-sym 1 (third poly)))
 ;		 (t (merror "There is a bad order in nc polynomial ~A" poly))))))
 ;(defun new-rat-ncmul (a nc-rat-expr c)
@@ -90,7 +90,7 @@
   "broken"
   (loop for v in ll when (not (affine-polynomialp v))do (break t))
   (cond ((null ll) 1)
-	((eq (length ll) 1) (car ll))
+	((eql (length ll) 1) (car ll))
 	((numberp (car ll))(n* (car ll) (apply 'poly-ncmul (cdr ll))))
 	((affine-polynomialp (car ll))
 	      (apply
@@ -197,7 +197,7 @@
 	for i from 0
 	when (equal (car v) expr)
 	do
-	(cond ((eq i 0)(setq *genpairs* (cdr *genpairs*)))
+	(cond ((eql i 0)(setq *genpairs* (cdr *genpairs*)))
 	      (t (setq *genpairs* (delete v *genpairs* :test #'equal)))))
   (setq *varlist* (delete expr *varlist* :test #'equal)))
 
@@ -254,7 +254,7 @@
   ($separate_parameters ($sublis answer ($firstn n2 $aaaa))))
 (defun $matrix_from_list (a-list &aux tem)
   (let ((n (round (setq tem (expt ($length a-list) .5)))))
-    (cond ((eq (expt  n 2) ($length a-list)) 'fine)
+    (cond ((eql (expt n 2) ($length a-list)) 'fine)
 	  (t (merror "The length of list is not a square")))
     (setq a-list (cdr a-list))
     (loop while a-list

@@ -150,7 +150,7 @@
 	  
 	    ;; We disallow positional derivatives of subscripted functions and lambda forms.
     
-	    ((and $use_pdiff (null (oldget fun 'grad)) (not ($subvarp (cadr e)))
+	    ((and $use_pdiff (null (zl-get fun 'grad)) (not ($subvarp (cadr e)))
 		  (not (memq fun '(mlessp mleqp mequal mgeqp mgreaterp mcond lambda))))
 	     (setq args (cdr e))
 	     (setq fun (caar e))
@@ -240,7 +240,7 @@
 
 (defun tex-pderivop (x l r)
   ;(print `(lop = ,lop rop = ,rop x = ,x r = ,r l = ,l))
-  (cond ((and $tex_uses_prime_for_derivatives (eq 3 (length x)))
+  (cond ((and $tex_uses_prime_for_derivatives (eql 3 (length x)))
 	 (let* ((n (car (last x)))
 		(p))
 	   
@@ -288,7 +288,10 @@
 	       ($use_pdiff nil)
 	       (vk) (gk)
 	       (at-list nil))
-	   (dolist (vs v) (declare (ignore vs)) (push (gensym) g))
+	   ;; Work around bug in Clozure CL: https://github.com/Clozure/ccl/issues/109
+	   ;; If ever it's fixed, this conditionalization can be removed.
+	   #+ccl (mapcar #'(lambda (vs) (declare (ignore vs)) (push (gensym) g)) v)
+	   #-ccl (dolist (vs v) (declare (ignore vs)) (push (gensym) g))
 	   (setq e (mapply f g nil))
 	   (setq e (apply '$diff (cons e (mapcan #'list g n))))
 	   (while v

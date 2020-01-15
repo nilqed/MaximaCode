@@ -21,9 +21,9 @@
 
 ;;; I believe a large portion of this file is described in Paul
 ;;; Wang's thesis, "Evaluation of Definite Integrals by Symbolic
-;;; Integration," MIT/LCS/TR-92, Oct. 1971.  This can be found at
-;;; http://www.lcs.mit.edu/publications/specpub.php?id=660, but some
-;;; important pages are black.
+;;; Manipulation," MIT/LCS/TR-92, Oct. 1971.  This can be found at
+;;; https://web.archive.org/web/20191019131847/https://apps.dtic.mil/dtic/tr/fulltext/u2/732005.pdf
+
 
 ;;; TOP LEVEL FUNCTION(S): $LIMIT $LDEFINT
 
@@ -101,7 +101,7 @@
         (apply #'toplevel-$limit args))
       first-try)))
 
-(defmfun toplevel-$limit (&rest args)
+(defun toplevel-$limit (&rest args)
   (let ((limit-assumptions ())
 	(old-integer-info ())
 	($keepfloat t)
@@ -237,7 +237,7 @@
   (setq exp (restorelim exp))
   (if preserve-direction exp (ridofab exp)))
 
-(defmfun limit-list (exp1 &rest rest)
+(defun limit-list (exp1 &rest rest)
   (if (mbagp exp1)
       `(,(car exp1) ,@(mapcar #'(lambda (x) (apply #'toplevel-$limit `(,x ,@rest))) (cdr exp1)))
       ()))
@@ -245,8 +245,7 @@
 (defun limit-context (var val direction) ;Only works on entry!
   (cond (limit-top
 	 (assume '((mgreaterp) lim-epsilon 0))
-	 (assume '((mlessp) lim-epsilon 1e-8))
-	 (assume '((mgreaterp) prin-inf 1e+8))
+	 (assume '((mgreaterp) prin-inf 100000000))
 	 (setq limit-assumptions (make-limit-assumptions var val direction))
 	 (setq limit-top ()))
 	(t ()))
@@ -259,15 +258,13 @@
 	  ((and (not (infinityp val)) (null direction))
 	   ())
 	  ((eq val '$inf)
-	   `(,(assume `((mgreaterp) ,var 1e+8)) ,@new-assumptions))
+	   `(,(assume `((mgreaterp) ,var 100000000)) ,@new-assumptions))
 	  ((eq val '$minf)
-	   `(,(assume `((mgreaterp) -1e+8 ,var)) ,@new-assumptions))
+	   `(,(assume `((mgreaterp) -100000000 ,var)) ,@new-assumptions))
 	  ((eq direction '$plus)
-	   `(,(assume `((mgreaterp) 1e-8 ,var))
-	     ,(assume `((mgreaterp) ,var 0)) ,@new-assumptions)) ;All limits around 0
+	   `(,(assume `((mgreaterp) ,var 0)) ,@new-assumptions)) ;All limits around 0
 	  ((eq direction '$minus)
-	   `(,(assume `((mgreaterp) ,var -1e-8))
-	     ,(assume `((mgreaterp) 0 ,var)) ,@new-assumptions))
+	   `(,(assume `((mgreaterp) 0 ,var)) ,@new-assumptions))
 	  (t
 	   ()))))
 
@@ -278,8 +275,7 @@
       ((null assumption-list) t)
     (forget (car assumption-list)))
   (forget '((mgreaterp) lim-epsilon 0))
-  (forget '((mlessp) lim-epsilon 1.0e-8))
-  (forget '((mgreaterp) prin-inf 1.0e+8))
+  (forget '((mgreaterp) prin-inf 100000000))
   (cond ((and (not (null integer-info))
 	      (not limitp))
 	 (do ((list integer-info (cdr list)))
@@ -312,9 +308,6 @@
              '$infinity)
             (t
              '$und)))))
-
-;; Warning:  (CATCH NIL ...) will catch all throws.
-;; NIL should not be used as a tag name.
 
 (defun limunknown (f)
   (catch 'limunknown (limunknown1 (specrepcheck f))))
@@ -581,7 +574,7 @@ ignoring dummy variables and array indices."
     
 
 ;;;*I* INDICATES: T => USE LIMIT1,THINK, NIL => USE SIMPLIMIT.
-(defmfun limit (exp var val *i*)
+(defun limit (exp var val *i*)
   (cond
     ((among '$und exp)  '$und)
     ((eq var exp)  val)
@@ -720,47 +713,36 @@ ignoring dummy variables and array indices."
   (resimplify ex))
 
 ;;Used by tlimit also.
-(defmfun limit1 (exp var val)
+(defun limit1 (exp var val)
   (prog ()
-     (let ((lhprogress? lhp?)  (lhp? ())  (ans ()))
-       (cond ((setq ans (and (not (atom exp))
-			     (getlimval exp)))
+     (let ((lhprogress? lhp?)
+           (lhp? ())
+           (ans ()))
+       (cond ((setq ans (and (not (atom exp)) (getlimval exp)))
 	      (return ans))
-	     ((and (not (infinityp val))
-		   (setq ans (simplimsubst val exp)))
+	     ((and (not (infinityp val)) (setq ans (simplimsubst val exp)))
 	      (return ans))
 	     (t nil))
-
-;;;NUMDEN* => (numerator . denominator)
-       (destructuring-let (((n . dn) (numden* exp)))
-	 (cond
-	   ((not (among var dn))
-	    (return (simplimit (m// (simplimit n var val) dn)
-			       var
-			       val)))
-	   ((not (among var n))
-	    (return (simplimit (m* n
-				   (simplimexpt dn
-						-1
-						(simplimit dn var val)
-						-1))
-			       var
-			       val)))
-	   ((and lhprogress?
-		 (/#alike n (car lhprogress?))
-		 (/#alike dn (cdr lhprogress?)))
-	    (throw 'lhospital nil)))
-	 (return (limit2 n dn var val))))))
+;;;NUMDEN* => (values numerator denominator)
+       (multiple-value-bind (n dn)
+           (numden* exp)
+         (cond ((not (among var dn))
+                (return (simplimit (m// (simplimit n var val) dn) var val)))
+               ((not (among var n))
+                (return (simplimit (m* n (simplimexpt dn -1 (simplimit dn var val) -1)) var val)))
+               ((and lhprogress?
+                   (/#alike n (car lhprogress?))
+                   (/#alike dn (cdr lhprogress?)))
+                (throw 'lhospital nil)))
+         (return (limit2 n dn var val))))))
 
 (defun /#alike (e f)
-  (cond ((alike1 e f)
-	 t)
-	(t (let ((deriv (sdiff (m// e f) var)))
-	     (cond ((=0 deriv)
-		    t)
-		   ((=0 ($ratsimp deriv))
-		    t)
-		   (t nil))))))
+  (if (alike1 e f)
+      t
+      (let ((deriv (sdiff (m// e f) var)))
+        (cond ((=0 deriv) t)
+              ((=0 ($ratsimp deriv)) t)
+              (t nil)))))
 
 (defun limit2 (n dn var val)
   (prog (n1 d1 lim-sign gcp sheur-ans)
@@ -953,11 +935,11 @@ ignoring dummy variables and array indices."
 	      new-exp))))
 
 (defun unrat (exp)			;RETURNS UNRATTED EXPRESION
-  (let ((n-dn (numden* exp)))
-    (let ((tem ($divide (car n-dn) (cdr n-dn))))
+  (multiple-value-bind (n d)
+      (numden* exp)
+    (let ((tem ($divide n d)))
       (m+ (cadr tem)
-	  (m// (caddr tem)
-	       (cdr n-dn))))))
+	  (m// (caddr tem) d)))))
 
 (defun get-newexp&factors (exp degree var) ;RETURNS (CONS NEWEXP FACTORS)
   (do ((terms (cond ((mtimesp exp)(cdr exp)) ; SUCH THAT
@@ -991,9 +973,9 @@ ignoring dummy variables and array indices."
   (ratlim (m// rat (m^ var (ratdegree rat)))))
 
 (defun ratdegree (rat)
-  (let ((n-dn (numden* rat)))
-    (- (deg (car n-dn))
-       (deg (cdr n-dn)))))
+  (multiple-value-bind (n d)
+      (numden* rat)
+    (- (deg n) (deg d))))
 
 (defun limfact2 (n d var val)
   (let ((n1 (reflect0 n var val))
@@ -1101,7 +1083,7 @@ ignoring dummy variables and array indices."
     (cond ((involve e '(mfactorial)) nil)
 
 	  ;; functions that are defined at their discontinuities
-	  ((amongl '($atan2 $floor $round $ceiling %signum %integrate
+	  ((amongl '($atan2 $floor %round $ceiling %signum %integrate
 			    %gamma_incomplete)
 		   e) nil)
 
@@ -1119,23 +1101,27 @@ ignoring dummy variables and array indices."
 ;;;returns (cons numerator denominator)
 (defun numden* (e)
   (let ((e (factor (simplify e)))
-	(numer ())  (denom ()))
+	(numer ())
+        (denom ()))
     (cond ((atom e)
 	   (push e numer))
 	  ((mtimesp e)
-	   (mapc 'forq (cdr e)))
-	  (t (forq e)))
+	   (mapc #'forq (cdr e)))
+	  (t
+           (forq e)))
     (cond ((null numer)
-	   (setq numer 1.))
+	   (setq numer 1))
 	  ((null (cdr numer))
 	   (setq numer (car numer)))
-	  (t (setq numer (m*l numer))))
+	  (t
+           (setq numer (m*l numer))))
     (cond ((null denom)
-	   (setq denom 1.))
+	   (setq denom 1))
 	  ((null (cdr denom))
 	   (setq denom (car denom)))
-	  (t (setq denom (m*l denom))))
-    (cons (factor numer) (factor denom))))
+	  (t
+           (setq denom (m*l denom))))
+    (values (factor numer) (factor denom))))
 
 ;;;FACTOR OR QUOTIENT
 ;;;Setq's the special vars numer and denom from numden*
@@ -1431,41 +1417,38 @@ ignoring dummy variables and array indices."
 
 (defun lhospital (n d ind)
   (declare (special val lhp?))
-  (if (mtimesp n)
-      (setq n (m*l (mapcar #'(lambda (term) (lhsimp term var val))
-			   (cdr n)))))
-  (if (mtimesp d)
-      (setq d (m*l (mapcar #'(lambda (term) (lhsimp term var val))
-			   (cdr d)))))
-  (destructuring-let (((n . d) (lhop-numden n d))
-		      const nconst dconst)
-    (setq lhp? (and (null ind) (cons n d)))
-    (desetq (nconst . n) (var-or-const n))
-    (desetq (dconst . d) (var-or-const d))
+  (when (mtimesp n)
+    (setq n (m*l (mapcar #'(lambda (term) (lhsimp term var val)) (cdr n)))))
+  (when (mtimesp d)
+    (setq d (m*l (mapcar #'(lambda (term) (lhsimp term var val)) (cdr d)))))
+  (multiple-value-bind (n d)
+      (lhop-numden n d)
+    (let (const nconst dconst)
+      (setq lhp? (and (null ind) (cons n d)))
+      (multiple-value-setq (nconst n) (var-or-const n))
+      (multiple-value-setq (dconst d) (var-or-const d))
 
-    (setq n (stirling0 n))	;; replace factorial and %gamma
-    (setq d (stirling0 d))  	;;  with approximations
+      (setq n (stirling0 n))	;; replace factorial and %gamma
+      (setq d (stirling0 d))  	;;  with approximations
 
-    (setq n (sdiff n var)	;; take derivatives for l'hospital
-	  d (sdiff d var))
+      (setq n (sdiff n var)	;; take derivatives for l'hospital
+            d (sdiff d var))
 
-    (if (or (not (free n '%derivative)) (not (free d '%derivative)))
-	(throw 'lhospital ()))
-    (setq n (expand-trigs (tansc n) var))
-    (setq d (expand-trigs (tansc d) var))
+      (if (or (not (free n '%derivative)) (not (free d '%derivative)))
+          (throw 'lhospital ()))
+      (setq n (expand-trigs (tansc n) var))
+      (setq d (expand-trigs (tansc d) var))
 
-    (desetq (const . (n . d)) (remove-singularities n d))
-    (setq const (m* const (m// nconst dconst)))
-    (simpinf
-     (let ((ans (if ind
-                    (limit2 n d var val)
-                    (limit-numden n d val))))
-
-       ;; When the limit function returns, it's possible that it will return NIL
-       ;; (gave up without finding a limit). It's also possible that it will
-       ;; return something containing UND. We treat that as a failure too.
-       (when (and ans (freeof '$und ans))
-         (m* const ans))))))
+      (multiple-value-setq (const n d) (remove-singularities n d))
+      (setq const (m* const (m// nconst dconst)))
+      (simpinf (let ((ans (if ind
+                              (limit2 n d var val)
+                              (limit-numden n d val))))
+                 ;; When the limit function returns, it's possible that it will return NIL
+                 ;; (gave up without finding a limit). It's also possible that it will
+                 ;; return something containing UND. We treat that as a failure too.
+                 (when (and ans (freeof '$und ans))
+                   (m* const ans)))))))
 
 ;; Try to compute the limit of a quotient NUM/DEN, trying to massage the input
 ;; into a convenient form for LIMIT on the way.
@@ -1544,7 +1527,7 @@ ignoring dummy variables and array indices."
 	((or (oscip num) (oscip denom)))
 	((frac num)
 	 (psetq num (m^ denom -1) denom (m^ num -1))))
-  (cons num denom))
+  (values num denom))
 
 ;;i don't know what to do here for some cases, may have to be refined.
 (defun num-of-logs (exp)
@@ -1594,67 +1577,72 @@ ignoring dummy variables and array indices."
 ;;Takes a numerator and a denominator. If they tries all combinations of
 ;;products to try and make a simpler set of subproblems for LHOSPITAL.
 (defun remove-singularities (numer denom)
-  (cond
-    ((or (null numer) (null denom)
-	 (atom numer) (atom denom)
-	 (not (mtimesp numer))		;Leave this here for a while.
-	 (not (mtimesp denom)))
-     (cons 1 (cons numer denom)))
-    (t
-     (destructuring-let (((num-consts . num-vars) (var-or-const numer))
-			 ((denom-consts . denom-vars) (var-or-const denom))
-			 (const 1))
-       (if (not (mtimesp num-vars))
-	   (setq num-vars (list num-vars))
-	   (setq num-vars (cdr num-vars)))
-       (if (not (mtimesp denom-vars))
-	   (setq denom-vars (list denom-vars))
-	   (setq denom-vars (cdr denom-vars)))
-       (do ((nl num-vars (cdr nl))
-	    (num-list (copy-list num-vars ))
-	    (den-list denom-vars den-list-temp)
-	    (den-list-temp (copy-list denom-vars )))
-	   ((null nl)  (cons (m* const (m// num-consts denom-consts))
-			     (cons  (m*l num-list) (m*l den-list-temp))))
-	 (do ((dl den-list (cdr dl)))
-	     ((null dl) t)
-	   (cond ((or (%einvolve (car nl))
-		      (%einvolve (car nl))) t)
-		 (t (let ((lim (catch 'limit
-				 (simpinf
-				  (simpab (limit (m// (car nl) (car dl))
-						 var val 'think))))))
-		      (cond ((or (eq lim t) (eq lim ())
-				 (equal (ridofab lim) 0)
-				 (infinityp lim)
-				 (not (free lim '$inf))
-				 (not (free lim '$minf))
-				 (not (free lim '$infinity))
-				 (not (free lim '$ind))
-				 (not (free lim '$und)))
-			     ())
-			    (t (setq const (m* lim const))
-			       (setq num-list (delete (car nl) num-list :count 1 :test #'equal))
-			       (setq den-list-temp
-				     (delete (car dl) den-list-temp :count 1 :test #'equal))
-			       (return t))))))))))))
+  (cond ((or (null numer) (null denom)
+            (atom numer) (atom denom)
+            (not (mtimesp numer))		;Leave this here for a while.
+            (not (mtimesp denom)))
+         (values 1 numer denom))
+        (t
+         (let ((const 1))
+           (multiple-value-bind (num-consts num-vars)
+               (var-or-const numer)
+             (multiple-value-bind (denom-consts denom-vars)
+                 (var-or-const denom)
+               (if (not (mtimesp num-vars))
+                   (setq num-vars (list num-vars))
+                   (setq num-vars (cdr num-vars)))
+               (if (not (mtimesp denom-vars))
+                   (setq denom-vars (list denom-vars))
+                   (setq denom-vars (cdr denom-vars)))
+               (do ((nl num-vars (cdr nl))
+                    (num-list (copy-list num-vars ))
+                    (den-list denom-vars den-list-temp)
+                    (den-list-temp (copy-list denom-vars)))
+                   ((null nl) (values (m* const (m// num-consts denom-consts))
+                                      (m*l num-list)
+                                      (m*l den-list-temp)))
+                 (do ((dl den-list (cdr dl)))
+                     ((null dl) t)
+                   (if (or (%einvolve (car nl)) (%einvolve (car nl)))
+                       t
+                       (let ((lim (catch 'limit (simpinf (simpab (limit (m// (car nl) (car dl))
+                                                                        var val 'think))))))
+                         (cond ((or (eq lim t)
+                                   (eq lim ())
+                                   (equal (ridofab lim) 0)
+                                   (infinityp lim)
+                                   (not (free lim '$inf))
+                                   (not (free lim '$minf))
+                                   (not (free lim '$infinity))
+                                   (not (free lim '$ind))
+                                   (not (free lim '$und)))
+                                ())
+                               (t
+                                (setq const (m* lim const))
+                                (setq num-list (delete (car nl) num-list :count 1 :test #'equal))
+                                (setq den-list-temp (delete (car dl) den-list-temp :count 1 :test #'equal))
+                                (return t)))))))))))))
 
 ;; separate terms that contain var from constant terms 
 ;; returns (const-terms . var-terms)
 (defun var-or-const (expr)
   (setq expr ($factor expr))
   (cond ((atom expr)
-	 (cond ((eq expr var) (cons 1 expr))
-	       (t (cons expr 1))))
-	((free expr var) (cons expr 1))
+	 (if (eq expr var)
+             (values 1 expr)
+             (values expr 1)))
+	((free expr var)
+         (values expr 1))
 	((mtimesp expr)
 	 (do ((l (cdr expr) (cdr l))
-	      (const 1)  (varl 1))
-	     ((null l)  (cons const varl))
-	   (cond ((free (car l) var)
-		  (setq const (m* (car l) const)))
-		 (t (setq varl (m* (car l) varl))))))
-	(t (cons 1 expr))))
+	      (const 1)
+              (varl 1))
+	     ((null l) (values const varl))
+	   (if (free (car l) var)
+               (setq const (m* (car l) const))
+               (setq varl (m* (car l) varl)))))
+	(t
+         (values 1 expr))))
 
 ;; if term goes to non-zero constant, replace with constant
 (defun lhsimp (term var val)
@@ -1675,116 +1663,115 @@ ignoring dummy variables and array indices."
 	       '$%e bas))
 
 (defun simplimexpt (bas expo bl el)
-  (cond
-    ((or (eq bl '$und) (eq el '$und)) '$und)
-    ((zerop2 bl)
-     (cond ((eq el '$inf) (if (eq bl '$zeroa) bl 0))
-	   ((eq el '$minf) (if (eq bl '$zeroa) '$inf '$infinity))
-	   ((eq el '$ind) '$ind)
-	   ((eq el '$infinity) '$und)
-	   ((zerop2 el)  (bylog expo bas))
-	   (t (cond ((equal (getsignl el) -1)
-		     (cond ((eq bl '$zeroa) '$inf)
-			   ((eq bl '$zerob)
-			    (cond ((even1 el) '$inf)
-				  ((eq (ask-integer el '$integer) '$yes)
-				   (cond ((eq (ask-integer el '$even) '$yes)
-					  '$inf)
-					 (t '$minf))))) ;Gotta be ODD.
-			   (t (setq bas (behavior bas var val))
-			      (cond ((equal bas 1) '$inf)
-				    ((equal bas -1) '$minf)
-				    (t (throw 'limit t))))))
-		    ((and (mnump el)
-			  (member bl '($zeroa $zerob) :test #'eq))
-		     (cond ((even1 el) '$zeroa)
-			   ((and (eq bl '$zerob)
-				 (ratnump el)
-				 (evenp (caddr el))) 0)
-			   (t bl)))
-		    ((and (equal (getsignl el) 1)
-			  (eq bl '$zeroa)) bl)
-		    ((equal (getsignl el) 0)
-		     1)
-		    (t 0)))))
-    ((eq bl '$infinity)
-     (cond ((zerop2 el) (bylog expo bas))
-	   ((eq el '$minf) 0)
-	   ((eq el '$inf) '$infinity)
-	   ((member el '($infinity $ind) :test #'eq) '$und)
-	   ((equal (setq el (getsignl el)) 1) '$infinity)
-	   ((null el) '$und)
-	   ((equal el -1) 0)))
-    ((eq bl '$inf)
-     (cond ((eq el '$inf) '$inf)
-	   ((equal el '$minf) 0)
-	   ((zerop2 el) (bylog expo bas))
-	   ((member el '($infinity $ind) :test #'eq) '$und)
-	   (t (cond ((eql 0 (getsignl el)) 1)
-		    ((ratgreaterp 0 el) '$zeroa)
-		    (t '$inf)))))
-    ((eq bl '$minf)
-     (cond ((zerop2 el) (bylog expo bas))
-	   ((eq el '$inf) '$und)
-	   ((equal el '$minf) 0)
+  (cond ((or (eq bl '$und) (eq el '$und)) '$und)
+        ((zerop2 bl)
+         (cond ((eq el '$inf) (if (eq bl '$zeroa) bl 0))
+               ((eq el '$minf) (if (eq bl '$zeroa) '$inf '$infinity))
+               ((eq el '$ind) '$ind)
+               ((eq el '$infinity) '$und)
+               ((zerop2 el)  (bylog expo bas))
+               (t (cond ((equal (getsignl el) -1)
+                         (cond ((eq bl '$zeroa) '$inf)
+                               ((eq bl '$zerob)
+                                (cond ((even1 el) '$inf)
+                                      ((eq (ask-integer el '$integer) '$yes)
+                                       (if (eq (ask-integer el '$even) '$yes)
+                                           '$inf
+                                           '$minf)))) ;Gotta be ODD.
+                               (t (setq bas (behavior bas var val))
+                                  (cond ((equal bas 1) '$inf)
+                                        ((equal bas -1) '$minf)
+                                        (t (throw 'limit t))))))
+                        ((and (mnump el)
+                            (member bl '($zeroa $zerob) :test #'eq))
+                         (cond ((even1 el) '$zeroa)
+                               ((and (eq bl '$zerob)
+                                   (ratnump el)
+                                   (evenp (caddr el))) 0)
+                               (t bl)))
+                        ((and (equal (getsignl el) 1)
+                            (eq bl '$zeroa)) bl)
+                        ((equal (getsignl el) 0)
+                         1)
+                        (t 0)))))
+        ((eq bl '$infinity)
+         (cond ((zerop2 el) (bylog expo bas))
+               ((eq el '$minf) 0)
+               ((eq el '$inf) '$infinity)
+               ((member el '($infinity $ind) :test #'eq) '$und)
+               ((equal (setq el (getsignl el)) 1) '$infinity)
+               ((equal el 0) 1)
+	       ((equal el -1) 0)
+	       (t (throw 'limit t))))
+	((eq bl '$inf)
+         (cond ((eq el '$inf) '$inf)
+               ((equal el '$minf) 0)
+               ((zerop2 el) (bylog expo bas))
+               ((member el '($infinity $ind) :test #'eq) '$und)
+               (t (cond ((eql 0 (getsignl el)) 1)
+                        ((ratgreaterp 0 el) '$zeroa)
+                        ((ratgreaterp el 0) '$inf)
+			(t (throw 'limit t))))))
+        ((eq bl '$minf)
+         (cond ((zerop2 el) (bylog expo bas))
+               ((eq el '$inf) '$und)
+               ((equal el '$minf) 0)
 ;;;Why not generalize this. We can ask about the number. -Jim 2/23/81
-	   ((mnump el)  (cond ((mnegp el)
-			       (cond ((even1 el) '$zeroa)
-				     (t (cond
-					  ((eq (ask-integer el '$integer) '$yes)
-					   (cond ((eq (ask-integer el '$even)
-						      '$yes)  '$zeroa)
-						 (t '$zerob)))
-					  (t 0)))))
-			      (t (cond
-				   ((even1 el) '$inf)
-				   ((eq (ask-integer el '$integer) '$yes)
-				    (cond ((eq (ask-integer el '$even) '$yes)
-					   '$inf)
-					  (t '$minf)))
-				   (t '$infinity)))))
-	   (loginprod? (throw 'lip? 'lip!))
-	   (t '$und)))
-    ((equal (simplify (ratdisrep (ridofab bl))) 1)
-     (if (infinityp el) (bylog expo bas) 1))
-    ((and (equal (ridofab bl) -1)
-	  (infinityp el))  '$ind)	;LB
-    ((eq bl '$ind)  (cond ((or (zerop2 el) (infinityp el)) '$und)
-			  ((not (equal (getsignl el) -1)) '$ind)
-			  (t '$und)))
-    ((eq el '$inf)  (cond ((abeq1 bl)
-			   (cond ((equal (getsignl bl) 1) 1)
-				 (t '$ind)))
-			  ((abless1 bl)
-			   (cond ((equal (getsignl bl) 1) '$zeroa)
-				 (t 0)))
-			  ((equal (getsignl (m1- bl)) 1) '$inf)
-			  ((equal (getsignl (m1- `((mabs) ,bl))) 1) '$infinity)
-			  (t (throw 'limit t))))
-    ((eq el '$minf)  (cond ((abeq1 bl)
-			    (cond ((equal (getsignl bl) 1) 1)
-				  (t '$ind)))
-			   ((not (abless1 bl))
-			    (cond ((equal (getsignl bl) 1)  '$zeroa)
-				  (t 0)))
-			   ((ratgreaterp 0 bl)  '$infinity)
-			   (t '$inf)))
-    ((eq el '$infinity)
-     (if (equal val '$infinity)
-	 '$und			      ;Not enough info to do anything.
-	 (destructuring-let (((real-el . imag-el) (trisplit expo)))
-	   (setq real-el (limit real-el var origval nil))
-	   (cond ((eq real-el '$minf) 0)
-		 ((and (eq real-el '$inf)
-		       (not (equal (ridofab (limit imag-el var origval nil))
-				   0)))   '$infinity)
-		 ((eq real-el '$infinity)
-		  (throw 'limit t))	;; don't really know real component
-		 (t  '$ind)))))
+               ((mnump el)  (cond ((mnegp el)
+                                   (if (even1 el)
+                                       '$zeroa
+                                       (if (eq (ask-integer el '$integer) '$yes)
+                                           (if (eq (ask-integer el '$even) '$yes)
+                                               '$zeroa
+                                               '$zerob)
+                                           0)))
+                                  (t (cond ((even1 el) '$inf)
+                                           ((eq (ask-integer el '$integer) '$yes)
+                                            (if (eq (ask-integer el '$even) '$yes)
+                                                '$inf
+                                                '$minf))
+                                           (t '$infinity)))))
+               (loginprod? (throw 'lip? 'lip!))
+               (t '$und)))
+        ((equal (simplify (ratdisrep (ridofab bl))) 1)
+         (if (infinityp el) (bylog expo bas) 1))
+        ((and (equal (ridofab bl) -1)
+            (infinityp el))  '$ind)	;LB
+        ((eq bl '$ind)  (cond ((or (zerop2 el) (infinityp el)) '$und)
+                              ((not (equal (getsignl el) -1)) '$ind)
+                              (t '$und)))
+        ((eq el '$inf)  (cond ((abeq1 bl)
+                               (if (equal (getsignl bl) 1) 1 '$ind))
+                              ((abless1 bl)
+                               (if (equal (getsignl bl) 1) '$zeroa 0))
+                              ((equal (getsignl (m1- bl)) 1) '$inf)
+                              ((equal (getsignl (m1- `((mabs) ,bl))) 1) '$infinity)
+                              (t (throw 'limit t))))
+        ((eq el '$minf)  (cond ((abeq1 bl)
+                                (if (equal (getsignl bl) 1) 1 '$ind))
+                               ((not (abless1 bl))
+                                (if (equal (getsignl bl) 1) '$zeroa 0))
+                               ((ratgreaterp 0 bl)  '$infinity)
+                               (t '$inf)))
+        ((eq el '$infinity)
+         (if (equal val '$infinity)
+             '$und			      ;Not enough info to do anything.
+             (destructuring-bind (real-el . imag-el)
+                 (trisplit expo)
+               (setq real-el (limit real-el var origval nil))
+               (cond ((eq real-el '$minf)
+                      0)
+                     ((and (eq real-el '$inf)
+                         (not (equal (ridofab (limit imag-el var origval nil)) 0)))
+                      '$infinity)
+                     ((eq real-el '$infinity)
+                      (throw 'limit t))	;; don't really know real component
+                     (t
+                      '$ind)))))
 
-    ((eq el '$ind)  '$ind)
-    ((zerop2 el) 1)
-    (t (m^ bl el))))
+        ((eq el '$ind)  '$ind)
+        ((zerop2 el) 1)
+        (t (m^ bl el))))
 
 (defun even1 (x)
   (cond ((numberp x) (and (integerp x) (evenp x)))
@@ -1804,7 +1791,7 @@ ignoring dummy variables and array indices."
 	 (or (equal 1. bl) (equal bl -1.)))
 	(t (equal (getsignl (m1- `((mabs) ,bl))) 0))))
 
-(defmfun simplimit (exp var val &aux op)
+(defun simplimit (exp var val &aux op)
   (cond
     ((eq var exp) val)
     ((or (atom exp) (mnump exp)) exp)
@@ -1922,7 +1909,7 @@ ignoring dummy variables and array indices."
           (t
            (setf denom (m* denom term)
                  constant-infty (or constant-infty (not (among var term))))
-           (unless (eq inf-type 'infinity)
+           (unless (eq inf-type '$infinity)
              (cond
                ((eq y '$infinity) (setq inf-type '$infinity))
                ((null inf-type) (setf inf-type y))
@@ -2021,8 +2008,7 @@ ignoring dummy variables and array indices."
 	      (cond ((or infl minfl)
 		     (throw 'limit t))
 		    (t (push (car exp) infinityl))))))
-     (cond (y (return '$und))
-	   ((not (or infl minfl indl infinityl))
+     (cond ((not (or infl minfl indl infinityl))
 	    (return (cond ((atom sum)  sum)
 			  ((or (not (free sum '$zeroa))
 			       (not (free sum '$zerob)))
@@ -2111,7 +2097,7 @@ ignoring dummy variables and array indices."
 	(t l)))
 
 ;; get rid of zeroa and zerob
-(defmfun ridofab (e)
+(defun ridofab (e)
   (if (among '$zeroa e) (setq e (maxima-substitute 0 '$zeroa e)))
   (if (among '$zerob e) (setq e (maxima-substitute 0 '$zerob e)))
   e)
@@ -2473,7 +2459,6 @@ ignoring dummy variables and array indices."
 			      (list 'var var 1.))
 			     (t (list 'num term))))
 	((not (among var term))  (list 'num term))
-	((radicalp term var)  (list 'var term (rddeg term nil)))
 	((mplusp term)
 	 (let ((temp (ismax (mapcar #'istrength (cdr term)))))
 	   (cond ((not (null temp))  temp)
@@ -2744,31 +2729,25 @@ ignoring dummy variables and array indices."
 	  ((member arglim '($minf $infinity) :test #'eq)
 	   '$infinity)
 	  ((member arglim '($ind $und) :test #'eq) '$und)
+	  ((eq arglim '$zeroa)  '$minf)
+	  ((eq arglim '$zerob)  '$infinity)
+	  ((equalp arglim 0)  '$infinity)
+	  ((equalp arglim 1)
+	   (let ((dir (behavior (cadr expr) var val)))
+	     (cond ((equal dir 1) '$zeroa)
+		   ((equal dir -1) '$zerob)
+		   (t 0))))
 	  ((equalp ($imagpart (cadr expr)) 0)
            ;; argument is real.
-	   (let* ((real-lim (ridofab arglim)))
-	     (if (equalp real-lim 0)
-		 (cond ((eq arglim '$zeroa)  '$minf)
-		       ((eq arglim '$zerob)  '$infinity)
-                       (t (let ((dir (behavior (cadr expr) var val)))
-			    (cond ((equal dir 1) '$minf)
-				  ((equal dir -1) '$infinity)
-				  (t (throw 'limit t))))))
-		 (cond ((equalp arglim 1)
-			(let ((dir (behavior (cadr expr) var val)))
-			  (if (equal dir 1) '$zeroa 0)))
-		       (t
-		         ;; Call simplifier to get value at the limit
-		         ;; of the argument. 
-		         (simplify `((%log) ,real-lim)))))))
-	  (t
-	   ;; argument is complex.
-	   (destructuring-let* (((rp . ip) (trisplit expr)))
-			       (if (eq (setq rp (limit rp var val 'think)) '$minf)
-				   ;; Realpart is minf, do not return minf+%i*ip but infinity.
-				   '$infinity
-				 ;; Return a complex limit value.
-				 (add rp (mul '$%i (limit ip var val 'think)))))))))
+	   (simplify `((%log) ,arglim)))
+	  (t	   ;; argument is complex.
+	   (destructuring-bind (rp . ip)
+               (trisplit expr)
+             (if (eq (setq rp (limit rp var val 'think)) '$minf)
+                 ;; Realpart is minf, do not return minf+%i*ip but infinity.
+                 '$infinity
+                 ;; Return a complex limit value.
+                 (add rp (mul '$%i (limit ip var val 'think)))))))))
 
 ;;; Limit of the Factorial function
 
@@ -2799,19 +2778,20 @@ ignoring dummy variables and array indices."
            (simplify (list '(mfactorial) arglim))))))
 
 (defun simplim%erf-%tanh (fn arg)
-  (let ((arglim (limit arg var val 'think)))
+  (let ((arglim (limit arg var val 'think))
+        (ans ())
+        (rlim ()))
     (cond ((eq arglim '$inf) 1)
 	  ((eq arglim '$minf) -1)
 	  ((eq arglim '$infinity)
-	   (destructuring-let (((rpart . ipart) (trisplit arg))
-			       (ans ()) (rlim ()))
+	   (destructuring-bind (rpart . ipart)
+               (trisplit arg)
 	     (setq rlim (limit rpart var origval 'think))
 	     (cond ((eq fn '%tanh)
 		    (cond ((equal rlim '$inf) 1)
 			  ((equal rlim '$minf) -1)))
 		   ((eq fn '%erf)
-		    (setq ans
-			  (limit (m* rpart (m^t ipart -1)) var origval 'think))
+		    (setq ans (limit (m* rpart (m^t ipart -1)) var origval 'think))
 		    (setq ans ($asksign (m+ `((mabs) ,ans) -1)))
 		    (cond ((or (eq ans '$pos) (eq ans '$zero))
 			   (cond ((eq rlim '$inf) 1)
@@ -2959,37 +2939,46 @@ ignoring dummy variables and array indices."
 	(t (simplify (list (ncons fn) (ridofab arg))))))
 
 (defun simplim$li (order arg val)
-  (cond ((and (not (equal (length order) 1))
-	      (not (equal (length arg) 1)))  (throw 'limit ()))
-	(t (setq order (car order) arg (car arg))))
-  (cond ((not (equal order 2))  (throw 'limit ()))
-	(t (destructuring-let (((rpart . ipart) (trisplit arg)))
-	     (cond ((not (equal ipart 0))  (throw 'limit ()))
-		   (t (setq rpart (limit rpart var val 'think))
-		      (cond ((eq rpart '$zeroa)  '$zeroa)
-			    ((eq rpart '$zerob)  '$zerob)
-			    ((eq rpart '$minf)  '$minf)
-			    ((eq rpart '$inf)  '$infinity)
-			    (t (simplify (subfunmake '$li (list order)
-						     (list rpart)))))))))))
+  (if (and (not (equal (length order) 1))
+         (not (equal (length arg) 1)))
+      (throw 'limit ())
+      (setq order (car order)
+            arg (car arg)))
+  (if (not (equal order 2))
+      (throw 'limit ())
+      (destructuring-bind (rpart . ipart)
+          (trisplit arg)
+        (cond ((not (equal ipart 0))
+               (throw 'limit ()))
+              (t
+               (setq rpart (limit rpart var val 'think))
+               (cond ((eq rpart '$zeroa)  '$zeroa)
+                     ((eq rpart '$zerob)  '$zerob)
+                     ((eq rpart '$minf)  '$minf)
+                     ((eq rpart '$inf)  '$infinity)
+                     (t (simplify (subfunmake '$li (list order)
+                                              (list rpart))))))))))
 
 (defun simplim$psi (order arg val)
-  (cond ((and (not (equal (length order) 1))
-	      (not (equal (length arg) 1)))  (throw 'limit ()))
-	(t (setq order (car order) arg (car arg))))
+  (if (and (not (equal (length order) 1))
+         (not (equal (length arg) 1)))
+      (throw 'limit ())
+      (setq order (car order)
+            arg (car arg)))
   (cond ((equal order 0) 
-	 (destructuring-let (((rpart . ipart) (trisplit arg)))
-	     (cond ((not (equal ipart 0))  (throw 'limit ()))
-		   (t (setq rpart (limit rpart var val 'think))
-		      (cond ((eq rpart '$zeroa)  '$minf)
-			    ((eq rpart '$zerob)  '$inf)
-			    ((eq rpart '$inf)  '$inf)
-			    ((eq rpart '$minf)   '$und)
-			    ((equal (getsignl rpart) -1)  (throw 'limit ()))
-			    (t (simplify (subfunmake '$psi (list order)
-						     (list rpart)))))))))
+	 (destructuring-bind (rpart . ipart)
+             (trisplit arg)
+           (cond ((not (equal ipart 0))  (throw 'limit ()))
+                 (t (setq rpart (limit rpart var val 'think))
+                    (cond ((eq rpart '$zeroa)  '$minf)
+                          ((eq rpart '$zerob)  '$inf)
+                          ((eq rpart '$inf)  '$inf)
+                          ((eq rpart '$minf)   '$und)
+                          ((equal (getsignl rpart) -1)  (throw 'limit ()))
+                          (t (simplify (subfunmake '$psi (list order)
+                                                   (list rpart)))))))))
 	((and (integerp order) (> order 0) 
-	      (equal (limit arg var val 'think) '$inf))
+            (equal (limit arg var val 'think) '$inf))
 	 (cond ((mevenp order) '$zerob)
 	       ((moddp order) '$zeroa)
 	       (t (throw 'limit ()))))

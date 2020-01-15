@@ -24,14 +24,14 @@ setup_vars() {
   else
       MAXIMA_DEFAULT_IMAGESDIR=$top_srcdir/src
   fi  
-  if [ -n "$MAXIMA_PREFIX" ]; then
+  if [ -d "$MAXIMA_DEFAULT_IMAGESDIR" ]; then
+      MAXIMA_IMAGESDIR="$MAXIMA_DEFAULT_IMAGESDIR"
+  else
       if [ "$layout_autotools" = "true" ]; then
 	  MAXIMA_IMAGESDIR=`unixize "$MAXIMA_PREFIX"`/lib/$PACKAGE/$MAXIMA_VERSION
       else
 	  MAXIMA_IMAGESDIR=`unixize "$MAXIMA_PREFIX"`/src
       fi  
-  else
-      MAXIMA_IMAGESDIR="$MAXIMA_DEFAULT_IMAGESDIR"
   fi
   MAXIMA_DEFAULT_LISP=@DEFAULTLISP@
   # If the the binary directory for the default lisp is not present,
@@ -82,6 +82,39 @@ if [ -z "$MAXIMA_DIRECTORY" ]; then
   unset MAXIMA_DIRECTORY
 fi
 
+# GCL in its default settings tends to run out of memory frequently quickly.
+# For example 8 Gigabytes of RAM aren't enough to run the testbench when sbcl
+# and clisp need <0,5 Gigabytes by default.
+# The following lines make GCL's garbage collector more aggressive by default.
+if [ -z "$GCL_GC_PAGE_THRESH" ]; then
+    export GCL_GC_PAGE_THRESH=0.2
+fi;
+if [ -z "$GCL_GC_ALLOC_MIN" ]; then
+    export GCL_GC_ALLOC_MIN=0.01
+fi;
+if [ -z "$GCL_GC_PAGE_MAX" ]; then
+    export GCL_GC_PAGE_MAX=0.05
+fi;
+
+
+# GCL also by default tells the garbage collector to limit the memory usage to
+# allocate half of the physical RAM installed in the current machine.
+# Which works fine in a single-user system and even takes in account the amount
+# of memory the other gcl processes use but is too far in the multitasking versus
+# speed tradeoff for us.
+#
+# See also:
+# https://lists.gnu.org/archive/html/gcl-devel/2017-09/msg00000.html
+if [ -z "$GCL_MEM_MULTIPLE" ]; then
+    export GCL_MEM_MULTIPLE=0.2
+fi;
+
+# Will be promoted to be gcl's default. But for the time being: Allow concurrent
+# gcl processes to communicate about how much memory each of them can use.
+if [ -z "$GCL_DISABLE_MULTIPROCESS_MEMORY_POOL" ]; then
+    export GCL_MULTIPROCESS_MEMORY_POOL=t
+fi;
+
 # process the command line arguments. This must be done in a function, because
 # "shift" should only shift the function parameters, not the global parameters.
 process_commandline_arguments() {
@@ -115,7 +148,7 @@ setup_vars
 
 if [ ! -d "$MAXIMA_IMAGESDIR" ]; then
 # Have we been moved?
-  MAXIMA_PREFIX=`(cd \`dirname $0\` 1>/dev/null 2>/dev/null; dirname \`pwd\`)`
+  MAXIMA_PREFIX=`(cd "\`dirname "$0"\`" 1>/dev/null 2>/dev/null; dirname "\`pwd\`")`
   export MAXIMA_PREFIX
   unsetup_vars
   setup_vars
@@ -123,6 +156,12 @@ if [ ! -d "$MAXIMA_IMAGESDIR" ]; then
     echo "$0: unable to determine MAXIMA_PREFIX" 1>&2
     exit 1
   fi
+fi
+
+# This step should only be necessary in order to be in sync with the windows
+# version of maxima.
+if [ -d "$MAXIMA_INITIAL_FOLDER" ]; then
+    cd "$MAXIMA_INITIAL_FOLDER"
 fi
 
 maxima_image_base="$MAXIMA_IMAGESDIR/binary-$MAXIMA_LISP/maxima"
@@ -197,8 +236,13 @@ elif [ "$MAXIMA_LISP" = "ccl64" ]; then
    fi
 
 elif [ "$MAXIMA_LISP" = "ecl" ]; then
-   exec "$maxima_image_base"  $MAXIMA_LISP_OPTIONS -- "$@"
+   exec "$maxima_image_base" --frame-stack 4096 --lisp-stack 65536 $MAXIMA_LISP_OPTIONS -- "$@"
 
+elif [ "$MAXIMA_LISP" = "abcl" ]; then
+    export MAXIMA_LISP_OPTIONS
+    export MAXIMA_IMAGESDIR
+    $MAXIMA_IMAGESDIR/binary-abcl/maxima "$@"
+    
 elif [ "$MAXIMA_LISP" = "sbcl" ]; then
 # Use executable image if it exists.
 # Since compiling lapack already needed >1200 Megabytes of RAM in August of 2015 

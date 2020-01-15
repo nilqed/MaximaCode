@@ -7,7 +7,7 @@
 @section Introduction to ctensor
 
 @code{ctensor} is a component tensor manipulation package.  To use the @code{ctensor}
-package, type @code{load(ctensor)}.
+package, type @code{load("ctensor")}.
 To begin an interactive session with @code{ctensor}, type @code{csetup()}.  You are
 first asked to specify the dimension of the manifold. If the dimension
 is 2, 3 or 4 then the list of coordinates defaults to @code{[x,y]}, @code{[x,y,z]}
@@ -33,7 +33,7 @@ solution) as an example. Many of the functions in @code{ctensor} will be
 displayed for the standard metric as examples.
 
 @example
-(%i1) load(ctensor);
+(%i1) load("ctensor");
 (%o1)      /share/tensor/ctensor.mac
 (%i2) csetup();
 Enter the dimension of the coordinate system:
@@ -119,7 +119,9 @@ y;
 @end example
 
 @opencatbox
-@category{Tensors} @category{Share packages} @category{Package ctensor}
+@category{Tensors}
+@category{Share packages}
+@category{Package ctensor}
 @closecatbox
 
 @c end concepts ctensor
@@ -221,9 +223,17 @@ Sets up a predefined coordinate system and metric. The argument
 followed by a list containing the coordinate variables. For instance,
 you can specify a spherical metric as follows:
 
+@c ===beg===
+@c load("ctensor");
+@c ct_coordsys([r*cos(theta)*cos(phi),r*cos(theta)*sin(phi),
+@c             r*sin(theta),[r,theta,phi]]);
+@c lg:trigsimp(lg);
+@c ct_coords;
+@c dim;
+@c ===end===
 @example
 
-(%i1) load(ctensor);
+(%i1) load("ctensor");
 (%o1)       /share/tensor/ctensor.mac
 (%i2) ct_coordsys([r*cos(theta)*cos(phi),r*cos(theta)*sin(phi),
       r*sin(theta),[r,theta,phi]]);
@@ -245,9 +255,18 @@ you can specify a spherical metric as follows:
 
 Transformation functions can also be used when @code{cframe_flag} is @code{true}:
 
+@c ===beg===
+@c load("ctensor");
+@c cframe_flag:true;
+@c ct_coordsys([r*cos(theta)*cos(phi),r*cos(theta)*sin(phi),
+@c             r*sin(theta),[r,theta,phi]]);
+@c fri;
+@c cmetric();
+@c lg:trigsimp(lg);
+@c ===end===
 @example
 
-(%i1) load(ctensor);
+(%i1) load("ctensor");
 (%o1)       /share/tensor/ctensor.mac
 (%i2) cframe_flag:true;
 (%o2)                                true
@@ -482,7 +501,7 @@ if @var{dis} is @code{true}.
 @end deffn
 @anchor{rinvariant}
 @deffn {Function} rinvariant ()
-Forms the Kretchmann-invariant (@code{kinvariant}) obtained by
+Forms the Kretschmann-invariant (@code{kinvariant}) obtained by
 contracting the tensors
 
 @example
@@ -548,7 +567,7 @@ complex:
 
 @example
 
-(%i1) load(ctensor);
+(%i1) load("ctensor");
 (%o1)       /share/tensor/ctensor.mac
 (%i2) ratfac:true;
 (%o2)                                true
@@ -761,7 +780,7 @@ For example, the following demonstrates how to obtain the Petrov-classification
 of the Kerr metric:
 
 @example
-(%i1) load(ctensor);
+(%i1) load("ctensor");
 (%o1)       /share/tensor/ctensor.mac
 (%i2) (cframe_flag:true,gcd:spmod,ctrgsimp:true,ratfac:true);
 (%o2)                                true
@@ -938,8 +957,21 @@ is a two dimensional array, if computed for the metric in the example
 below, @code{findde} gives the following independent differential equations:
 
 
+@c ===beg===
+@c load("ctensor");
+@c derivabbrev:true;
+@c dim:4;
+@c lg:matrix([a, 0, 0, 0], [ 0, x^2, 0, 0],
+@c                         [0, 0, x^2*sin(y)^2, 0], [0,0,0,-d]);
+@c depends([a,d],x);
+@c ct_coords:[x,y,z,t];
+@c cmetric();
+@c einstein(false);
+@c findde(ein,2);
+@c deindex;
+@c ===end===
 @example
-(%i1) load(ctensor);
+(%i1) load("ctensor");
 (%o1)       /share/tensor/ctensor.mac
 (%i2) derivabbrev:true;
 (%o2)                                true
@@ -998,8 +1030,18 @@ Computes the contravariant gradient of a scalar function allowing
 the user to choose the corresponding vector name as the example
 below for the Schwarzschild metric illustrates:
 
+@c ===beg===
+@c load("ctensor");
+@c derivabbrev:true;
+@c ct_coordsys(exteriorschwarzschild,all);
+@c depends(f,r);
+@c cograd(f,g1);
+@c listarray(g1);
+@c contragrad(f,g2);
+@c listarray(g2);
+@c ===end===
 @example
-(%i1) load(ctensor);
+(%i1) load("ctensor");
 (%o1)       /share/tensor/ctensor.mac
 (%i2) derivabbrev:true;
 (%o2)                                true
@@ -1030,8 +1072,15 @@ below for the Schwarzschild metric illustrates:
 computes the tensor d'Alembertian of the scalar function once
 dependencies have been declared upon the function. For example:
 
+@c ===beg===
+@c load("ctensor");
+@c derivabbrev:true;
+@c ct_coordsys(exteriorschwarzschild,all);
+@c depends(p,r);
+@c factor(dscalar(p));
+@c ===end===
 @example
-(%i1) load(ctensor);
+(%i1) load("ctensor");
 (%o1)       /share/tensor/ctensor.mac
 (%i2) derivabbrev:true;
 (%o2)                                true
@@ -1141,7 +1190,8 @@ Returns @code{true} if the first @var{n} rows and @var{n} columns of @var{M}
 form a diagonal matrix or (2D) array.
 
 @opencatbox
-@category{Package ctensor} @category{Predicate functions}
+@category{Package ctensor}
+@category{Predicate functions}
 @closecatbox
 
 @end deffn
@@ -1156,7 +1206,8 @@ If @var{n} is less than the size of @var{M},
 comprising rows 1 through @var{n} and columns 1 through @var{n}.
 
 @opencatbox
-@category{Package ctensor} @category{Predicate functions}
+@category{Package ctensor}
+@category{Predicate functions}
 @closecatbox
 
 @end deffn
@@ -1182,7 +1233,7 @@ as a list of 2-dimensional matrices. For instance, the Riemann-tensor of
 the Schwarzschild metric can be viewed as:
 
 @example
-(%i1) load(ctensor);
+(%i1) load("ctensor");
 (%o1)       /share/tensor/ctensor.mac
 (%i2) ratfac:true;
 (%o2)                                true
@@ -1446,7 +1497,8 @@ Causes trigonometric simplifications to be used when tensors are computed. Prese
 @code{ctrgsimp} affects only computations involving a moving frame.
 
 @opencatbox
-@category{Package ctensor} @category{Simplification flags and variables}
+@category{Package ctensor}
+@category{Simplification flags and variables}
 @closecatbox
 
 @end defvr
@@ -1666,7 +1718,7 @@ The contravariant Riemann tensor. Computed by @code{uriemann}.
 @anchor{ric}
 @defvr {Variable} ric
 
-The mixed Ricci-tensor. Computed by @code{ricci}.
+The covariant Ricci-tensor. Computed by @code{ricci}.
 
 @opencatbox
 @category{Package ctensor}
@@ -1677,7 +1729,7 @@ The mixed Ricci-tensor. Computed by @code{ricci}.
 @anchor{uric}
 @defvr {Variable} uric
 
-The contravariant Ricci-tensor. Computed by @code{uricci}.
+The mixed-index Ricci-tensor. Computed by @code{uricci}.
 
 @opencatbox
 @category{Package ctensor}
@@ -1733,7 +1785,7 @@ Frame bracket coefficients, as computed by @code{frame_bracket}.
 @anchor{kinvariant}
 @defvr {Variable} kinvariant
 
-The Kretchmann invariant. Computed by @code{rinvariant}.
+The Kretschmann invariant. Computed by @code{rinvariant}.
 
 @opencatbox
 @category{Package ctensor}

@@ -586,3 +586,510 @@ m(1);
 kill (functions, arrays);
 done;
 
+/* Verify that we catch malformed lambda expressions when they are simplified.
+ * These used to only be checked for if/when lambda expressions were applied
+ * to arguments.
+ */
+
+/* no parameter list */
+errcatch (lambda ())$
+[];
+
+/* empty body */
+errcatch (lambda ([x]))$
+[];
+
+/* non-symbol in parameter list */
+errcatch (lambda ([42], 'foo))$
+[];
+
+/* misplaced list parameter (for optional arguments) */
+errcatch (lambda ([[l], x], 'foo))$
+[];
+
+/* invalid list parameter (for optional arguments) */
+errcatch (lambda ([[l1, l2]], 'foo))$
+[];
+
+/* attempting to bind a constant is allowed */
+block ([c],
+  local (c),
+  declare (c, constant),
+  errcatch (lambda ([c], c)))$
+[lambda([c], c)];
+
+/* Verify that the parameter/variable lists of functions, lambda expressions,
+ * macros and blocks cannot contain duplicate variables.  Lots of cases...
+ */
+
+errcatch (foo (x, x) := x)$
+[];
+
+errcatch (foo (x, 'x) := x)$
+[];
+
+errcatch (foo (x, [x]) := x)$
+[];
+
+errcatch (foo (x, ['x]) := x)$
+[];
+
+errcatch (foo [x, x] := x)$
+[];
+
+errcatch (foo [x] (y, y) := y)$
+[];
+
+errcatch (foo [x] (y, 'y) := y)$
+[];
+
+errcatch (foo [x] (y, [y]) := y)$
+[];
+
+errcatch (foo [x] (y, ['y]) := y)$
+[];
+
+errcatch (foo [x, x] (y) := y)$
+[];
+
+errcatch (lambda ([x, x], x))$
+[];
+
+errcatch (lambda ([x, 'x], x))$
+[];
+
+errcatch (lambda ([x, [x]], x))$
+[];
+
+errcatch (lambda ([x, ['x]], x))$
+[];
+
+errcatch (foo (x, x) ::= x)$
+[];
+
+errcatch (foo (x, [x]) ::= x)$
+[];
+
+errcatch (block ([x, x], x))$
+[];
+
+errcatch (block ([x, x:foo], x))$
+[];
+
+/* try to verify that save(...) handles arrays correctly */
+
+(kill (all),
+ myundeclared[1234, foo] : sin(bar),
+ myundeclared[bar, baz + 1] : cos(quux),
+ myundeclared[1729, u^2] : tan(bar),
+ myundeclared[mumble, 7] : 9876,
+ array (mydeclared, 1, 1, 1),
+ mydeclared[0, 0, 0] : bar + 0,
+ mydeclared[0, 0, 1] : bar + 1,
+ mydeclared[0, 1, 0] : bar + 2,
+ mydeclared[0, 1, 1] : bar + 3,
+ mydeclared[1, 0, 0] : bar + 4,
+ mydeclared[1, 0, 1] : bar + 5,
+ mydeclared[1, 1, 0] : bar + 6,
+ mydeclared[1, 1, 1] : bar + 7,
+ myvalue : make_array (fixnum, 2, 2, 2, 2),
+ myvalue[0, 0, 0, 0] : %pi + 1,
+ myvalue[1, 1, 1, 1] : %e - 1,
+ use_fast_arrays : true,
+ myfast[foo, bar, baz] : blurf,
+ myfast["mumble", "abc", "xy", "Z"] : 2*blurf,
+ myfast[sin(foo), 1 - baz] : 3*blurf,
+ reset (use_fast_arrays),
+ save (sconcat (maxima_tempdir, "/tmpsavearrays.lisp"), arrays, values),
+ 0);
+0;
+
+[arrays, values];
+[[myundeclared, mydeclared], [myvalue, myfast]];
+
+arrayinfo (myundeclared);
+[hashed, 2, [1234,foo],[1729,u^2],[bar,baz+1],[mumble,7]];
+
+listarray (myundeclared);
+[sin(bar), tan(bar), cos(quux), 9876];
+
+arrayinfo (mydeclared);
+[declared, 3, [1, 1, 1]];
+
+listarray (mydeclared);
+[bar, bar + 1, bar + 2, bar + 3, bar + 4, bar + 5, bar + 6, bar + 7];
+
+arrayinfo (myvalue);
+[declared, 4, [1, 1, 1, 1]]; /* "declared" seems wrong here ... oh well */
+
+listarray (myvalue);
+[%pi + 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, %e - 1];
+
+(arrayinfo (myfast), [%%[1], %%[2], sort (rest (%%, 2))]);
+[hash_table, true, [["mumble", "abc", "xy", "Z"], [foo, bar, baz], [sin(foo), 1 - baz]]];
+
+sort (listarray (myfast));
+[blurf, 2*blurf, 3*blurf];
+
+kill (myundeclared, mydeclared, myvalue, myfast);
+done;
+
+[arrays, values];
+[[], []];
+
+[errcatch (arrayinfo (myundeclared)),
+ errcatch (arrayinfo (mydeclared)),
+ errcatch (arrayinfo (myvalue)),
+ errcatch (arrayinfo (myfast))];
+[[], [], [], []];
+
+[errcatch (listarray (myundeclared)),
+ errcatch (listarray (mydeclared)),
+ errcatch (listarray (myvalue)),
+ errcatch (listarray (myfast))];
+[[], [], [], []];
+
+(load (sconcat (maxima_tempdir, "/tmpsavearrays.lisp")), 0);
+0;
+
+[arrays, values];
+[[myundeclared, mydeclared], [myvalue, myfast]];
+
+arrayinfo (myundeclared);
+[hashed, 2, [1234,foo],[1729,u^2],[bar,baz+1],[mumble,7]];
+
+listarray (myundeclared);
+[sin(bar), tan(bar), cos(quux), 9876];
+
+arrayinfo (mydeclared);
+[declared, 3, [1, 1, 1]];
+
+listarray (mydeclared);
+[bar, bar + 1, bar + 2, bar + 3, bar + 4, bar + 5, bar + 6, bar + 7];
+
+arrayinfo (myvalue);
+[declared, 4, [1, 1, 1, 1]]; /* "declared" seems wrong here ... oh well */
+
+listarray (myvalue);
+[%pi + 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, %e - 1];
+
+(arrayinfo (myfast), [%%[1], %%[2], sort (rest (%%, 2))]);
+[hash_table, true, [["mumble", "abc", "xy", "Z"], [foo, bar, baz], [sin(foo), 1 - baz]]];
+
+sort (listarray (myfast));
+[blurf, 2*blurf, 3*blurf];
+
+/* firstn, lastn */
+
+(kill (a, b, z), mylist : [a, 3, %pi, b, -2, %e, z, 0, %phi], 0);
+0;
+
+firstn (mylist, 0);
+[];
+
+firstn (mylist, 1);
+[a];
+
+firstn (mylist, 4);
+[a, 3, %pi, b];
+
+firstn (mylist, 8);
+[a, 3, %pi, b, -2, %e, z, 0];
+
+firstn (mylist, 9);
+[a, 3, %pi, b, -2, %e, z, 0, %phi];
+
+firstn (mylist, 10);
+[a, 3, %pi, b, -2, %e, z, 0, %phi];
+
+firstn (mylist, 100);
+[a, 3, %pi, b, -2, %e, z, 0, %phi];
+
+errcatch (firstn (mylist, -4));
+[];
+
+lastn (mylist, 0);
+[];
+
+lastn (mylist, 1);
+[%phi];
+
+lastn (mylist, 4);
+[%e, z, 0, %phi];
+
+lastn (mylist, 8);
+[3, %pi, b, -2, %e, z, 0, %phi];
+
+lastn (mylist, 9);
+[a, 3, %pi, b, -2, %e, z, 0, %phi];
+
+lastn (mylist, 10);
+[a, 3, %pi, b, -2, %e, z, 0, %phi];
+
+lastn (mylist, 100);
+[a, 3, %pi, b, -2, %e, z, 0, %phi];
+
+errcatch (lastn (mylist, -4));
+[];
+
+(kill (foo), fooexpr : funmake (foo, mylist), 0);
+0;
+
+firstn (fooexpr, 0);
+foo();
+
+firstn (fooexpr, 1);
+foo(a);
+
+firstn (fooexpr, 4);
+foo(a, 3, %pi, b);
+
+firstn (fooexpr, 8);
+foo(a, 3, %pi, b, -2, %e, z, 0);
+
+firstn (fooexpr, 9);
+foo(a, 3, %pi, b, -2, %e, z, 0, %phi);
+
+firstn (fooexpr, 10);
+foo(a, 3, %pi, b, -2, %e, z, 0, %phi);
+
+firstn (fooexpr, 100);
+foo(a, 3, %pi, b, -2, %e, z, 0, %phi);
+
+errcatch (firstn (fooexpr, -4));
+[];
+
+lastn (fooexpr, 0);
+foo();
+
+lastn (fooexpr, 1);
+foo(%phi);
+
+lastn (fooexpr, 4);
+foo(%e, z, 0, %phi);
+
+lastn (fooexpr, 8);
+foo(3, %pi, b, -2, %e, z, 0, %phi);
+
+lastn (fooexpr, 9);
+foo(a, 3, %pi, b, -2, %e, z, 0, %phi);
+
+lastn (fooexpr, 10);
+foo(a, 3, %pi, b, -2, %e, z, 0, %phi);
+
+lastn (fooexpr, 100);
+foo(a, 3, %pi, b, -2, %e, z, 0, %phi);
+
+errcatch (lastn (fooexpr, -4));
+[];
+
+(kill (bar), nary ("bar"));
+"bar";
+
+barexpr : apply ("bar", mylist);
+a bar 3 bar %pi bar b bar (-2) bar %e bar z bar 0 bar %phi;
+
+firstn (barexpr, 0);
+"bar"();
+
+firstn (barexpr, 1);
+"bar"(a);
+
+firstn (barexpr, 4);
+a bar 3 bar %pi bar b;
+
+firstn (barexpr, 8);
+a bar 3 bar %pi bar b bar (-2) bar %e bar z bar 0;
+
+firstn (barexpr, 9);
+a bar 3 bar %pi bar b bar (-2) bar %e bar z bar 0 bar %phi;
+
+firstn (barexpr, 10);
+a bar 3 bar %pi bar b bar (-2) bar %e bar z bar 0 bar %phi;
+
+firstn (barexpr, 100);
+a bar 3 bar %pi bar b bar (-2) bar %e bar z bar 0 bar %phi;
+
+errcatch (firstn (barexpr, -4));
+[];
+
+lastn (barexpr, 0);
+"bar"();
+
+lastn (barexpr, 1);
+"bar"(%phi);
+
+lastn (barexpr, 4);
+%e bar z bar 0 bar %phi;
+
+lastn (barexpr, 8);
+3 bar %pi bar b bar (-2) bar %e bar z bar 0 bar %phi;
+
+lastn (barexpr, 9);
+a bar 3 bar %pi bar b bar (-2) bar %e bar z bar 0 bar %phi;
+
+lastn (barexpr, 10);
+a bar 3 bar %pi bar b bar (-2) bar %e bar z bar 0 bar %phi;
+
+lastn (barexpr, 100);
+a bar 3 bar %pi bar b bar (-2) bar %e bar z bar 0 bar %phi;
+
+errcatch (lastn (barexpr, -4));
+[];
+
+(kill ("bar", baz, k), bazexpr : funmake (baz[k], mylist), 0);
+0;
+
+firstn (bazexpr, 0);
+baz[k]();
+
+firstn (bazexpr, 1);
+baz[k](a);
+
+firstn (bazexpr, 4);
+baz[k](a, 3, %pi, b);
+
+firstn (bazexpr, 8);
+baz[k](a, 3, %pi, b, -2, %e, z, 0);
+
+firstn (bazexpr, 9);
+baz[k](a, 3, %pi, b, -2, %e, z, 0, %phi);
+
+firstn (bazexpr, 10);
+baz[k](a, 3, %pi, b, -2, %e, z, 0, %phi);
+
+firstn (bazexpr, 100);
+baz[k](a, 3, %pi, b, -2, %e, z, 0, %phi);
+
+errcatch (firstn (bazexpr, -4));
+[];
+
+lastn (bazexpr, 0);
+baz[k]();
+
+lastn (bazexpr, 1);
+baz[k](%phi);
+
+lastn (bazexpr, 4);
+baz[k](%e, z, 0, %phi);
+
+lastn (bazexpr, 8);
+baz[k](3, %pi, b, -2, %e, z, 0, %phi);
+
+lastn (bazexpr, 9);
+baz[k](a, 3, %pi, b, -2, %e, z, 0, %phi);
+
+lastn (bazexpr, 10);
+baz[k](a, 3, %pi, b, -2, %e, z, 0, %phi);
+
+lastn (bazexpr, 100);
+baz[k](a, 3, %pi, b, -2, %e, z, 0, %phi);
+
+errcatch (lastn (bazexpr, -4));
+[];
+
+/* bug reported to mailing list 2017-09-05: "compiling a function including sorting" */
+
+(kill(test), test(L):=sort(L,lambda([s,t],s[2]>t[2])), 0);
+0;
+
+(L:[[b,2],[a,1],[d,4],[c,3]], test (L));
+[[d,4],[c,3],[b,2],[a,1]];
+
+(compile (test), test (L));
+[[d,4],[c,3],[b,2],[a,1]];
+
+(mycmp (s, t) := s[2]>t[2], 0);
+0;
+
+sort (L, mycmp);
+[[d,4],[c,3],[b,2],[a,1]];
+
+(compile (mycmp), is (?fboundp (mycmp) # false));
+true;
+
+sort (L, mycmp);
+[[d,4],[c,3],[b,2],[a,1]];
+
+
+/* bug reported to mailing list 2017-12-21: "array() with use_fast_arrays: true" */
+
+(use_fast_arrays : true,
+ kill (a, b, a0, a1),
+ array ([a, b], 1),
+ map (?arrayp, %%));
+[true, true];
+
+map (?length, [a, b]);
+[2, 2];
+
+(a[0] : a0,
+ a[1] : a1,
+ listarray (a));
+[a0, a1];
+
+listarray (b);
+[false, false];
+
+(reset (), 0);
+0;
+
+/* mailing list 2017-12-28: "op('(do 1))" */
+
+(e : '(for i:111 thru 114 do push(i, L)),
+ [op(e), args(e)]);
+["do", [i,111,false,false,114,false,push(i,L)]];
+
+e1 : apply (funmake, ["do", '[i,111,false,false,114,false,push(i,L)]]);
+for i:111 thru 114 do push(i, L);
+
+block ([L:[]], ev(e1), L);
+[114, 113, 112, 111];
+
+(e : '(for x in [100, 200, 300] do push(x - 1, M)),
+ [op(e), args(e)]);
+["do_in", [x,[100,200,300],false,false,false,false,push(x-1,M)]];
+
+e1 : apply (funmake, ["do_in", '[x,[100,200,300],false,false,false,false,push(x-1,M)]]);
+for x in [100, 200, 300] do push(x - 1, M);
+
+block ([M:[]], ev(e1), M);
+[299, 199, 99];
+
+(reset(use_fast_arrays),1);
+1;
+
+/* ensure arraymake cannot create an invalid expression
+ * follow-on work to commit 3140a35
+ */
+
+(kill (foo, bar, baz, quux),
+ arraymake (foo, [bar]));
+foo[bar];
+
+arraymake (foo[bar], [baz]);
+foo[bar][baz];
+
+arraymake (foo[bar][baz], [quux]);
+foo[bar][baz][quux];
+
+arraymake (foo[bar, baz], [111, 222]);
+foo[bar, baz][111, 222];
+
+errcatch (arraymake (1, [bar]));
+[];
+
+errcatch (arraymake ("foo", [bar]));
+[];
+
+errcatch (arraymake (lambda([x], x), [bar]));
+[];
+
+/* slightly unusual constructs which do yield valid expressions, and are therefore permissible */
+
+arraymake (foo + bar, [baz]);
+(foo + bar)[baz];
+
+arraymake (foo(bar), [baz]);
+foo(bar)[baz];
+

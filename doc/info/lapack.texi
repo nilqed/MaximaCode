@@ -10,7 +10,9 @@
 as obtained from the SLATEC project.
 
 @opencatbox
-@category{Numerical methods} @category{Share packages} @category{Package lapack}
+@category{Numerical methods}
+@category{Share packages}
+@category{Package lapack}
 @closecatbox
 
 
@@ -54,7 +56,7 @@ equal to 1, and largest component has imaginary part equal to zero.
 Example:
 
 @c ===beg===
-@c load (lapack)$
+@c load ("lapack")$
 @c fpprintprec : 6;
 @c M : matrix ([9.5, 1.75], [3.25, 10.45]);
 @c dgeev (M);
@@ -64,7 +66,7 @@ Example:
 @c transpose (u) . M - D . transpose (u);
 @c ===end===
 @example
-(%i1) load (lapack)$
+(%i1) load ("lapack")$
 (%i2) fpprintprec : 6;
 (%o2)                           6
 (%i3) M : matrix ([9.5, 1.75], [3.25, 10.45]);
@@ -115,7 +117,7 @@ The product @code{@var{Q} . @var{R}}, where "." is the noncommutative multiplica
 is equal to @var{A} (ignoring floating point round-off errors).
 
 @c ===beg===
-@c load (lapack)$
+@c load ("lapack")$
 @c fpprintprec : 6;
 @c M : matrix ([1, -3.2, 8], [-11, 2.7, 5.9]);
 @c [q, r] : dgeqrf (M);
@@ -123,7 +125,7 @@ is equal to @var{A} (ignoring floating point round-off errors).
 @c mat_norm (%);
 @c ===end===
 @example
-(%i1) load (lapack) $
+(%i1) load ("lapack") $
 (%i2) fpprintprec : 6 $
 (%i3) M : matrix ([1, -3.2, 8], [-11, 2.7, 5.9]) $
 (%i4) [q, r] : dgeqrf (M);
@@ -242,7 +244,8 @@ The elements of @var{A} and @var{b} must evaluate to real floating point numbers
 @end example
 
 @opencatbox
-@category{Package lapack} @category{Linear equations}
+@category{Package lapack}
+@category{Linear equations}
 @closecatbox
 
 @end deffn
@@ -289,7 +292,7 @@ The third item is @code{false} or the matrix of right singular vectors.
 Example:
 
 @c ===beg===
-@c load (lapack)$
+@c load ("lapack")$
 @c fpprintprec : 6;
 @c M: matrix([1, 2, 3], [3.5, 0.5, 8], [-1, 2, -3], [4, 9, 7]);
 @c dgesvd (M);
@@ -304,7 +307,7 @@ Example:
 @c VT . transpose (VT);
 @c ===end===
 @example
-(%i1) load (lapack)$
+(%i1) load ("lapack")$
 (%i2) fpprintprec : 6;
 (%o2)                           6
 (%i3) M: matrix([1, 2, 3], [3.5, 0.5, 8], [-1, 2, -3], [4, 9, 7]);
@@ -441,7 +444,7 @@ for the product.  The default is @code{false}.
 @end table
 
 @c ===beg===
-@c load (lapack)$
+@c load ("lapack")$
 @c A : matrix([1,2,3],[4,5,6],[7,8,9]);
 @c B : matrix([-1,-2,-3],[-4,-5,-6],[-7,-8,-9]);
 @c C : matrix([3,2,1],[6,5,4],[9,8,7]);
@@ -453,8 +456,9 @@ for the product.  The default is @code{false}.
 @c A . B + C;
 @c dgemm(A,B,c=C,beta=1, alpha=-1);
 @c -A . B + C
+@c ===end===
 @example
-(%i1) load (lapack)$
+(%i1) load ("lapack")$
 (%i2) A : matrix([1,2,3],[4,5,6],[7,8,9]);
                                   [ 1  2  3 ]
                                   [         ]

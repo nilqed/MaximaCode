@@ -49,7 +49,7 @@
 
 (declare-top (special evp $infeval))
 
-(defmfun mrateval (x)
+(defun mrateval (x)
   (let ((varlist (caddar x)))
     (cond ((and evp $infeval) (meval ($ratdisrep x)))
 	  ((or evp
@@ -259,7 +259,7 @@
 	  ($multthru ans))
 	ans)))
 
-(defmfun factor (e &optional (mp nil mp?))
+(defun factor (e &optional (mp nil mp?))
   (let ((tellratlist nil)
 	(varlist varlist)
 	(genvar nil)
@@ -274,7 +274,7 @@
 	 (setq p e
 	       mm* 1
 	       cargs (if mp? (list mp) nil))
-	 (when (eq (ml-typep p) 'symbol) (return p))
+	 (when (symbolp p) (return p))
 	 (when ($numberp p)
 	   (return (let (($factorflag (not scanmapp)))
 		     (factornumber p))))
@@ -301,7 +301,7 @@
 		(setq fn t)))
 	 (unless scanmapp (setq p (let (($ratfac t)) (sratsimp p))))
 	 (newvar p)
-	 (when (eq (ml-typep p) 'symbol) (return p))
+	 (when (symbolp p) (return p))
 	 (when (numberp p)
 	   (return (let (($factorflag (not scanmapp)))
 		     (factornumber p))))
@@ -378,6 +378,8 @@
      (when (and ($ratp y) (setq formflag t) (integerp (cadr y)) (equal (cddr y) 1))
        (setq y (cadr y)))
      (when (and (integerp x) (integerp y))
+       (when (zerop y)
+         (merror (intl:gettext "divide: Quotient by zero")))
        (return (cons '(mlist) (multiple-value-list (truncate x y)))))
      (setq varlist vars)
      (mapc #'newvar (reverse (cdr $ratvars)))
@@ -443,7 +445,7 @@
 		   (cons h (cadr x))))
      (return (if formflag h ($totaldisrep h)))))
 
-(defmfun pget (gen)
+(defun pget (gen)
   (cons gen '(1 1)))
 
 (defun m$exp? (x)
@@ -490,7 +492,7 @@
 	(funcflag (not (numberp (cadr x))))
 	(t t)))
 
-(defmfun ratsetup (vl gl)
+(defun ratsetup (vl gl)
   (ratsetup1 vl gl) (ratsetup2 vl gl))
 
 (defun ratsetup1 (vl gl)
@@ -560,11 +562,11 @@
 	    (pget genv))
 	1))
 
-(defmfun ratrep (x varl)
+(defun ratrep (x varl)
   (setq varlist varl)
   (ratrep* x))
 
-(defmfun ratrep* (x)
+(defun ratrep* (x)
   (let (genpairs)
     (orderpointer varlist)
     (ratsetup1 varlist genvar)
@@ -577,7 +579,7 @@
 
 (defvar *withinratf* nil)
 
-(defmfun ratf (l)
+(defun ratf (l)
   (prog (u *withinratf*)
      (setq *withinratf* t)
      (when (eq '%% (catch 'ratf (newvar l)))
@@ -864,7 +866,7 @@
 ;; This control of conversion from float to rational appears to be explained
 ;; nowhere. - RJF
 
-(defmfun maxima-rationalize (x)
+(defun maxima-rationalize (x)
   (cond ((not (floatp x)) x)
 	((< x 0.0)
 	 (setq x (ration1 (* -1.0 x)))

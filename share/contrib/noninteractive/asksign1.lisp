@@ -28,7 +28,7 @@
 (defmspec $errcatch (form)
   (let ((errcatch (cons bindlist loclist)) ret)
     (if (null (setq ret (let (*mdebug*)
-			  (errset (meval*n (cdr form)) lisperrprint))))
+			  (errset (meval*n (cdr form))))))
 	(errlfun1 errcatch))
     (if (and (consp (car ret)) (eq (caar (car ret)) 'merror))
       (progn
@@ -48,6 +48,7 @@
 ;; Replaces ASK-PROP in askp.lisp
 (defvar *real-ask-prop* (symbol-function 'ask-prop))
 (defun ask-prop (object property fun-or-number)
+  (declare (ignore fun-or-number))
   (if $no_questions
       (meval `(($throw) '(($askprop) ,object ,property)))
       (funcall *real-ask-prop*)))

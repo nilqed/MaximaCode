@@ -310,7 +310,7 @@
   (cond ((and (symbolp form) (get form atom-context))
 	 (funcall (get form atom-context) form result))
 	((stringp form) (dimension-string (makestring form) result))
-	((ml-typep form 'array)
+	((arrayp form)
 	 (dimension-array-object form result))
     ((and (symbolp form) (symbol-package form) (not (equal (symbol-package form) *package*)))   ; NEW
      ;; !! THE FOLLOWING DOES NOT DISPLAY NESTED PACKAGES CORRECTLY (ONLY THE INNERMOST IS DISPLAYED)
@@ -408,20 +408,19 @@
 	      (mapc #'kill1 (cdr $infolists))
 	      (setq $ratvars '((mlist simp)) varlist nil genvar nil
 		    checkfactors nil greatorder nil lessorder nil $gensumnum 0
-		    $weightlevels '((mlist)) *ratweights nil $ratweights
+		    *ratweights nil $ratweights
 		    '((mlist simp))
 		    tellratlist nil $dontfactor '((mlist)) $setcheck nil)
 	      (killallcontexts))
 	     ((setq z (assoc x '(($inlabels . $inchar) ($outlabels . $outchar) ($linelabels . $linechar)) :test #'eq))
 	      (mapc #'(lambda (y) (remvalue y '$kill))
 		    (getlabels* (eval (cdr z)) nil)))
-	     ((and (eq (ml-typep x) 'fixnum) (not (< x 0))) (remlabels x))
+	     ((and (fixnump x) (not (< x 0))) (remlabels x))
 	     ((atom x) (kill1-atom x))
-	     ((and (eq (caar x) 'mlist) (eq (ml-typep (cadr x)) 'fixnum)
+	     ((and (eq (caar x) 'mlist) (fixnump (cadr x))
 		   (or (and (null (cddr x))
 			    (setq x (append x (ncons (cadr x)))))
-		       (and (eq (ml-typep (caddr x)) 'fixnum)
-			    (not (> (cadr x) (caddr x))))))
+		       (and (fixnump (caddr x)) (not (> (cadr x) (caddr x))))))
 	      (let (($linenum (caddr x))) (remlabels (- (caddr x) (cadr x)))))
 	     ((setq z (mgetl (caar x) '(hashar array))) (remarrelem z x))
          ((eq (caar x) '$@) (mrecord-kill x))
@@ -478,7 +477,7 @@
           (get-dissym-1 b c))))))                              ; NEW
 
 (defun get-dissym-1 (b c)                                      ; NEW
-  (if (eq (car b) #\space)                                     ; NEW
+  (if (eql (car b) #\space)                                    ; NEW
     (cons #\space (append c (cons #\| (rest b))))              ; NEW
     (append c (cons #\| b))))                                  ; NEW
 

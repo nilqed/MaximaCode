@@ -15,7 +15,7 @@
 
 (defun parse-user-choice (nitems)
   (loop
-   with line = (read-line) and nth and pos = 0
+   with line = (read-line #+(or sbcl cmu) *standard-input*) and nth and pos = 0
    while (multiple-value-setq (nth pos)
 	   (parse-integer line :start pos :junk-allowed t))
    if (or (minusp nth) (>= nth nitems))
@@ -134,17 +134,18 @@
 
     (setq wanted
           (if (> nitems 1)
-          (loop
-           for prompt-count from 0
-           thereis (progn
-                 (finish-output *debug-io*)
-                 (print-prompt prompt-count)
-                 (force-output)
-                 (clear-input)
-                 (select-info-items
-                  (parse-user-choice nitems) items-list)))
-          items-list))
-    (clear-input)
+            (prog1
+              (loop
+                for prompt-count from 0
+                thereis (progn
+                          (finish-output *debug-io*)
+                          (print-prompt prompt-count)
+                          (finish-output)
+                          #-(or sbcl cmu) (clear-input)
+                          (select-info-items
+                            (parse-user-choice nitems) items-list)))
+              #-(or sbcl cmu) (clear-input))
+            items-list))
     (finish-output *debug-io*)
     (when (consp wanted)
       (format t "~%")
@@ -203,8 +204,8 @@
     ((value (cdr parameters))
      (filename (car value))
      (byte-offset (cadr value))
-     (byte-count (caddr value))
-     (text (make-string byte-count))
+     (char-count (caddr value))
+     (text (make-string char-count))
      (path+filename (merge-pathnames (make-pathname :name filename) dir-name)))
     (with-open-file (in path+filename :direction :input)
       (unless (plusp byte-offset)
@@ -214,7 +215,7 @@
       (file-position in byte-offset)
       (#-gcl read-sequence
        #+gcl gcl-read-sequence
-       text in :start 0 :end byte-count))
+       text in :start 0 :end char-count))
     text))
 
 #+gcl

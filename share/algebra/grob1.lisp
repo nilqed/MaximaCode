@@ -52,17 +52,6 @@
 
 ;DECLARATIONS
 (declare-top
-  (localf
-    lire1 lire2
-    *ipolmon *iterm isyz *icofpol -ipol -ipol2
-    *gpolmon *gterm -gpol *gcofpol
-    ired2 idiv-tete2 *gcd primpart
-    iredp idivp idivise2
-    red1 div-terme divise
-    apparier rafraichir reduire inserer vivier
-    macplus macmoins macdiv mactimes
-    notdivmon densif sousp
-    )
   (special
     $nbsyz $nbred $nbreduc $nbred0 ordexp orddeg ordpairs ordlex
     $orddeg $ordlex 
@@ -430,9 +419,9 @@
 (defun primpart (p)
 	(let ((d (do ((p (cdr p) (cdr p))	;calcul du contenu
 		      (g (caar p) (gcd g (caar p))))
-		     ((or (eq (abs g) 1) (null p))
+		     ((or (eql (abs g) 1) (null p))
 		         g) )))
-          (or (eq (abs d) 1)
+          (or (eql (abs d) 1)
 	      (mapc #'(lambda (u)		;diviser par le contenu
 	         (rplaca u (quotient (car u) d)))
 	        p))

@@ -61,6 +61,9 @@ call."
 	  ((not (eq name (caar fun)))	;efficiency hack I guess
 	   (rplaca (car fun) name)))	;  done in jpg;mlisp
     (setq args (cdr fun))		;  (in MDEFINE).
+    (let ((dup (find-duplicate args :test #'eq :key #'mparam)))
+      (when dup
+        (merror (intl:gettext "macro definition: ~M occurs more than once in the parameter list") (mparam dup))))
     (mredef-check name)
     (do ((a args (cdr a)) (mlexprp))
 	((null a)
@@ -88,7 +91,7 @@ call."
 ;;; EVALUATING A MACRO CALL ;;;
 
 
-(defmfun mmacro-apply (defn form)
+(defun mmacro-apply (defn form)
   (mmacroexpansion-check form
 			 (if (and (atom defn)
 				  (not (symbolp defn)))
@@ -193,7 +196,7 @@ call."
 (defprop mdefmacro simpmdefmacro operators)
 
 ;; emulating simpmdef (for mdefine) in jm;simp
-(defmfun simpmdefmacro (x ignored simp-flag)
+(defun simpmdefmacro (x ignored simp-flag)
   (declare (ignore ignored simp-flag))
   (cons '(mdefmacro simp) (cdr x)))
 

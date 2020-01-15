@@ -173,7 +173,8 @@ Examples:
 @end example
 
 @opencatbox
-@category{Console interaction} @category{Global variables}
+@category{Console interaction}
+@category{Global variables}
 @closecatbox
 @end defvr
 
@@ -196,7 +197,8 @@ is not bound to output expressions in the file being processed.
 See also @mrefcomma{_} @mrefcomma{%%} and @mrefdot{%th}
 
 @opencatbox
-@category{Console interaction} @category{Global variables}
+@category{Console interaction}
+@category{Global variables}
 @closecatbox
 @end defvr
 
@@ -322,7 +324,8 @@ occur at the beginning of an input line; otherwise it is not recognized as a
 request for documentation.  See also @mrefdot{describe}
 
 @opencatbox
-@category{Help} @category{Console interaction}
+@category{Help}
+@category{Console interaction}
 @closecatbox
 @end deffn
 
@@ -339,7 +342,8 @@ at the beginning of an input line; otherwise it is not recognized as a request
 for documentation.  See also @mrefdot{describe}
 
 @opencatbox
-@category{Help} @category{Console interaction}
+@category{Help}
+@category{Console interaction}
 @closecatbox
 @end deffn
 
@@ -457,9 +461,7 @@ created by @mref{:} or @mref{::} or functional binding.
 @item functions
 All user-defined functions, created by @mref{:=} or @mrefdot{define}
 @item arrays
-All declared and undeclared arrays, created by @code{:}, @code{::}, or
-@code{:=}.
-@c AREN'T THERE OTHER MEANS OF CREATING ARRAYS ??
+All arrays, @mref{hashed arrays} and @mref{memoizing functions}.
 @item macros
 All user-defined macro functions, created by @mrefdot{::=}
 @item myoptions
@@ -484,6 +486,10 @@ All functions which have user-defined derivatives, created by the
 All atoms which have any property other than those mentioned above, such as
 properties established by @mref{atvalue} or @mref{matchdeclare}, etc.,
 as well as properties established in the @mref{declare} function.
+@item structures
+@c Is also documented in Structures.texi. But it definitively is an infolist
+@c so it has to be documented here, too.
+All structs defined using @mrefdot{defstruct}
 @item let_rule_packages
 All user-defined @mref{let} rule packages
 plus the special package @mrefdot{default_let_rule_package}
@@ -492,7 +498,8 @@ one is not explicitly set by the user.)
 @end table
 
 @opencatbox
-@category{Declarations and inferences} @category{Global variables}
+@category{Declarations and inferences}
+@category{Global variables}
 @closecatbox
 @end defvr
 
@@ -560,17 +567,22 @@ defeats quotation.
 @code{kill (@var{symbol})} unbinds all properties of @var{symbol}.  In contrast,
 the functions @mrefcomma{remvalue} @mrefcomma{remfunction}@w{}
 @mrefcomma{remarray} and @mref{remrule} unbind a specific property.
+Note that facts declared by @mref{assume} don't require a symbol they apply to,
+therefore aren't stored as properties of symbols and therefore aren't affected
+by @code{kill}.
 
 @code{kill} always returns @code{done}, even if an argument has no binding.
 
 @opencatbox
-@category{Evaluation} @category{Console interaction} @category{Session management}
+@category{Evaluation}
+@category{Console interaction}
+@category{Session management}
 @closecatbox
 @end deffn
 
 @c -----------------------------------------------------------------------------
 @anchor{labels}
-@deffn  {Function} labels (@var{symbol}) @
+@deffn  {Function} labels (@var{symbol})
 
 Returns the list of input, output, or intermediate expression labels which begin
 with @var{symbol}.  Typically @var{symbol} is the value of
@@ -594,7 +606,8 @@ See also @mrefcomma{inchar} @mrefcomma{outchar} @mrefcomma{linechar} and
 @mrefdot{infolists}
 
 @opencatbox
-@category{Display functions} @category{Console interaction}
+@category{Display functions}
+@category{Console interaction}
 @closecatbox
 @end deffn
 
@@ -605,7 +618,8 @@ expression labels, including all previous labels if @code{inchar},
 @code{outchar}, or @code{linechar} were redefined.
 
 @opencatbox
-@category{Display flags and variables} @category{Console interaction}
+@category{Display flags and variables}
+@category{Console interaction}
 @closecatbox
 @end defvr
 
@@ -641,7 +655,8 @@ See @mref{programmode} and @mrefdot{labels}
 The line number of the current pair of input and output expressions.
 
 @opencatbox
-@category{Display flags and variables} @category{Console interaction}
+@category{Display flags and variables}
+@category{Console interaction}
 @closecatbox
 @end defvr
 
@@ -656,7 +671,9 @@ Default value: @code{[]}
 whether or not they get reset to their default value.
 
 @opencatbox
-@category{Global variables} @category{Session management} @category{Console interaction}
+@category{Global variables}
+@category{Session management}
+@category{Console interaction}
 @closecatbox
 @end defvr
 
@@ -681,7 +698,8 @@ labels are bound and appended to the @code{labels} list.
 See also @mrefcomma{batch} @mrefcomma{load} and @mrefdot{labels}
 
 @opencatbox
-@category{Global flags} @category{Session management}
+@category{Global flags}
+@category{Session management}
 @closecatbox
 @end defvr
 
@@ -709,7 +727,9 @@ assignment: assigning to option gamma_expand
 @end example
 
 @opencatbox
-@category{Global flags} @category{Session management} @category{Console interaction}
+@category{Global flags}
+@category{Session management}
+@category{Console interaction}
 @closecatbox
 @end defvr
 
@@ -810,7 +830,8 @@ Arguments may be combined, e.g., @code{playback ([5, 10], grind, time, slow)}.
 @c APPEARS TO BE input INTERSECT (UNION OF ALL OTHER ARGUMENTS). CORRECT ???
 
 @opencatbox
-@category{Display functions} @category{Console interaction}
+@category{Display functions}
+@category{Console interaction}
 @closecatbox
 @end deffn
 
@@ -825,7 +846,8 @@ Default value: @code{_}
 @mref{break}).
 
 @opencatbox
-@category{Global variables} @category{Console interaction}
+@category{Global variables}
+@category{Console interaction}
 @closecatbox
 @end defvr
 
@@ -934,7 +956,8 @@ display the computation time even when @code{showtime} is @code{false}.
 See also @mrefdot{timer}
 
 @opencatbox
-@category{Display flags and variables} @category{Debugging}
+@category{Display flags and variables}
+@category{Debugging}
 @closecatbox
 @end defvr
 
@@ -948,7 +971,7 @@ Example:
 
 Define a function and enter the Lisp system under Maxima.  The definition is
 inspected on the property list, then the function definition is extracted,
-factored and stored in the variable $result.  The variable can be used in Maxima
+factored and stored in the variable @code{$result}.  The variable can be used in Maxima
 after returning to Maxima.
 
 @example
@@ -1021,7 +1044,8 @@ The values are removed from the variables.  @code{values} is the empty list.
 @end example
 
 @opencatbox
-@category{Evaluation} @category{Global variables}
+@category{Evaluation}
+@category{Global variables}
 @closecatbox
 @end defvr
 
@@ -1063,7 +1087,8 @@ Example:
 @end example
 
 @opencatbox
-@category{Exponential and logarithm functions} @category{Display flags and variables}
+@category{Exponential and logarithm functions}
+@category{Display flags and variables}
 @closecatbox
 @end defvr
 
@@ -1102,6 +1127,170 @@ Example:
 @c effect.
 @c 
 @c @end defvar
+
+@c -----------------------------------------------------------------------------
+@anchor{declare_index_properties}
+@deffn {Function} declare_index_properties (@var{a}, [@var{p_1}, @var{p_2}, @var{p_3}, ...])
+@deffnx {Function} declare_index_properties ([@var{a}, @var{b}, @var{c}, ...], [@var{p_1}, @var{p_2}, @var{p_3}, ...])
+@deffnx {Symbol} postsubscript
+@deffnx {Symbol} postsuperscript
+@deffnx {Symbol} presuperscript
+@deffnx {Symbol} presubscript
+
+Declares the properties of indices applied to the symbol @var{a}
+or each of the of symbols @var{a}, @var{b}, @var{c}, ....
+If multiple symbols are given,
+the whole list of properties applies to each symbol.
+
+Given a symbol with indices, @code{@var{a}[@var{i_1}, @var{i_2}, @var{i_3}, ...]},
+the @code{k}-th property @var{p_k} applies to the @code{k}-th index @var{i_k}.
+There may be any number of index properties, in any order. 
+
+Each property @var{p_k} must one of these four recognized properties:
+@code{postsubscript}, @code{postsuperscript}, @code{presuperscript}, or @code{presubscript},
+to denote indices which are displayed, respectively,
+to the right and below, to the right and above, to the left and above, or to the left and below.
+
+Index properties apply only to the 2-dimensional display of indexed variables
+(i.e., when @code{display2d} is @code{true})
+and TeX output via @code{tex}.
+Otherwise, index properties are ignored.
+Index properties do not change the input of indexed variables,
+do not change the algebraic properties of indexed variables,
+and do not change the 1-dimensional display of indexed variables.
+
+@code{declare_index_properties} quotes (does not evaluate) its arguments.
+
+@code{remove_index_properties} removes index properties.
+@code{kill} also removes index properties (and all other properties).
+
+@code{get_index_properties} retrieves index properties.
+
+Examples:
+
+Given a symbol with indices, @code{@var{a}[@var{i_1}, @var{i_2}, @var{i_3}, ...]},
+the @code{k}-th property @var{p_k} applies to the @code{k}-th index @var{i_k}.
+There may be any number of index properties, in any order. 
+
+@c ===beg===
+@c declare_index_properties (A, [presubscript, postsubscript]);
+@c declare_index_properties (B, [postsuperscript, postsuperscript, presuperscript]);
+@c declare_index_properties (C, [postsuperscript, presubscript, presubscript, presuperscript]);
+@c A[w, x];
+@c B[w, x, y];
+@c C[w, x, y, z];
+@c ===end===
+@example
+@group
+(%i1) declare_index_properties (A, [presubscript, postsubscript]);
+(%o1)                         done
+@end group
+@group
+(%i2) declare_index_properties (B, [postsuperscript, postsuperscript, presuperscript]);
+(%o2)                         done
+@end group
+@group
+(%i3) declare_index_properties (C, [postsuperscript, presubscript, presubscript, presuperscript]);
+(%o3)                         done
+@end group
+@group
+(%i4) A[w, x];
+(%o4)                           A
+                               w x
+@end group
+@group
+(%i5) B[w, x, y];
+                             y w, x
+(%o5)                         B
+@end group
+@group
+(%i6) C[w, x, y, z];
+                                z w
+(%o6)                            C
+                             x, y
+@end group
+@end example
+
+Index properties apply only to the 2-dimensional display of indexed variables and TeX output.
+Otherwise, index properties are ignored.
+
+@c ===beg===
+@c declare_index_properties (A, [presubscript, postsubscript]);
+@c A[w, x];
+@c tex (A[w, x]);
+@c display2d: false $
+@c A[w, x];
+@c display2d: true $
+@c grind (A[w, x]);
+@c stringdisp: true $
+@c string (A[w, x]);
+@c ===end===
+@example
+@group
+(%i1) declare_index_properties (A, [presubscript, postsubscript]);
+(%o1)                         done
+@end group
+@group
+(%i2) A[w, x];
+(%o2)                           A
+                               w x
+@end group
+@group
+(%i3) tex (A[w, x]);
+$$@{@}_@{w@}A_@{x@}$$
+(%o3)                         false
+@end group
+@group
+(%i4) display2d: false $
+(%i5) A[w, x];
+@end group
+@group
+(%o5) A[w,x]
+(%i6) display2d: true $
+@end group
+@group
+(%i7) grind (A[w, x]);
+A[w,x]$
+(%o7)                         done
+@end group
+@group
+(%i8) stringdisp: true $
+(%i9) string (A[w, x]);
+(%o9)                       "A[w,x]"
+@end group
+@end example
+
+@opencatbox
+@category{Display flags and variables}
+@closecatbox
+@end deffn
+
+@c -----------------------------------------------------------------------------
+@anchor{get_index_properties}
+@deffn {Function} get_index_properties (@var{a})
+
+Returns the properties for @var{a} established by @code{declare_index_properties}.
+
+See also @mrefdot{remove_index_properties}
+
+@opencatbox
+@category{Display flags and variables}
+@closecatbox
+@end deffn
+
+@c -----------------------------------------------------------------------------
+@anchor{remove_index_properties}
+@deffn {Function} remove_index_properties (@var{a}, @var{b}, @var{c}, ...)
+
+Removes the properties established by @code{declare_index_properties}.
+All index properties are removed from each symbol @var{a}, @var{b}, @var{c}, ....
+
+@code{remove_index_properties} quotes (does not evaluate) its arguments.
+
+@opencatbox
+@category{Display flags and variables}
+@closecatbox
+@end deffn
 
 @c -----------------------------------------------------------------------------
 @anchor{disp}
@@ -1185,8 +1374,19 @@ Example:
 @defvr {Option variable} display2d
 Default value: @code{true}
 
-When @code{display2d} is @code{false}, the console display is a string 
-(1-dimensional) form rather than a display (2-dimensional) form.
+When @code{display2d} is @code{true},
+the console display is an attempt to present mathematical expressions
+as they might appear in books and articles,
+using only letters, numbers, and some punctuation characters.
+This display is sometimes called the "pretty printer" display.
+
+When @code{display2d} is @code{false},
+the console display is a 1-dimensional or linear form
+which is the same as the output produced by @code{grind}.
+
+When @code{display2d} is @code{false},
+the value of @code{stringdisp} is ignored,
+and strings are always displayed with quote marks.
 
 See also @mref{leftjust} to switch between a left justified and a centered
 display of equations.
@@ -1330,7 +1530,8 @@ Example:
 @end example
 
 @opencatbox
-@category{Expressions} @category{Display flags and variables}
+@category{Expressions}
+@category{Display flags and variables}
 @closecatbox
 @end defvr
 
@@ -1866,7 +2067,8 @@ Examples:
 @end example
 
 @opencatbox
-@category{Display flags and variables} @category{Console interaction}
+@category{Display flags and variables}
+@category{Console interaction}
 @closecatbox
 @end defvr
 
@@ -1989,7 +2191,8 @@ exponent 1/2.
 @c AND OTHERWISE ... ??
 
 @opencatbox
-@category{Mathematical functions} @category{Display flags and variables}
+@category{Mathematical functions}
+@category{Display flags and variables}
 @closecatbox
 @end defvr
 

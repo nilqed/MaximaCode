@@ -1818,7 +1818,6 @@ s/^[^M]*IRIX Execution Environment 1, *[a-zA-Z]* *\\([^ ]*\\)/\\1/p\\
 ;;;       "[root.subdir]BAZ"
 ;;;       "[root.][subdir]BAZ"
 ;;; Use #+:vaxlisp for VAXLisp 3.0, #+(and vms dec common vax) for v2.2
-
 #-scl
 (defun new-append-directories (absolute-dir relative-dir)
   ;; Version of append-directories for CLtL2-compliant lisps. In particular,
@@ -1843,11 +1842,11 @@ s/^[^M]*IRIX Execution Environment 1, *[a-zA-Z]* *\\([^ ]*\\)/\\1/p\\
 	 (rel-directory (directory-to-list (pathname-directory rel-dir)))
 	 (rel-keyword (when (keywordp (car rel-directory))
 			(pop rel-directory)))
-         #-(or :MCL :sbcl :clisp :cmu) (rel-file (file-namestring rel-dir))
+         #-(or :MCL :gcl :sbcl :clisp :cmu) (rel-file (file-namestring rel-dir))
 	 ;; Stig (July 2001);
 	 ;; These values seems to help clisp as well
-	 #+(or :MCL :sbcl :clisp :cmu) (rel-name (pathname-name rel-dir))
-	 #+(or :MCL :sbcl :clisp :cmu) (rel-type (pathname-type rel-dir))
+	 #+(or :MCL :gcl :sbcl :clisp :cmu) (rel-name (pathname-name rel-dir))
+	 #+(or :MCL :gcl :sbcl :clisp :cmu) (rel-type (pathname-type rel-dir))
 	 (directory nil))
 
     ;; TI Common Lisp pathnames can return garbage for file names because
@@ -1873,7 +1872,7 @@ s/^[^M]*IRIX Execution Environment 1, *[a-zA-Z]* *\\([^ ]*\\)/\\1/p\\
 
     (when (and abs-name (not (null-string abs-name))) ; was abs-name
       (cond ((and (null abs-directory) (null abs-keyword))
-	     #-(or :lucid :kcl :akcl TI) (setf abs-keyword :relative)
+	     #-(or :lucid TI) (setf abs-keyword (car (pathname-directory "./")))
 	     (setf abs-directory (list abs-name)))
 	    (t
 	     (setf abs-directory (append abs-directory (list abs-name))))))
@@ -1886,11 +1885,11 @@ s/^[^M]*IRIX Execution Environment 1, *[a-zA-Z]* *\\([^ ]*\\)/\\1/p\\
 	       rel-keyword)
       ;; The following feature switches seem necessary in CMUCL
       ;; Marco Antoniotti 19990707
-      #+(or :sbcl :CMU)
+      #+(or :gcl :sbcl :CMU)
       (if (typep abs-dir 'logical-pathname)
 	  (setf abs-keyword :absolute)
 	  (setf abs-keyword rel-keyword))
-      #-(or :sbcl :CMU)
+      #-(or :gcl :sbcl :CMU)
       (setf abs-keyword rel-keyword))
     (setf directory (append abs-directory rel-directory))
     (when abs-keyword (setf directory (cons abs-keyword directory)))
@@ -1900,12 +1899,13 @@ s/^[^M]*IRIX Execution Environment 1, *[a-zA-Z]* *\\([^ ]*\\)/\\1/p\\
                     :directory
                     directory
 		    :name
-		    #-(or :sbcl :MCL :clisp :cmu) rel-file
-		    #+(or :sbcl :MCL :clisp :cmu) rel-name
+		    #-(or :gcl :sbcl :MCL :clisp :cmu) rel-file
+		    #+(or :gcl :sbcl :MCL :clisp :cmu) rel-name
 
-		    #+(or :sbcl :MCL :clisp :cmu) :type
-		    #+(or :sbcl :MCL :clisp :cmu) rel-type
+		    #+(or :gcl :sbcl :MCL :clisp :cmu) :type
+		    #+(or :gcl :sbcl :MCL :clisp :cmu) rel-type
 		    ))))
+;(trace new-append-directories)
 
 #-scl
 (defun directory-to-list (directory)
@@ -1928,6 +1928,7 @@ s/^[^M]*IRIX Execution Environment 1, *[a-zA-Z]* *\\([^ ]*\\)/\\1/p\\
 		(split-string directory :item #\/))))
 	(t
 	 (coerce directory 'list))))
+;(trace directory-to-list)
 
 
 (defparameter *append-dirs-tests*
@@ -2507,7 +2508,7 @@ D
 			 :type *system-extension*))
 
          (lib-file-pathname
-	  (make-pathname :directory (list :relative module-string-name)
+	  (make-pathname ;:directory (list :relative module-string-name)
                          :name module-string-name
 			 :type *system-extension*))
          )
@@ -2728,7 +2729,7 @@ the system definition, if provided."
 (defvar *source-pathnames-table* (make-hash-table :test #'equal)
   "Table which maps from components to full source pathnames.")
 (defvar *binary-pathnames-table* (make-hash-table :test #'equal)
-  "Table which maps from components to full binary pathnames.")
+  "Table which maps from cosmponents to full binary pathnames.")
 (defparameter *reset-full-pathname-table* t
   "If T, clears the full-pathname tables before each call to
    OPERATE-ON-SYSTEM. Setting this to NIL may yield faster performance
@@ -3600,8 +3601,7 @@ the system definition, if provided."
 	(multiple-value-bind (*version-dir* *version-replace*)
 	    (translate-version version)
 	  ;; CL implementations may uniformly default this to nil
-	  (let ((*load-verbose* #-common-lisp-controller t
-				#+common-lisp-controller nil) ; nil
+	  (let (
 		#-(or MCL CMU CLISP ECL :sbcl lispworks scl)
 		(*compile-file-verbose* t) ; nil
 		#+common-lisp-controller
@@ -3613,8 +3613,6 @@ the system definition, if provided."
 		#+(and common-lisp-controller cmu)
 		(ext:*gc-verbose* nil)
 
-		(*compile-verbose* #-common-lisp-controller t
-				   #+common-lisp-controller nil) ; nil
 		(*version* version)
 		(*oos-verbose* verbose)
 		(*oos-test* test)

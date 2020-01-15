@@ -19,9 +19,9 @@
 		      $values $functions $arrays
 		      $contexts context $activecontexts))
 
-(setq $packagefile nil
-      indlist '(evfun evflag bindtest nonarray sp2 sp2subs opers
-		 special autoload assign mode))
+(defmvar $packagefile nil)
+(defvar indlist '(evfun evflag bindtest nonarray sp2 sp2subs opers
+                  special autoload assign mode))
 
 (defun infolstchk (x)
   (let ((iteml (cond ((not (and x (or (member (car x) '($all $contexts) :test #'eq)
@@ -29,7 +29,7 @@
 		      t)
 		     ((eq (car x) '$all)
 		      (infolstchk (append (cdr $infolists)
-					  '($linenum $ratvars $weightlevels *ratweights
+					  '($linenum $ratvars *ratweights
 					    tellratlist *alphabet* $dontfactor $features $contexts))))
 		     ((eq (car x) '$labels) (reverse (cdr $labels)))
 		     ((member (car x) '($functions $macros $gradefs $dependencies $structures) :test #'eq)
@@ -60,7 +60,6 @@
   (with-maxima-io-syntax ; $save stores Lisp expressions.
     (dsksetup (cdr form) nil '$save)))
 
-(defvar *macsyma-extend-types-saved* nil)
 (defvar *dsksetup-errset-value* t)
 
 (defun dsksetup (x storefl fn)
@@ -83,18 +82,9 @@
 	    ((or (not (eq (caar u) 'mequal)) (not (symbolp (cadr u))))
 	     (improper-arg-err u fn))))
     (setq list (ncons (car x))
-	  x (cdr x)
-	  *macsyma-extend-types-saved* nil)
+	  x (cdr x))
     (if (null (errset (dskstore x storefl file list)))
 	(setq maxima-error t))
-    ;; FOLLOWING CODE IS NEVER EXECUTED DUE TO PRECEDING (SETQ *MACSYMA-EXTEND-TYPES-SAVED* NIL)
-    ;; CUT (DEFVAR *MACSYMA-EXTEND-TYPES-SAVED*) AND FOLLOWING CODE AT SOME FUTURE DATE
-    (if (not (null *macsyma-extend-types-saved*))
-	(block nil
-	  (if (null (errset
-		     (dskstore (cons "{" *macsyma-extend-types-saved*) storefl file list)))
-	      (setq maxima-error t))
-	  (setq *macsyma-extend-types-saved* nil)))
     (close savefile)
     (namestring (truename savefile))))
 
@@ -129,7 +119,7 @@
       ((and (or (not (boundp item))
 		(and (eq item '$ratvars) (null varlist))
 		(prog2 (setq val (symbol-value item))
-		    (or (and (member item '($weightlevels $dontfactor) :test #'eq)
+		    (or (and (eq item '$dontfactor)
 			     (null (cdr val)))
 			(and (member item '(tellratlist *alphabet* *ratweights) :test #'eq) (null val))
 			(and (eq item '$features) (alike (cdr val) featurel))
@@ -220,7 +210,7 @@
 	 (fasprint t `(setq varlist (append varlist (quote ,varlist))))
 	 (fasprint t '(setq $ratvars (cons '(mlist simp) varlist)))
 	 (pradd2lnc '$ratvars '$myoptions))
-	((member item '($weightlevels $dontfactor) :test #'eq)
+	((eq item '$dontfactor)
 	 (fasprin `(setq ,item (nconc (quote ,val) (cdr ,item))))
 	 (pradd2lnc item '$myoptions))
 	((eq item 'tellratlist)
@@ -235,12 +225,24 @@
 	   (if (not (member var featurel :test #'eq)) (pradd2lnc var '$features))))
 	((and (eq item '$linenum) (eq item rename))
 	 (fasprint t `(setq $linenum ,val)))
-	((not ($ratp val))
-	 (fasprint t (list 'dsksetq rename
-			   (if (or (numberp val) (member val '(nil t) :test #'eq))
-			       val
-			       (list 'quote val)))))
-	(t (fasprint t `(dsksetq ,rename (dskrat (quote ,val)))))))
+	(($ratp val) (fasprint t `(dsksetq ,rename (dskrat (quote ,val)))))
+	(t
+      (cond
+        ;; Hash tables ("fast arrays") aren't printable in all Lisp implementations.
+        ((hash-table-p val)
+         (fasprint t `(dsksetq ,rename (fill-hash (make-hash-table :test 'equal) ',(list-hash-pairs val)))))
+        ;; If there are other unprintable values, this is a place to handle them.
+        (t
+          (fasprint t (list 'dsksetq rename (list 'quote val))))))))
+
+(defun fill-hash (h kv-list)
+  (dolist (kv kv-list)
+    (setf (gethash (first kv) h) (second kv)))
+  h)
+
+(defun list-hash-pairs (h)
+  (loop for value being the hash-values of h using (hash-key key)
+        collect (list key value)))
 
 (defun mpropschk (item rename file stfl)
   (do ((props (cdr (or (get item 'mprops) '(nil))) (cddr props)) (val))
@@ -273,7 +275,7 @@
   ;; For this reason only they are output as EQ-forms.
   (let ((ary (cond ((and (eq ind 'array) (get item 'array)) rename)
 		   ;; This code handles "complete" arrays.
-		   (t (fasprint t '(setq aaaaa (gensym))) 'aaaaa)))
+		   (t (fasprint t '(defparameter aaaaa (gensym))) 'aaaaa)))
 	(dims (arraydims val))
 	val1)
     (if (eq ind 'hashar) (fasprint t `(remcompary ,rename)))

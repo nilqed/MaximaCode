@@ -28,6 +28,12 @@ can be made into an expression by separating them by commas and
 putting parentheses around them.  This is similar to the @b{C}
 @i{comma expression}.
 
+@c ===beg===
+@c x: 3$
+@c (x: x+1, x: x^2);
+@c (if (x > 17) then 2 else 4);
+@c (if (x > 17) then x: 2 else y: 4, y+x);
+@c ===end===
 @example
 (%i1) x: 3$
 (%i2) (x: x+1, x: x^2);
@@ -41,6 +47,10 @@ putting parentheses around them.  This is similar to the @b{C}
 Even loops in Maxima are expressions, although the value they
 return is the not too useful @code{done}.
 
+@c ===beg===
+@c y: (x: 1, for i from 1 thru 10 do (x: x*i))$
+@c y;
+@c ===end===
 @example
 (%i1) y: (x: 1, for i from 1 thru 10 do (x: x*i))$
 (%i2) y;
@@ -50,6 +60,10 @@ return is the not too useful @code{done}.
 Whereas what you really want is probably to include a third
 term in the @i{comma expression} which actually gives back the value.
 
+@c ===beg===
+@c y: (x: 1, for i from 1 thru 10 do (x: x*i), x)$
+@c y;
+@c ===end===
 @example
 (%i3) y: (x: 1, for i from 1 thru 10 do (x: x*i), x)$
 (%i4) y;
@@ -152,7 +166,8 @@ Examples:
 @end example
 
 @opencatbox
-@category{Evaluation} @category{Nouns and verbs}
+@category{Evaluation}
+@category{Nouns and verbs}
 @closecatbox
 
 @c -----------------------------------------------------------------------------
@@ -294,7 +309,8 @@ the @mrefcomma{alias} @mrefcomma{ordergreat} @mref{orderless} functions or by
 declaring the atom a @mref{noun} with @mrefdot{declare})
 
 @opencatbox
-@category{Declarations and inferences} @category{Global variables}
+@category{Declarations and inferences}
+@category{Global variables}
 @closecatbox
 @end defvr
 
@@ -385,6 +401,7 @@ The order of the items in the list may depend on the global flag
 See also @mrefcomma{substpart} @mrefcomma{apply} @mrefcomma{funmake} and @mrefdot{op}
 
 How to convert a matrix to a nested list:
+
 @c ===beg===
 @c M:matrix([1,2],[3,4]);
 @c args(M);
@@ -404,6 +421,7 @@ How to convert a matrix to a nested list:
 
 Since maxima internally treats a sum of @code{n} terms as a summation command
 with @code{n} arguments args() can extract the list of terms in a sum:
+
 @c ===beg===
 @c a+b+c;
 @c args(%);
@@ -439,7 +457,8 @@ Returns @code{true} if @var{expr} is atomic (i.e. a number, name or string) else
 unbound).
 
 @opencatbox
-@category{Expressions} @category{Predicate functions}
+@category{Expressions}
+@category{Predicate functions}
 @closecatbox
 @end deffn
 
@@ -459,10 +478,12 @@ box.
 
 @code{box} evaluates its argument.  However, a boxed expression does not
 evaluate to its content, so boxed expressions are effectively excluded from
-computations.
+computations. @mref{rembox} removes the box again.
 
 @mref{boxchar} is the character used to draw the box in @code{box} and in the
 @mref{dpart} and @mref{lpart} functions.
+
+See also @mrefcomma{rembox} @mref{dpart} and @mrefdot{lpart}
 
 Examples:
 
@@ -565,13 +586,72 @@ collapse the elements of the array @code{A} by doing
 @closecatbox
 @end deffn
 
+@c -----------------------------------------------------------------------------
+@anchor{copy}
+@deffn {Function} copy (@var{e})
+
+Return a copy of the Maxima expression @var{e}.  Although @var{e} can be any
+Maxima expression, the copy function is the most useful when @var{e} is either 
+a list or a matrix; consider:
+
+@c ===beg===
+@c m : [1,[2,3]]$
+@c mm : m$
+@c mm[2][1] : x$
+@c m;
+@c mm;
+@c ===end===
+@example
+(%i1) m : [1,[2,3]]$
+(%i2) mm : m$
+(%i3) mm[2][1] : x$
+@group
+(%i4) m;
+(%o4)                      [1, [x, 3]]
+@end group
+@group
+(%i5) mm;
+(%o5)                      [1, [x, 3]]
+@end group
+@end example
+
+Let's try the same experiment, but this time let @var{mm} be a copy of @var{m}
+
+@c ===beg===
+@c m : [1,[2,3]]$
+@c mm : copy(m)$
+@c mm[2][1] : x$
+@c m;
+@c mm;
+@c ===end===
+@example
+(%i1) m : [1,[2,3]]$
+(%i2) mm : copy(m)$
+(%i3) mm[2][1] : x$
+@group
+(%i4) m;
+(%o4)                      [1, [2, 3]]
+@end group
+@group
+(%i5) mm;
+(%o5)                      [1, [x, 3]]
+@end group
+@end example
+
+This time, the assignment to @var{mm} does not change the value of @var{m}.
+
+@opencatbox
+@category{Expressions}
+@closecatbox
+@end deffn
+
 @c NEEDS WORK
 
 @c -----------------------------------------------------------------------------
 @anchor{disolate}
 @deffn {Function} disolate (@var{expr}, @var{x_1}, @dots{}, @var{x_n})
 
-is similar to @code{isolate (@var{expr}, @var{x})} except that it enables the
+is similar to @mref{isolate}@code{ (@var{expr}, @var{x})} except that it enables the
 user to isolate more than one variable simultaneously.  This might be useful,
 for example, if one were attempting to change variables in a multiple
 integration, and that variable change involved two or more of the integration
@@ -702,6 +782,9 @@ that subexpression as its value, it returns the whole expression with the
 selected subexpression displayed inside a box.  The box is actually part of the
 expression.
 
+@c ===beg===
+@c dpart (x+y/z^2, 1, 2, 1);
+@c ===end===
 @example
 (%i1) dpart (x+y/z^2, 1, 2, 1);
                              y
@@ -774,7 +857,8 @@ for @code{%e^x} in @code{%e^(a x)}.
 @end example
 
 @opencatbox
-@category{Exponential and logarithm functions} @category{Expressions}
+@category{Exponential and logarithm functions}
+@category{Expressions}
 @closecatbox
 @end defvr
 
@@ -817,6 +901,16 @@ Arguments are names of functions, variables, subscripted names, operators, and
 expressions.  @code{freeof (a, b, expr)} is equivalent to 
 @code{freeof (a, expr) and freeof (b, expr)}.
 
+@c ===beg===
+@c expr: z^3 * cos (a[1]) * b^(c+d);
+@c freeof (z, expr);
+@c freeof (cos, expr);
+@c freeof (a[1], expr);
+@c freeof (cos (a[1]), expr);
+@c freeof (b^(c+d), expr);
+@c freeof ("^", expr);
+@c freeof (w, sin, a[2], sin (a[2]), b*(c+d), expr);
+@c ===end===
 @example
 (%i1) expr: z^3 * cos (a[1]) * b^(c+d);
                                  d + c  3
@@ -840,6 +934,11 @@ expressions.  @code{freeof (a, b, expr)} is equivalent to
 
 @code{freeof} evaluates its arguments.
 
+@c ===beg===
+@c expr: (a+b)^5$
+@c c: a$
+@c freeof (c, expr);
+@c ===end===
 @example
 (%i1) expr: (a+b)^5$
 (%i2) c: a$
@@ -850,6 +949,14 @@ expressions.  @code{freeof (a, b, expr)} is equivalent to
 @code{freeof} does not consider equivalent expressions.
 Simplification may yield an equivalent but different expression.
 
+@c ===beg===
+@c expr: (a+b)^5$
+@c expand (expr);
+@c freeof (a+b, %);
+@c freeof (a+b, expr);
+@c exp (x);
+@c freeof (exp, exp (x));
+@c ===end===
 @example
 (%i1) expr: (a+b)^5$
 (%i2) expand (expr);
@@ -869,6 +976,11 @@ Simplification may yield an equivalent but different expression.
 A summation or definite integral is free of its dummy variable.
 An indefinite integral is not free of its variable of integration.
 
+@c ===beg===
+@c freeof (i, 'sum (f(i), i, 0, n));
+@c freeof (x, 'integrate (x^2, x, 0, 1));
+@c freeof (x, 'integrate (x^2, x));
+@c ===end===
 @example
 (%i1) freeof (i, 'sum (f(i), i, 0, n));
 (%o1)                         true
@@ -928,6 +1040,13 @@ For example @code{... if inpart (%o9,0) = "+" then ...}.
 
 Examples:
 
+@c ===beg===
+@c x + y + w*z;
+@c inpart (%, 3, 2);
+@c part (%th (2), 1, 2);
+@c 'limit (f(x)^g(x+1), x, 0, minus);
+@c inpart (%, 1, 2);
+@c ===end===
 @example
 (%i1) x + y + w*z;
 (%o1)                      w z + y + x
@@ -966,7 +1085,8 @@ can all be substituted back by evaluating the expression in which they occur.
 @var{var}.
 
 @code{isolate_wrt_times} if @code{true}, then @code{isolate} will also isolate
-with respect to products.  See @mrefdot{isolate_wrt_times}
+with respect to products.  See @mrefdot{isolate_wrt_times} See also @mrefdot{disolate}
+
 
 Do @code{example (isolate)} for examples.
 
@@ -1043,6 +1163,12 @@ and the definite integration variable.)
 
 Example:
 
+@c ===beg===
+@c listdummyvars: true$
+@c listofvars ('sum(f(i), i, 0, n));
+@c listdummyvars: false$
+@c listofvars ('sum(f(i), i, 0, n));
+@c ===end===
 @example
 (%i1) listdummyvars: true$
 (%i2) listofvars ('sum(f(i), i, 0, n));
@@ -1072,6 +1198,9 @@ list it returns if they appear in @var{expr}.  The default is to omit these.
 See also the option variable @mref{listdummyvars} to exclude or include
 "dummy variables" in the list of variables.
 
+@c ===beg===
+@c listofvars (f (x[1]+y) / g^(2+a));
+@c ===end===
 @example
 (%i1) listofvars (f (x[1]+y) / g^(2+a));
 (%o1)                     [g, a, x , y]
@@ -1151,7 +1280,8 @@ necessary if cancellation is to occur.  Also, if you save an expression in which
 @code{x} is a @code{mainvar}, you probably should also save @code{x}.)
 
 @opencatbox
-@category{Declarations and inferences} @category{Expressions}
+@category{Declarations and inferences}
+@category{Expressions}
 @closecatbox
 @end defvr
 
@@ -1211,7 +1341,8 @@ a single quote.  This switch is always @code{true} when displaying function
 definitions.
 
 @opencatbox
-@category{Display flags and variables} @category{Nouns and verbs}
+@category{Display flags and variables}
+@category{Nouns and verbs}
 @closecatbox
 @end defvr
 
@@ -1264,7 +1395,7 @@ Returns the main operator of the expression @var{expr}.
 prefix, binary or n-ary infix, postfix, matchfix, or nofix operator.
 Otherwise, if @var{expr} is a subscripted function expression, @code{op}
 returns the subscripted function; in this case the return value is not an atom.
-Otherwise, @var{expr} is an array function or ordinary function expression,
+Otherwise, @var{expr} is a @mref{memoizing function} or ordinary function expression,
 and @code{op} returns a symbol.
 
 @code{op} observes the value of the global flag @mrefdot{inflag}
@@ -1344,7 +1475,8 @@ Examples:
 @end example
 
 @opencatbox
-@category{Expressions} @category{Operators}
+@category{Expressions}
+@category{Operators}
 @closecatbox
 @end deffn
 
@@ -1364,7 +1496,8 @@ if @var{op} is equal to the operator of @var{expr}.
 operator of @var{expr}.
 
 @opencatbox
-@category{Operators} @category{Predicate functions}
+@category{Operators}
+@category{Predicate functions}
 @closecatbox
 @end deffn
 
@@ -1617,7 +1750,8 @@ Ordering non-atomic expressions.
 @end example
 
 @opencatbox
-@category{Expressions} @category{Predicate functions}
+@category{Expressions}
+@category{Predicate functions}
 @closecatbox
 @end deffn
 
@@ -1694,6 +1828,11 @@ or list which do.
 
 Examples:
 
+@c ===beg===
+@c partition (2*a*x*f(x), x);
+@c partition (a+b, x);
+@c partition ([a, b, f(a), c], a);
+@c ===end===
 @example
 (%i1) partition (2*a*x*f(x), x);
 (%o1)                     [2 a, x f(x)]
@@ -1852,7 +1991,8 @@ the function itself.
 In distinction from @code{subst} the function @code{psubst} makes parallel 
 substitutions, if the first argument @var{list} is a list of equations.
 
-See also @mref{sublis} for making parallel substitutions.
+See also @mref{sublis} for making parallel substitutions and @mref{let} and
+@mref{letsimp} for others ways to do substitutions.
 
 Example:
 
@@ -2004,7 +2144,7 @@ When @var{depth} is greater than or equal to the maximum depth of @var{expr},
 
 Example:
 
-@c === beg ===
+@c ===beg===
 @c e: expand ((a - b)^2)/expand ((exp(a) + exp(b))^2);
 @c reveal (e, 1);
 @c reveal (e, 2);
@@ -2012,7 +2152,7 @@ Example:
 @c reveal (e, 4);
 @c reveal (e, 5);
 @c reveal (e, 6);
-@c === end ===
+@c ===end===
 @example
 (%i1) e: expand ((a - b)^2)/expand ((exp(a) + exp(b))^2);
                           2            2
@@ -2053,7 +2193,8 @@ Example:
 @end example
 
 @opencatbox
-@category{Expressions} @category{Display functions}
+@category{Expressions}
+@category{Display functions}
 @closecatbox
 @end deffn
 
@@ -2113,6 +2254,10 @@ is given.
 
 See also @mrefdot{subst}
 
+@c ===beg===
+@c subst(100,g,g[x]+2);
+@c subst(100,g,g[x]+2),subnumsimp:true;
+@c ===end===
 @example
 (%i1) subst(100,g,g[x]+2);
 
@@ -2168,6 +2313,9 @@ When @code{opsubst} is @code{false},
 @code{subst} will not attempt to substitute into the operator of an expression.
 E.g. @code{(opsubst: false, subst (x^2, r, r+r[0]))} will work.
 
+See also @mrefcomma{at} @mref{ev} and @mrefcomma{psubst} as well as @mref{let}
+and @mrefdot{letsimp}
+
 Examples:
 
 @c ===beg===
@@ -2208,9 +2356,41 @@ Single-character Operators like @code{+} and @code{-} have to be quoted in
 order to be replaced by subst. It is to note, though, that @code{a+b-c}
 might be expressed as @code{a+b+(-1*c)} internally.
 
+@c ===beg===
+@c subst(["+"="-"],a+b-c);
+@c ===end===
 @example
 (%i3) subst(["+"="-"],a+b-c);
 (%o3)                                 c-b+a
+@end example
+
+The difference between @code{subst} and @code{at} can be seen in the
+following example:
+@c ===beg===
+@c g1:y(t)=a*x(t)+b*diff(x(t),t);
+@c subst('diff(x(t),t)=1,g1);
+@c at(g1,'diff(x(t),t)=1);
+@c ===end===
+@example
+@group
+(%i1) g1:y(t)=a*x(t)+b*diff(x(t),t);
+                            d
+(%o1)             y(t) = b (-- (x(t))) + a x(t)
+                            dt
+@end group
+@group
+(%i2) subst('diff(x(t),t)=1,g1);
+(%o2)                   y(t) = a x(t) + b
+@end group
+@group
+(%i3) at(g1,'diff(x(t),t)=1);
+                              !
+                     d        !
+(%o3)      y(t) = b (-- (x(t))!             ) + a x(t)
+                     dt       !d
+                              !-- (x(t)) = 1
+                               dt
+@end group
 @end example
 
 @noindent
@@ -2386,9 +2566,7 @@ or @code{substpart} is the same as calling @code{inpart} or
 @anchor{symbolp}
 @deffn {Function} symbolp (@var{expr})
 
-Returns @code{true} if @var{expr} is a symbol, else @code{false}.  In effect,
-@code{symbolp(x)} is equivalent to the predicate
-@code{atom(x) and not numberp(x)}.
+Returns @code{true} if @var{expr} is a symbol, else @code{false}.
 
 @c FOLLOWING REALLY WANTS TO BE @xref{Identiifers} BUT THAT
 @c LEAVES THE UNPLEASANT RESIDUE *Note ...:: IN THE OUTPUT OF describe

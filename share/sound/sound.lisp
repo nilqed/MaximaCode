@@ -75,7 +75,7 @@
 (defstruct a-wave
    sample      ; an array to store the samples of this wave
    channel     ; channel number
-   att-coef    ; attenuation coeficients for the main wave and its delays
+   att-coef    ; attenuation coefficients for the main wave and its delays
    repeat-at)  ; when must the wave be repeated
 
 
@@ -86,13 +86,6 @@
 (defun $set_sound_defaults (&rest opts)
    (setf *user-sound-default-options* opts)
    (cons '(mlist) opts))
-
-;; Sets user default values of sound options
-(defun sound-user-defaults ()
-   (dolist (x *user-sound-default-options*)
-      (if (equal ($op x) "=")
-         (update-sound-option ($lhs x) ($rhs x))
-         (merror "sound: item ~M is not recognized as an option assignment" x))))
 
 
 
@@ -282,6 +275,15 @@
             (setf (gethash opt *sound-options*) val)
             (merror "sound: non boolean value: ~M " val)))
 ))
+
+
+
+;; Sets user default values of sound options
+(defun sound-user-defaults ()
+   (dolist (x *user-sound-default-options*)
+      (if (equal ($op x) "=")
+         (update-sound-option ($lhs x) ($rhs x))
+         (merror "sound: item ~M is not recognized as an option assignment" x))))
 
 
 
@@ -533,7 +535,7 @@
            (res1 nil)
            (res2 nil))
           (cond 
-              (string= *autoconf-windows* "true")
+              ((string= *autoconf-windows* "true")
                  (setf res1 ($ssearch ":" str))
                  (setf res2 ($ssearch "\\" str))
                  (if (and res2 (>= res2 1) (not (and res1 (= res1 2))))

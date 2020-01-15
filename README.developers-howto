@@ -60,6 +60,14 @@
           "sh bootstrap; ./configure --enable-foolisp; make; make install"
           and "run_testsuite();" all succeed
 
+      --  If the change affects the plotting routines: Verify that
+          tests/testbench_draw_manual.wxm still holds the right
+	  results.
+
+      --  If the change affects drawdf() or plotdf(): Verify that
+          tests/testbench_drawdf_manual.wxm still holds the right
+	  results.
+	  
       --  Merge your work onto master and push the changes as in 1.
 
 
@@ -74,6 +82,10 @@
           "sh bootstrap; ./configure --enable-foolisp; make; make install"
           and "run_testsuite();" all succeed
 
+      --  If the change affects the plotting routines: Verify that
+          tests/testbench_draw_manual.wxm still holds the right
+	  results.
+	  
       --  Merge your work onto master and push the changes as in 1.
 
 
@@ -132,7 +144,7 @@
           Put my_package.texi on the list of files in
           maxima/doc/info/Makefile.am
 
-          Put my_package on the list of topics in maxima/doc/info/maxima.texi
+          Put my_package on the list of topics in maxima/doc/info/include-maxima.texi.in
           See instructions in comments at top of maxima/share/template.texi
 
       --  Verify that
@@ -162,7 +174,7 @@
 
   7  Updating the website
 
-    See the Git module "site-xml", particularly "README" there.
+    See the Git repository "website", particularly "README.md" there.
 
 
   8.1  Backups of Git
@@ -241,9 +253,43 @@
     typically much, much larger than the changelog. Look at previous
     changelogs to see the markdown format and organization.
 
-    Commit ChangeLog-5.mm.md to master.
+    Commit ChangeLog-5.mm.md to master. Don't forget to add it to 
+    the top level "Makefile.am" so that it will be included in the
+    release tarball.
 
-  9.4  Git commands for releases
+  9.4  Verifying the functionality of the maxima tarball
+
+    The autotools offer a few make targets that allow to verify the
+    maxima release:
+
+    $ make pdf
+    isn't done automatically on "make all" so it is good to test if this
+    make target works.
+    
+    $ make check
+    runs the standard testsuite, the testsuite for the share packages
+    and the tests for the ask_* functions for all lisps maxima is compiled
+    with and returns an error if any test unexpectedly failed.
+
+    $ make distcheck
+    compiles maxima, builds a release tarball, extracts this tarball,
+    compiles it and runs "make check" on it in order to find out if
+    "make dist" has produced a working tarball no files are missing from.
+
+    $ mkdir build
+    $ ../configure
+    $ make
+    $ make distcleancheck
+    tests if "make disclean" brings maxima back into the original state.
+    this is very handy when building debian packages.
+    
+    make installcheck
+    $ tests if "make install" results in a working maxima release.
+
+    Note that with Ubuntu Cosmic/Disco in Jan 2019 still only the first
+    two of these make targets run without errors.
+
+  9.5  Git commands for releases
 
     Release versions live on a branch named branch-5_mm, and are tagged
     5.mm.0, 5.mm.1, 5.mm.2, etc. The Git tag must be the same as the
@@ -271,7 +317,7 @@
 
     $ git cherry-pick -x <commit hash>
 
-  9.5  Building a release
+  9.6  Building a release
 
     $ git checkout branch-5_mm
     $ sh bootstrap
@@ -280,17 +326,36 @@
 
     At this point you now have maxima-5.mm.nn.tar.gz.
     
-    Binaries for Linux are created by RPM. It can be argued that Debian
-    packages would be more widely useful. Feel free to create Debian
-    packages instead of RPMs. If, in addition, you can create MacOS 
-    binaries, so much the better.
+    Binaries for Linux are traditionally created by RPM.
 
     I'll assume you know how to build stuff with RPM. Copy the tar.gz
     to <path to rpm build tree>/SOURCES/. Then:
 
     $ rpmbuild -ba maxima.spec
 
-  9.6  Uploading files
+    Debian packages can be built the following way:
+
+    - Install clisp, sbcl, gcl, ecl and debhelper.
+    - checkout the branch DebianPackaging
+    - Update the changelog contained in its debian directory: From there the
+      e-mail address of the packager and the version number of the Debian
+      package are taken. It also is important that gpg knows the private key
+      for the e-mail address mentioned in the last ChangeLog entry.
+    - copy the debian directory into the directory containing the contents of
+      the release tarball.
+    - cd into this directory and type:
+      $ debuild
+    - debuild will now complain that the source is missing and tell under which
+      names it will accept the tarball. Rename the tarball to this name and start
+      debuild again.
+    - a few minutes later gpg will ask for the key's password in order to sign
+      the newly built packages.
+
+    Unfortunately just using the Debian package included in the autotools won't
+    equip the Maxima package it generates with the metadata that allows to
+    install the wxMaxima package shipped with Debian and Ubuntu.
+    
+  9.7  Uploading files
 
     $ sftp mysfusername,maxima@frs.sourceforge.net
     > cd /home/frs/project/m/ma/maxima
@@ -306,17 +371,17 @@
     > put maxima-5.mm.nn.tar.gz
     > quit
 
-  9.7  Announcements
+  9.8  Announcements
 
     Post an announcement about every 5.mm.nn release to the Maxima
     mailing list. When it seems stable enough (i.e. no immediate plans
     to create another release) feel free to announce it in other forums,
     e.g. sage-devel.
 
-    Since wxMaxima does do a simultaneous release with maxima and
+    Since wxMaxima does do a simultaneous release with Maxima and
     windows installers containing wxMaxima and maxima are usually
-    published within hours of the new maxima release the wxMaxima
+    published within hours of the new Maxima release the wxMaxima
     developers beg to be informed in advance about the planned release
-    date. Filing a ticket at http://andrejv.github.com/wxmaxima/
+    date. Filing a ticket at http://wxmaxima-developers.github.com/wxmaxima/
     or sending the project maintainer an email should be sufficient
     for this task.

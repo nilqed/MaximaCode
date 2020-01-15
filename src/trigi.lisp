@@ -39,23 +39,23 @@
 
 ;;; Arithmetic utilities.
 
-(defmfun sqrt1-x^2 (x)
+(defun sqrt1-x^2 (x)
   (power (sub 1 (power x 2)) 1//2))
 
-(defmfun sqrt1+x^2 (x)
+(defun sqrt1+x^2 (x)
   (power (add 1 (power x 2)) 1//2))
 
-(defmfun sqrtx^2-1 (x)
+(defun sqrtx^2-1 (x)
   (power (add (power x 2) -1) 1//2))
 
-(defmfun sq-sumsq (x y)
+(defun sq-sumsq (x y)
   (power (add (power x 2) (power y 2)) 1//2))
 
-(defmfun trigp (func)
+(defun trigp (func)
   (member func '(%sin %cos %tan %csc %sec %cot %sinh %cosh %tanh %csch %sech %coth)
 	  :test #'eq))
 
-(defmfun arcp (func)
+(defun arcp (func)
   (member func '(%asin %acos %atan %acsc %asec %acot %asinh %acosh %atanh %acsch %asech %acoth)
 	  :test #'eq))
 
@@ -95,8 +95,8 @@
 (defun domain-error (x f)
   (merror (intl:gettext "~A: argument ~:M isn't in the domain of ~A.") f (complexify x) f))
 
-;; Build a hash table 'cl-flonum-op' that maps Maxima function names 
-;; to their CL equivalents. 
+;; Build hash tables '*flonum-op*' and '*big-float-op*' that map Maxima
+;; function names to their corresponding Lisp functions.
 
 (defvar *flonum-op* (make-hash-table :size 64)
   "Hash table mapping a maxima function to a corresponding Lisp
@@ -382,17 +382,18 @@
 ;; When z is a Maxima complex float or when 'numer' is true and z is a
 ;; Maxima complex number, evaluate (op z) by applying the mapping from
 ;; the Maxima operator 'op' to the operator in the hash table
-;; 'flonum-op'. When z isn't a Maxima complex number, return
+;; '*flonum-op*'. When z isn't a Maxima complex number, return
 ;; nil.
 
 (defun flonum-eval (op z)
   (let ((op (gethash op *flonum-op*)))
-    (when (and op (complex-number-p z 'float-or-rational-p))
-      (let ((x ($realpart z)) (y ($imagpart z)))
-	(when (or $numer (floatp x) (floatp y))
-	  (setq x ($float x))
-	  (setq y ($float y))
-	  (complexify (funcall op (if (zerop y) x (complex x y)))))))))
+    (when op
+      (multiple-value-bind (bool R I)
+        (complex-number-p z #'float-or-rational-p)
+        (when (and bool (or $numer (floatp R) (floatp I)))
+          (setq R ($float R))
+          (setq I ($float I))
+          (complexify (funcall op (if (zerop I) R (complex R I)))))))))
 
 ;; For now, big float evaluation of trig-like functions for complex
 ;; big floats uses rectform.  I suspect that for some functions (not
@@ -426,7 +427,7 @@
 ;; (simp-%asin ((%asin simp) ...). If the simp flag is ignored, we've
 ;; got trouble.
 
-(defmfun simp-%sin (form y z) 
+(defun simp-%sin (form y z) 
   (oneargcheck form)
   (setq y (simpcheck (cadr form) z))
   (cond ((flonum-eval (mop form) y))
@@ -450,7 +451,7 @@
 	;((and $trigsign (mminusp* y)) (neg (cons-exp '%sin (neg y))))
 	(t (eqtest (list '(%sin) y) form))))
 
-(defmfun simp-%cos (form y z) 
+(defun simp-%cos (form y z) 
   (oneargcheck form)
   (setq y (simpcheck (cadr form) z))
   (cond ((flonum-eval (mop form) y))
@@ -532,7 +533,7 @@
   is constant or integer"
   (not (zerop1 (get-const-or-int-terms form var))))
 
-(defmfun simp-%tan (form y z)
+(defun simp-%tan (form y z)
   (oneargcheck form)
   (setq y (simpcheck (cadr form) z))
   (cond ((flonum-eval (mop form) y))
@@ -556,7 +557,7 @@
 	;((and $trigsign (mminusp* y)) (neg (cons-exp '%tan (neg y))))
 	(t (eqtest (list '(%tan) y) form))))
 
-(defmfun simp-%cot (form y z)
+(defun simp-%cot (form y z)
   (oneargcheck form)
   (setq y (simpcheck (cadr form) z))
   
@@ -612,22 +613,18 @@
 	     (merror (intl:gettext "tan: ~M isn't in the domain of tan.") x))
 	    (cos-of-coeff-pi
 	     (div sin-of-coeff-pi cos-of-coeff-pi))))
-       
-     ;; Need period of 2*%pi to continue
-     ((not (mevenp (car coeff))) nil)
- 
-     ;; This expression sets x to the coeff of %pi (mod 2) as a side
-     ;; effect and then, if this is an integer, returns tan of the
-     ;; rest.
-     ((integerp (setq x (mmod (cdr coeff) 2)))
+
+     ;; This expression sets x to the coeff of %pi (mod 1) as a side
+     ;; effect and then, if this is zero, returns tan of the
+     ;; rest, because tan has periodicity %pi.
+     ((zerop1 (setq x (mmod (cdr coeff) 1)))
       (cons-exp '%tan zl-rem))
  
-     ;; Similarly, if x = 1/2 or 3/2 then return -cot(x).
-     ((or (alike1 1//2 x)
-	  (alike1 '((rat) 3 2) x))
+     ;; Similarly, if x = 1/2 then return -cot(x).
+     ((alike1 1//2 x)
         (neg (cons-exp '%cot zl-rem))))))
 
-(defmfun simp-%csc (form y z)
+(defun simp-%csc (form y z)
   (oneargcheck form)
   (setq y (simpcheck (cadr form) z))
   (cond ((flonum-eval (mop form) y))
@@ -652,7 +649,7 @@
 
 	(t (eqtest (list '(%csc) y) form))))
 
-(defmfun simp-%sec (form y z)
+(defun simp-%sec (form y z)
   (oneargcheck form)
   (setq y (simpcheck (cadr form) z))
   (cond ((flonum-eval (mop form) y))
@@ -820,13 +817,13 @@
 
 ;; The following four functions are generated in code by TRANSL. - JPG 2/1/81
 
-(defmfun rplus (x y) (addk x y))
+(defun rplus (x y) (addk x y))
 
-(defmfun rdifference (x y) (addk x (timesk -1 y)))
+(defun rdifference (x y) (addk x (timesk -1 y)))
 
-(defmfun rtimes (x y) (timesk x y))
+(defun rtimes (x y) (timesk x y))
 
-(defmfun rremainder (x y)
+(defun rremainder (x y)
   (cond ((equal 0 y) (dbz-err))
 	((integerp x)
 	 (cond ((integerp y) (maxima-reduce x y))
@@ -841,7 +838,7 @@
 	   (exponentialize (caar exp) ($exponentialize (cadr exp))))
 	  (t (recur-apply #'$exponentialize exp)))))
 
-(defmfun exponentialize (op arg)
+(defun exponentialize (op arg)
   (cond ((eq '%sin op)
 	 (div (sub (power '$%e (mul '$%i arg)) (power '$%e (mul -1 '$%i arg)))
 	      (mul 2 '$%i)))
@@ -897,10 +894,10 @@
 (defun linearp (exp var)
   (and (setq exp (islinear exp var)) (not (equal (car exp) 0))))
 
-(defmfun mminusp (x)
+(defun mminusp (x)
   (= -1 (signum1 x)))
 
-(defmfun mminusp* (x)
+(defun mminusp* (x)
   (let (sign)
     (setq sign (csign x))
     (or (member sign '($neg $nz) :test #'eq)

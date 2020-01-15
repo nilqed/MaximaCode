@@ -10,25 +10,6 @@
 ;; Therefore functions can be redefined (essential for share libraries).
 #+ecl (declaim (optimize (debug 2)))
 
-(defvar *binary-output-dir* "binary-ecl")
-
-(defmethod output-files :around ((operation compile-op) (c source-file))
-  (let* ((source (component-pathname c))
-        (source-dir (pathname-directory source))
-        (paths (call-next-method))
-        (this-dir (pathname-directory (first (directory ""))))
-        (binary-dir (append this-dir (list *binary-output-dir*))))
-    (mapcar #'(lambda (path)
-               (merge-pathnames 
-                    (make-pathname 
-                        :directory
-                            (append binary-dir 
-                                (last source-dir 
-                                        (- (length source-dir) 
-                                            (length this-dir)))))
-                    path))
-            paths)))
-
 (in-package :cl-user)
 
 (defvar *maxima-build-time* (multiple-value-list (get-decoded-time)))
@@ -72,7 +53,8 @@
 				     (:file "clmacs")))
                (:module compatibility-macros :pathname ""
                         :components (#+gcl (:file "gcl-compat")
-                                     (:file "commac"))) 
+				     (:file "defmfun-check")
+                                     (:file "commac")))
                (:module prerequisites :pathname ""
                         :components ((:file "mormac") 
                                      (:file "compat")))
@@ -411,6 +393,7 @@
                (:module i-o :pathname ""
 			:depends-on (compatibility-macros)
                         :components ((:file "macsys") 
+                                     (:file "testsuite")
                                      (:file "mload") 
                                      (:file "suprv1")
                                      (:file "dskfn")))
@@ -428,7 +411,6 @@
 			:components ((:file "rat3a") 
 				     (:file "rat3b") 
 				     (:file "rat3d") 
-				     (:file "numth") 
 				     (:file "rat3c") 
 				     (:file "rat3e") 
 				     (:file "nrat4") 
@@ -523,6 +505,7 @@
 			:components ((:file "solve") 
 				     (:file "psolve") 
 				     (:file "algsys") 
+                                     (:file "sqrtdenest")
 				     (:file "polyrz") 
 				     (:file "cpoly")))
 	       (:module debugging :pathname ""
@@ -537,6 +520,7 @@
 				     (:file "mdot") 
 				     (:file "irinte") 
 				     (:file "series") 
+                                     (:file "numth")
 				     (:file "laplac") 
 				     (:file "pade") 
 				     (:file "homog") 
@@ -575,5 +559,3 @@
 				     (:file "init-cl"))))
   :serial t
   :depends-on ())
-  
-  

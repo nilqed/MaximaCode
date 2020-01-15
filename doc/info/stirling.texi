@@ -17,7 +17,7 @@ Reference: Abramowitz & Stegun, " Handbook of mathematical functions", 6.1.40.
 
 Examples:
 @example
-(%i1) load (stirling)$
+(%i1) load ("stirling")$
 
 (%i2) stirling(gamma(%alpha+x)/gamma(x),1);
        1/2 - x             x + %alpha - 1/2
@@ -66,7 +66,9 @@ was not applied to these two terms.
 To use this function write first @code{load("stirling")}.
 
 @opencatbox
-@category{Gamma and factorial functions} @category{Share packages} @category{Package stirling}
+@category{Gamma and factorial functions}
+@category{Share packages}
+@category{Package stirling}
 @closecatbox
 
 @end deffn

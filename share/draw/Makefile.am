@@ -7,3 +7,9 @@ drawutils.info: drawutils.texi
 
 draw-index.lisp: drawutils.info
 	perl  $(top_srcdir)/doc/info/build_index.pl $< > $@
+
+info_TEXINFOS = drawutils.texi
+
+AM_MAKEINFOHTMLFLAGS = --no-split
+
+EXTRA_DIST = draw-index.lisp

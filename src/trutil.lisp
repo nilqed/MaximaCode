@@ -12,12 +12,8 @@
 
 (macsyma-module trutil)
 
-;;; takes a list, and returns a cons of an a-list of (gensym . exp)
-;;; and the origonal list with gensyms substututed for non-atom elements
-;;; of the list. This could be used to define subr-like makros.
-
 (defun tr-gensym ()
-  (gentemp (symbol-name 'tr-gensym)))
+  (intern (symbol-name (gensym "TR-GENSYM")) :maxima))
 
 (defun push-defvar (var val)
   ;; makes sure there is a form in the beginning of the
@@ -27,7 +23,7 @@
       (eq $define_variable '$no_default)
       ;; $MODE is same, but double-checks with the declarations available.
       (and (eq $define_variable '$mode)
-	   (get var 'mode))
+	   (tr-get-mode var))
       (do ((l *pre-transl-forms* (cdr l)))
 	  ((null l)
 	   ;; push one with a priority of 1, which will be over-rided
@@ -51,22 +47,7 @@
 	      (let ((winp nil))
 		(unwind-protect (progn (eval form) (setq winp t))
 		  (unless winp
-		    (barfo "Bad *pre-transl-form*"))))))))
-
-(defun push-autoload-def (old-entry new-entries)
-  (and (get old-entry 'autoload)
-       ;; don't need this if it is IN-CORE.
-       ;; this automaticaly punts this shit for systems
-       ;; that don't need it.
-       (do ((entry))
-	   ((null new-entries))
-	 (setq entry (pop new-entries))
-	 (push-pre-transl-form
-	      `(putprop ',entry
-			;; this ensures that the autoload definition
-			;; will not get out of date.
-		(or (get ',old-entry 'autoload) t)
-		'autoload)))))
+		    (barfo "Bad *pre-transl-forms*"))))))))
 
 (defun tr-nargs-check (form &optional (args-p nil) (nargs (length (cdr form))))
   ;; the maclisp args info format is NIL meaning no info,

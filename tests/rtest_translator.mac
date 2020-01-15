@@ -316,6 +316,10 @@ true;
  
 /* compile_file */
 
+/* skip this test (and fail) if Lisp = ECL because stream i/o causes "stack smashing" error
+ * see: https://sourceforge.net/p/maxima/bugs/3291/
+ */
+if build_info()@lisp_name # "ECL" then
 (kill (all),
  lisp_name : ssubst ("_", " ", build_info()@lisp_name),
  maxima_filename : sconcat (maxima_tempdir, "/tmp-rtest_translator-compile_file-", lisp_name, ".mac"),
@@ -339,6 +343,10 @@ true;
 
 /* translate_file */
 
+/* skip this test (and fail) if Lisp = ECL because stream i/o causes "stack smashing" error
+ * see: https://sourceforge.net/p/maxima/bugs/3291/
+ */
+if build_info()@lisp_name # "ECL" then
 (kill (all),
  lisp_name : ssubst ("_", " ", build_info()@lisp_name),
  maxima_filename : sconcat (maxima_tempdir, "/tmp-rtest_translator-translate_file-", lisp_name, ".mac"),
@@ -367,6 +375,10 @@ true;
    file (which contains messages from the translator) and checks that
    there aren't any warnings.
 */
+/* skip this test (and fail) if Lisp = ECL because stream i/o causes "stack smashing" error
+ * see: https://sourceforge.net/p/maxima/bugs/3291/
+ */
+if build_info()@lisp_name # "ECL" then
 (kill (all),
  lisp_name : ssubst ("_", " ", build_info()@lisp_name),
  basename: sconcat (maxima_tempdir, "/tmp-rtest_translator-2934-", lisp_name),
@@ -430,3 +442,317 @@ f5(2, 10);
  ordersort([[-7,[0,2,1]],[3,[1,2,1]],[1,[0,4,1]],[6,[4,3,3]],[6,[4,4,3]],[-7,[3,5,4]],[2,[0,0,5]],[-10,[2,2,5]],[-10,[3,4,7]],[7,[3,8,9]]],[x,y,z],">=")];
 [true, [[6,[4,4,3]],[6,[4,3,3]],[7,[3,8,9]],[-7,[3,5,4]],[-10,[3,4,7]],[-10,[2,2,5]],[3,[1,2,1]],[1,[0,4,1]],[-7,[0,2,1]],[2,[0,0,5]]]];
 
+/* 'define' translated incorrectly, reported to mailing list circa 2017-01-24 */
+
+(kill(foo, bar, baz, quux, mumble, blurf, umm, f, x, y),
+ foo(y) := define(bar(x), x + y),
+ baz(f, y) := define(funmake(f, [x]), x + y),
+ quux() := (mumble(x) := 1 + x),
+ [foo(10), baz(blurf, 20), quux()]);
+/* note that results match because rhs of ":=" isn't simplified */
+[bar(x) := 10 + x, blurf(x) := 20 + x, mumble(x) := 1 + x];
+
+[bar(5), blurf(5), mumble(5)];
+[15, 25, 6];
+
+(kill(bar, blurf, mumble),
+ translate(foo, baz, quux),
+ [foo(11), baz(umm, 21), quux()]);
+/* note that results match because rhs of ":=" isn't simplified */
+[bar(x) := 11 + x, umm(x) := 21 + x, mumble(x) := 1 + x];
+
+makelist (is (x # false), x, map (?fboundp, [foo, baz, quux])); /* test for generalized Boolean value */
+[true, true, true];
+
+[bar(5), umm(5), mumble(5)];
+[16, 26, 6];
+
+/* mailing list 2017-03-04: "An example that is broken by compile()"
+ * translated code tickles a bug elsewhere (bug not in translator)
+ */
+
+(kill(fun, trigfunc, t1),
+ fun():=block([trigfunc],
+        trigfunc:lambda([cur],cur>t1),
+        apply('trigfunc,[1])),
+ 0);
+0;
+
+/* I (Robert Dodier) believe this result should be trigfunc(1),
+ * but, in any event, interpreted and compiled code should agree.
+ * But if MAPPLY1 is ever changed, we can adjust these results.
+ */
+fun();
+1 > t1;
+
+(compile(fun), fun());
+1 > t1;
+
+(kill(fun, trigfunc, t1),
+ fun():=block([trigfunc],
+        trigfunc:lambda([cur],cur>t1),
+        apply(trigfunc,[1])),
+ 0);
+0;
+
+fun();
+1 > t1;
+
+(compile(fun), fun());
+1 > t1;
+
+/* Verify that we catch malformed lambda expressions during translation.
+ * More checks need to be added to the translator and more tests need to
+ * be added here.
+ */
+
+/* no parameter list */
+(kill (f),
+ f () := lambda (),
+ translate (f))$
+[];
+
+/* empty body */
+(kill (f),
+ f () := lambda ([x]),
+ translate (f))$
+[];
+
+/* non-symbol in parameter list */
+(kill (f),
+ f () := lambda ([42], 'foo),
+ translate (f))$
+[];
+
+/* misplaced "rest" parameter */
+(kill (f),
+ f () := lambda ([[l], x], 'foo),
+ translate (f))$
+[];
+
+/* invalid "rest" parameter */
+(kill (f),
+ f () := lambda ([[l1, l2]], 'foo),
+ translate (f))$
+[];
+
+/* attempting to bind a constant;
+ * now OK, after commit 0517895
+ */
+block ([c, f],
+  local (c, f),
+  declare (c, constant),
+  f () := lambda ([c], c),
+  translate (f))$
+[f];
+
+/* Verify that parameter/variable lists cannot contain duplicate variables.
+ *
+ * We only test a couple of cases here.  Many more tests for non-translated
+ * code are in rtest2.  Do we want to test them all here as well?
+ */
+
+(kill(f),
+ f () := lambda ([x, [x]], x),
+ translate (f))$
+[];
+
+(kill(f),
+ f () := block ([x, x:'foo], x),
+ translate (f))$
+[];
+
+/* ensure that a null OPERATORS property doesn't interfere with
+ * translation of local variable used as a function name.
+ * This is the bug that caused failures in rtest_fractals when executed after run_testsuite.
+ */
+
+(kill(aa, foobarbaz, mumbleblurf, hhh),
+ matchdeclare (aa, all),
+ tellsimp (mumbleblurf(aa), 1 - aa),
+ kill (mumbleblurf), /* as of 2018-01-28, this leaves (OPERATORS NIL) in property list */
+ hhh(mumbleblurf, u) := mumbleblurf(u),
+ foobarbaz(x) := 100 + x,
+ translate (hhh),
+ hhh (foobarbaz, 11));
+111;
+
+/* SF bug report #3402: "Unbinding defined variable generates error in compiled functions" */
+
+define_variable (zorble, 0, fixnum);
+0;
+
+(kill(f), f() := block ([zorble], 42), f());
+42;
+
+translate(f);
+[f];
+
+f();
+42;
+
+/* bug reported to mailing list 2018-12-03: "error in compiling function with global variable" */
+
+(test_f():= block( [a,b,c,d], niceindicespref:[a,b,c,d], disp("ciao"), return() ),
+ 0);
+0;
+
+(test_f (), niceindicespref);
+[a,b,c,d];
+
+(reset (niceindicespref),
+ niceindicespref);
+[i,j,k,l,m,n];
+
+(translate (test_f),
+ test_f (),
+ niceindicespref);
+[a,b,c,d];
+
+(reset (niceindicespref), 0);
+0;
+
+/* additional tests with variables which have ASSIGN property */
+
+(set_error_stuff_permanently () :=
+  block (error_syms : '[myerr1, myerr2, myerr3], error_size : 40),
+ set_error_stuff_temporarily() :=
+   block([error_syms : '[myerror1, myerror2, myerror3], error_size : 55],
+         [error_syms, error_size]),
+ 0);
+0;
+
+(reset (error_syms, error_size),
+ set_error_stuff_permanently (),
+ [error_syms, error_size]);
+[[myerr1, myerr2, myerr3], 40];
+
+(reset (error_syms, error_size),
+ translate (set_error_stuff_permanently),
+ set_error_stuff_permanently (),
+ [error_syms, error_size]);
+[[myerr1, myerr2, myerr3], 40];
+
+(reset (error_syms, error_size),
+ set_error_stuff_temporarily());
+[[myerror1, myerror2, myerror3], 55];
+
+[error_syms, error_size];
+[[errexp1, errexp2, errexp3], 60];
+
+(translate (set_error_stuff_temporarily),
+ set_error_stuff_temporarily());
+[[myerror1, myerror2, myerror3], 55];
+
+[error_syms, error_size];
+[[errexp1, errexp2, errexp3], 60];
+
+(kill(all), reset(), 0);
+0;
+
+/* SF bug #3412: "Bug when translating functions that contain an \"if\" (in my case an implicit if)" */
+
+(f(x):=if cabs(1/(x+1)) < 1 then 1/(x+1) else 1,
+ f(x + %i*y));
+if 1/sqrt(y^2+(x+1)^2) < 1 then 1/(%i*y+x+1) else 1;
+
+makelist (f(xy[1] + %i*xy[2]), xy, [[0, 0], [0, 1], [1, 1], [1, 0], [0, 2], [2, 2], [2, 0]]);
+[1, 1/(%i+1), 1/(%i+2), 1/2, 1/(2*%i+1), 1/(2*%i+3), 1/3]$
+
+(compile (f),
+ errcatch (f(x + %i*y)));
+[];
+
+'(f(x + %i*y));
+f(x + %i*y);
+
+makelist (f(xy[1] + %i*xy[2]), xy, [[0, 0], [0, 1], [1, 1], [1, 0], [0, 2], [2, 2], [2, 0]]);
+[1, 1/(%i+1), 1/(%i+2), 1/2, 1/(2*%i+1), 1/(2*%i+3), 1/3]$
+
+(if draw_version = 'draw_version then load (draw),
+ draw3d(contour='map,
+        proportional_axes=xy,
+        nticks=100,
+        contour_levels=20,
+        explicit('(f(x+%i*y)),x,-2,2,y,-2,2)),
+ 0);
+0;
+
+/* nested if example -- note top-level "if" doesn't have an "else" clause, so the result is sometimes 'false' */
+
+(g(a, b, c) := if a + b > c
+                 then (if a > c
+                         then (if b > c
+                                 then (a + b + c)
+                                 elseif b > c/2
+                                   then (a - b - c)
+                                   else (b - a - c))
+                         else (a/2)),
+ 0);
+0;
+
+(aa: [3,9/4,5/4,11/4,1,0,9/4,1/4,5/2,9/4,3,5/2],
+ bb: [3/2,3,1/4,3/4,5/2,7/4,5/2,3/4,1/2,3,13/4,7/2],
+ cc: [7/2,15/4,5/2,5/4,15/4,1,1/4,7/4,2,11/4,1/4,7/4],
+ map (g, aa, bb, cc));
+[3/2,9/8,false,3/4,false,0,5,false,-4,9/8,13/2,31/4]$
+
+(translate (g),
+ map (g, aa, bb, cc));
+[3/2,9/8,false,3/4,false,0,5,false,-4,9/8,13/2,31/4]$
+
+errcatch (g(1, 1, z));
+[];
+
+/* SF bug #3556: "5.43.0 translate / compile error"
+ * Ensure that "if" within lambda is translated correctly.
+ * The fix for #3412 tickled this bug.
+ */
+
+(kill (f),
+ f(x, m) := map (lambda ([u], if m > 0 then u^m), [x, 2*x, 3*x]),
+ 0);
+0;
+
+is (?fboundp (f) # false);
+false;
+
+(kill (y),
+ [f(y, 2), f(y, -2)]);
+[[y^2, 4*y^2, 9*y^2], [false, false, false]];
+
+(kill (n),
+ errcatch (f(10, n)));
+/* ensure that conditional expressions get simplified to expunge $FALSE ... sigh. */
+''([[if n > 0 then 10^n, if n > 0 then 20^n, if n > 0 then 30^n]]);
+
+translate (f);
+[f];
+
+is (?fboundp (f) # false); /* test for generalized Boolean value */
+true;
+
+[f(y, 2), f(y, -2)];
+[[y^2, 4*y^2, 9*y^2], [false, false, false]];
+
+errcatch (f(10, n));
+[];
+
+/* apply2 was translated incorrectly for several years.  applyb2
+ * was translated incorrectly for decades.
+ */
+
+(defrule (foorule, foo (), 1),
+ f () := apply2 ('(foo ()), foorule),
+ translate (f),
+ f ());
+1;
+
+(defrule (barrule, bar (), 2),
+ g () := applyb2 ('(bar ()), barrule),
+ translate (g),
+ g ());
+2;
+
+(kill (foorule, f, barrule, g), 0);
+0;

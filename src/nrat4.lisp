@@ -19,7 +19,7 @@
   "`radsubstflag' `t' makes `ratsubs' call `radcan' when it appears useful")
 
 
-(defmfun pdis (x) ($ratdisrep (pdis* x)))
+(defun pdis (x) ($ratdisrep (pdis* x)))
 
 (defun pdis* (x) `((mrat simp ,varlist ,genvar) ,x . 1))
 
@@ -34,7 +34,7 @@
 (defmfun $ratcoef (e x &optional (n 1))
   (ratcoeff e x n)) ; The spelling "ratcoeff" is nicer.
 
-(defmfun ratcoeff (a b c)
+(defun ratcoeff (a b c)
   (let* ((formflag ($ratp a))
 	 (taylorform (and formflag (member 'trunc (cdar a) :test #'eq))))
     (cond ((zerop1 b) (improper-arg-err b '$ratcoeff))
@@ -183,6 +183,7 @@
 
 (defun allsubst00 (a b c)
   (cond ((equal a b) c)
+	((not (equal (cdr b) 1)) c)
 	(t (ratquotient (everysubst00 a (car b) (car c))
 			(everysubst00 a (car b) (cdr c))))))
 
@@ -339,7 +340,7 @@
 
 (defvar argsfreeofp nil)
 
-(defmfun argsfreeof (var e)
+(defun argsfreeof (var e)
   (let ((argsfreeofp t)) (freeof var e)))
 
 ;;; This is a version of freeof for a list first argument
@@ -374,17 +375,39 @@
 	 (cond ((not (freeofl var (hand-side (caddr e) 'r))) nil)
 	       ((not (freeofl var (hand-side (caddr e) 'l))) t)
 	       (t (freeof var (cadr e)))))
-	((and (eq (caar e) 'lambda) (not (member 'array (cdar e) :test #'eq)) (member var (cdadr e) :test #'eq)) t)
+        ((and (eq (caar e) 'lambda)
+              (not (member 'array (cdar e) :test #'eq))
+              ($listp (cadr e))
+              ; Check if var appears in the lambda list in any of the
+              ; following ways: var, 'var, [var] or ['var].
+              (some (lambda (v)
+                      (or (eq v var)
+                          (alike1 v `((mquote) ,var))
+                          (alike1 v `((mlist) ,var))
+                          (alike1 v `((mlist) ((mquote) ,var)))))
+                    (cdadr e)))
+         t)
         ;; Check for a local variable in a block.
-        ((and (eq (caar e) 'mprog) (member var (cdadr e) :test #'eq)) t)
+        ((and (eq (caar e) 'mprog)
+              ($listp (cadr e))
+              ; Check if var appears in the variable list alone or
+              ; in an assignment
+              (some (lambda (v)
+                      (or (eq v var)
+                          (and (msetqp v)
+                               (eq (cadr v) var))))
+                    (cdadr e)))
+         t)
         ;; Check for a loop variable.
-        ((and (eq (caar e) 'mdo) (alike1 var (cadr e))) t)
+        ((and (member (caar e) '(mdo mdoin) :test #'eq)
+              (alike1 var (cadr e)))
+         t)
 	(argsfreeofp (freeofl var (margs e)))
 	(t (freeofl var (cdr e)))))
 
 (defun freeofl (var l) (loop for x in l always (freeof var x)))
 
-(defmfun hand-side (e flag)
+(defun hand-side (e flag)
   (setq e (if (eq (caar e) 'mequal) (ncons e) (cdr e)))
   (mapcar #'(lambda (u) (if (eq flag 'l) (cadr u) (caddr u))) e))
 

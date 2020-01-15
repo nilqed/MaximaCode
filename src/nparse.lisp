@@ -19,12 +19,12 @@
          '(#\tab #\space #\linefeed #\return #\page #\newline
            #+(or unicode sb-unicode openmcl-unicode-strings) #\no-break_space))
 
-(defmfun alphabetp (n)
+(defun alphabetp (n)
   (and (characterp n)
-       (or (alpha-char-p n)
+       (or (alpha-char-p n) #+gcl(>= (char-code n) 128)
 	   (member n *alphabet*))))
 
-(defmfun ascii-numberp (num)
+(defun ascii-numberp (num)
   (and (characterp num) (char<= num #\9) (char>= num #\0)))
 
 (defvar *parse-window* nil)
@@ -35,6 +35,11 @@
 (defvar *mread-prompt* nil    "prompt used by `mread'")
 (defvar *mread-eof-obj* ()    "Bound by `mread' for use by `mread-raw'")
 (defvar *current-line-info* nil)
+
+(defvar *parse-string-input-stream*             ;; reference to the input stream 
+  (let ((stream (make-string-input-stream ""))) ;;   used by parse-string
+    (close stream)                              ;;   in share/stringroc/eval_string.lisp
+    stream ))                                   ;; (see also add-lineinfo below)
 
 (defmvar $report_synerr_line t "If T, report line number where syntax error occurs; otherwise, report FILE-POSITION of error.")
 (defmvar $report_synerr_info t "If T, report the syntax error details from all sources; otherwise, only report details from standard-input.")
@@ -93,6 +98,7 @@
 	       (format t "~%~{~c~}~%~vt^" some (- (length some) 2))
 	       (read-line *parse-stream* nil nil))))
       (terpri)
+      (finish-output)
       (throw-macsyma-top))))
 
 (defun tyi-parse-int (stream eof)
@@ -326,6 +332,7 @@
 			 (map nil #'princ x))
 		 (reverse numlist))
 	    (terpri)
+	    (finish-output)
 	    (unless (equalp true fast)
 	      (incf failures)
 	      (format t "NUM:  ~A~%  TRUE: ~S~%  FAST: ~S~%"
@@ -577,7 +584,7 @@
 
 (defun scan-number-rest (data)
   (let ((c (caar data)))
-    (cond ((member c '(#\.))
+    (cond ((char= c #\.)
 	   ;; We found a dot
 	   (scan-number-after-dot data))
 	  ((member c '(#\E #\e #\F #\f #\B #\b #\D #\d #\S #\s #\L #\l #+cmu #\W #+cmu #\w))
@@ -670,7 +677,7 @@
 (defmacro def-nud ((op . lbp-rbp) bvl . body)
   (let (( lbp (nth 0 lbp-rbp))
 	( rbp (nth 1 lbp-rbp)))
-    `(progn 'compile 	  ,(make-parser-fun-def op 'nud bvl body)
+    `(progn ,(make-parser-fun-def op 'nud bvl body)
 	    (set-lbp-and-rbp ',op ',lbp ',rbp))))
 
 (defun set-lbp-and-rbp (op lbp rbp)
@@ -709,8 +716,7 @@
 (defmacro def-led((op . lbp-rbp) bvl . body)
   (let (( lbp (nth 0 lbp-rbp))
 	( rbp (nth 1 lbp-rbp)))
-    `(progn 'compile
-	    ,(make-parser-fun-def  op 'led bvl body)
+    `(progn ,(make-parser-fun-def  op 'led bvl body)
 	    (set-lbp-and-rbp ',op ',lbp ',rbp))))
 
 (defmacro def-collisions (op &rest alist)
@@ -718,7 +724,7 @@
 		   (lis  alist (cdr lis))
 		   (nl ()    (cons (cons (caar lis) i) nl)))
 		  ((null lis) nl))))
-    `(progn 'compile
+    `(progn
        (defprop ,op ,(let nil
 			  (copy-tree keys )) keys)
        ,@(mapcar #'(lambda (data)
@@ -762,7 +768,7 @@
 ;;; (LBP <op>)		 - reads an operator's Left Binding Power
 ;;; (DEF-LBP <op> <val>) - defines an operator's Left Binding Power
 
-(defmfun lbp (lex) (cond ((safe-get lex 'lbp)) (t 200.)))
+(defun lbp (lex) (cond ((safe-get lex 'lbp)) (t 200.)))
 
 (defmacro def-lbp (sym val) `(defprop ,sym ,val lbp))
 
@@ -771,7 +777,7 @@
 ;;; (RBP <op>)		 - reads an operator's Right Binding Power
 ;;; (DEF-RBP <op> <val>) - defines an operator's Right Binding Power
 
-(defmfun rbp (lex) (cond ((safe-get lex 'rbp)) (t 200.)))
+(defun rbp (lex) (cond ((safe-get lex 'rbp)) (t 200.)))
 
 (defmacro def-rbp (sym val) `(defprop ,sym ,val rbp))
 
@@ -810,14 +816,14 @@ entire input string to be printed out when an MAXIMA-ERROR occurs."
 ;;;; Misplaced definitions
 
 (defmacro def-operatorp ()
-  `(defmfun operatorp (lex)
+  `(defun operatorp (lex)
      (and (symbolp lex) (getl lex '(,@(nud-propl) ,@(led-propl))))))
 
 (def-operatorp)
 
 (defmacro def-operatorp1 ()
   ;Defmfun -- used by SYNEX if not others.
-  `(defmfun operatorp1 (lex)
+  `(defun operatorp1 (lex)
      ;; Referenced outside of package: OP-SETUP, DECLARE1
      ;; Use for truth value only, not for return-value.
      (and (symbolp lex) (getl lex '(lbp rbp ,@(nud-propl) ,@(led-propl))))))
@@ -843,7 +849,7 @@ entire input string to be printed out when an MAXIMA-ERROR occurs."
       (and *parse-window* (setf (car *parse-window*) nil
 				*parse-window* (cdr *parse-window*)))
       (princ *mread-prompt*)
-      (force-output))
+      (finish-output))
     (apply 'mread-raw read-args)))
 
 (defun mread-prompter (stream char)
@@ -1143,8 +1149,18 @@ entire input string to be printed out when an MAXIMA-ERROR occurs."
     (cond ((eq '|$)| (first-c)) (parse-err))		  ; () is illegal
 	  ((or (null (setq right (prsmatch '|$)| '$any))) ; No args to MPROGN??
 	       (cdr right))				  ;  More than one arg.
+	  (when (suspicious-mprogn-p right)
+	    (mtell (intl:gettext "warning: parser: I'll let it stand, but (...) doesn't recognize local variables.~%"))
+	    (mtell (intl:gettext "warning: parser: did you mean to say: block(~M, ...) ?~%") (car right)))
 	   (cons '$any (cons hdr right)))	  ; Return an MPROGN
 	  (t (cons '$any (car right))))))		  ; Optimize out MPROGN
+
+(defun suspicious-mprogn-p (right)
+  ;; Look for a Maxima list of symbols or assignments to symbols.
+  (and ($listp (car right))
+       (every #'(lambda (e) (or (symbolp e)
+                                (and (consp e) (eq (caar e) 'msetq) (symbolp (second e)))))
+              (rest (car right)))))
 
 (def-led (|$(| 200.) (op left)
   (setq left (convert left '$any))		        ;De-reference LEFT
@@ -1697,23 +1713,23 @@ entire input string to be printed out when an MAXIMA-ERROR occurs."
 ;; any Common lisp implementation.
 
 #-gcl
+(defstruct instream
+  stream
+  (line 0 :type fixnum)
+  stream-name)
+
+#-gcl
 (defvar *stream-alist* nil)
 
 #-gcl
 (defun stream-name (path)
-  (let ((tem (errset (namestring (pathname path)))))
-    (car tem)))
+  (let ((errset nil))
+    (car (errset (namestring (pathname path))))))
 
 #-gcl
 (defun instream-name (instr)
   (or (instream-stream-name instr)
       (stream-name (instream-stream instr))))
-
-#-gcl
-(defstruct instream
-  stream
-  (line 0 :type fixnum)
-  stream-name)
 
 ;; (closedp stream) checks if a stream is closed.
 ;; how to do this in common lisp!!
@@ -1747,9 +1763,12 @@ entire input string to be printed out when an MAXIMA-ERROR occurs."
 
 
 (defun add-lineinfo (lis)
-  (if (or (atom lis) (and (eq *parse-window* *standard-input*)
-			  (not (find-stream *parse-stream*))))
-			  lis
+  (if (or (atom lis) 
+          (eq *parse-stream* *parse-string-input-stream*) ;; avoid consing *parse-string-input-stream* 
+                                                          ;;   via get-instream to *stream-alist* 
+          (and (eq *parse-window* *standard-input*)
+               (not (find-stream *parse-stream*)) ))
+    lis
     (let* ((st (get-instream *parse-stream*))
  	   (n (instream-line st))
 	   (nam (instream-name st)))

@@ -129,7 +129,7 @@
 		      *ul1* *ll1* *dflag bptu bptd plm* zn
 		      *updn ul ll exp pe* pl* rl* pl*1 rl*1
 		      loopstop* var nn* nd* dn* p*
-		      ind* factors rlm*
+		      factors rlm*
 		      $trigexpandplus $trigexpandtimes
 		      plogabs *scflag*
 		      *sin-cos-recur* *rad-poly-recur* *dintlog-recur*
@@ -181,7 +181,7 @@ in the interval of integration.")
 ;; KEYHOLE, and POLELIST.
 (defvar *semirat* nil)
 
-(defun $defint (exp var ll ul)
+(defmfun $defint (exp var ll ul)
 
   ;; Distribute $defint over equations, lists, and matrices.
   (cond ((mbagp exp)
@@ -223,7 +223,7 @@ in the interval of integration.")
              (unless (lenient-extended-realp ll)
                (merror (intl:gettext "defint: lower limit of integration must be real; found ~M") ll))
              (unless (lenient-extended-realp ul)
-               (merror (intl:gettext "defint: upper limit of integration must be real; found ~M") ll))
+               (merror (intl:gettext "defint: upper limit of integration must be real; found ~M") ul))
 
 	     (cond ((setq ans (defint exp var ll ul))
 		    (setq ans (subst orig-var var ans))
@@ -302,7 +302,7 @@ in the interval of integration.")
 	  (t (simplify ans)))))
 
 ;; This routine tries to take a limit a couple of ways.
-(defmfun get-limit (exp var val &optional (dir '$plus dir?))
+(defun get-limit (exp var val &optional (dir '$plus dir?))
   (let ((ans (if dir?
 		 (funcall #'limit-no-err exp var val dir)
 		 (funcall #'limit-no-err exp var val))))
@@ -1137,6 +1137,7 @@ in the interval of integration.")
 	      (or (null (car nn*))
 		  (eq ($sign (m+ n (m- (deg (car nn*)))))
 		      '$pos))
+          (not (alike1 (cadr nn*) term))
 	      (ptimes%e (cadr nn*) n)
 	      term))
 	(t (throw 'ptimes%e nil))))
@@ -1419,7 +1420,7 @@ in the interval of integration.")
 	   (setq exp (mapcar 'pdis (cdr (oddelm (cdr exp)))))))))
 
 (defun mtoinf (grand var)
-  (prog (ans sd* sn* p* pe* n d s nc dc $savefactors checkfactors temp)
+  (prog (ans ans1 sd* sn* p* pe* n d s nc dc $savefactors checkfactors temp)
      (setq $savefactors t)
      (setq sn* (setq sd* (list 1.)))
      (cond ((eq ($sign (m+ loopstop* -1)) '$pos)
@@ -1472,11 +1473,10 @@ in the interval of integration.")
 					      (cadddr pe*))))
 			  (setq ans (m+ ans (m*t (m^ -1 p*) nn*)))
 			  (return (m* (m// nc dc) ans))))))))
-     (cond ((ratp grand var)
-	    (setq ans (m*t '$%pi (zmtorat n (cond ((mtimesp d) d)
-						  (t ($sqfr d)))
-					  s
-					  #'mtorat)))
+	  (cond
+	    ((and (ratp grand var)
+	          (setq ans1 (zmtorat n (cond ((mtimesp d) d) (t ($sqfr d))) s #'mtorat)))
+	    (setq ans (m*t '$%pi ans1))
 	    (return (m* (m// nc dc) ans)))
 	   ((and (or (%einvolve grand)
 		     (involve grand '(%sinh %cosh %tanh)))
@@ -1572,8 +1572,9 @@ in the interval of integration.")
 	(let ((rsn* t))
 	  (setq n ($xthru (m+l
 			   (mapcar #'(lambda (a b)
-				       (m// (funcall fn1 (car a) b (deg b))
-					    (cadr a)))
+				       (let ((foo (funcall fn1 (car a) b (deg b))))
+					 (if foo (m// foo (cadr a))
+						 (return-from zmtorat nil))))
 				   n
 				   d)))))
 	(return (cond (c (m// n c))
@@ -1581,8 +1582,8 @@ in the interval of integration.")
      on
 
      (setq n (funcall fn1 n d s))
-     (return  (sratsimp (cond (c  (m// n c))
-			      (t n))))))
+     (return (when n (sratsimp (cond (c  (m// n c))
+				     (t n)))))))
 
 (defun pfrnum (f g n n2 var)
   (let ((varlist (list var))  genvar)
@@ -1886,6 +1887,15 @@ in the interval of integration.")
 	 (r (add a (mul -1 (mul q 2 '$%pi)))))
     (cons q r)))
 
+; returns cons of (integer_part . fractional_part) of a
+(defun lower-infr (a)
+  ;; I think we really want to compute how many full periods are in a
+  ;; and the remainder.
+  (let* (;(q (igprt (div a (mul 2 '$%pi))))
+	 (q (mfuncall '$ceiling (div a (mul 2 '$%pi))))
+	 (r (add a (mul -1 (mul q 2 '$%pi)))))
+    (cons q r)))
+
 
 ;; Return the integer part of r.
 (defun igprt (r)
@@ -1980,6 +1990,11 @@ in the interval of integration.")
 	      (go out)))
        ;; Compute p and d for the lower limit a.
        (setq l (infr l))
+       ;; avoid an extra trip around the circle - helps skip principal values
+       (if (ratgreaterp (car b) (car l))		; if q > p
+	   (setq l (cons (add 1 (car l))		;   p += 1
+			 (add (mul -1 %pi2) (cdr l))))) ;   d -= 2*%pi
+       
        ;; Compute -integrate(f,x,0,d)
        (setq int-zero-to-d
 	     (cond ((setq ans (try-intsc e (cdr l) var))

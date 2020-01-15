@@ -61,7 +61,9 @@
 	     (eq (number-sign f2) (number-sign f3))
 	     (> (first (last f3)) -50)) (number-sign f1) nil)))
        
-(defun cartesian-product (b)
+;; This isn't exactly the same as CARTESIAN-PRODUCT in src/nset.lisp,
+;; so give it a different name to avoid name collision.
+(defun fourier_elim-cartesian-product (b)
   (cond ((null b)
          nil)
         (t
@@ -76,7 +78,7 @@
   (cond (($mapatom e) e)
         ((op-equalp e 'mand)
          (setq e (mapcar #'(lambda (s) (if (op-equalp s 'mor) (margs s) (list s))) (margs e)))
-         (setq e (cartesian-product e))
+         (setq e (fourier_elim-cartesian-product e))
          (setq e (mapcar #'(lambda (s) (opapply 'mand s)) e))
          (opapply 'mor e))
         (t (opapply (mop e) (mapcar 'expand-and-over-or (margs e))))))
@@ -155,7 +157,7 @@
 	  ((op-equalp e 'mplus 'mtimes)
 	   (setq f (if (op-equalp e 'mplus) 'add 'mult))
 	   (setq e (mapcar 'splitify (margs e)))
-	   (setq e (cartesian-product e))
+	   (setq e (fourier_elim-cartesian-product e))
 	   (dolist (ek e acc)
 	     (push
 	      (reduce 
@@ -226,9 +228,9 @@
 	  	  
 	  ;; Do a^x > a^y, where a > 1 --> x > y,
 	  ((and (not ($mapatom a)) (not ($mapatom b)) (eq (mop a) (mop b)) 
-		(op-equalp a 'mexpt) (eq (second a) (second b))
-		(eq (compare-using-empty-context (second a) 1) ">"))
-	   (m> (first (margs a)) (first (margs b))))
+		(op-equalp a 'mexpt) (eql (second a) (second b))
+		(equal (compare-using-empty-context (second a) 1) ">"))
+	   (m> (third a) (third b)))
 	  
 	  ;; Do a * b > 0 --> (a > 0, b > 0) or (a < 0, b < 0). We only do this when
 	  ;; z has two or more non-constant factors. This check seems spendy--is there
@@ -313,7 +315,7 @@
 	  ((op-equalp e 'mor)
 	   (opapply 'mor (mapcar 'standardize-inequality (margs e))))
 
-	  ((or (mrelationp e) (op-equalp e 'mnotequal '$equal))
+	  ((or (mrelationp e) (op-equalp e '$equal))
            (setq a (second e))
            (setq b (third e))
 
@@ -552,7 +554,7 @@
     ;; m> instead of sub here. But I think it's not needed, and m> is more spendy.
     
     (setq acc (append acc (mapcar #'(lambda (s) (sub (second s) (first s)))
-				  (cartesian-product (list lb-args ub-args)))))
+				  (fourier_elim-cartesian-product (list lb-args ub-args)))))
     
     ;; Return ((lb < x x < ub) acc).
       
@@ -562,7 +564,7 @@
     (list
      ;;(list (opcons 'mlessp lb x) (opcons 'mlessp x ub))
      bounds
-     (if (some #'(lambda (s) (or (eq 0 s) (eq nil s))) acc) '$emptyset acc))))
+     (if (some #'(lambda (s) (or (eql 0 s) (eq nil s))) acc) '$emptyset acc))))
 
 ;; Apply max and min without looking at the current context; if something goes wrong,
 ;; cleanup the mess.

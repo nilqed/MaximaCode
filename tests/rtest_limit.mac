@@ -207,6 +207,13 @@ limit(1/(2+1/factorial(n)),n,inf);
 limit(t*(erf((t))-1),t,inf);
 0;
 
+/* #3153 Limits of erfc */
+limit(erfc(x*(1 + %i)), x, inf);
+0;
+
+limit(erfc(x*(1 + %i)), x, minf);
+2;
+
 limit(exp(x)*(sin(1/x+exp(-x))-sin(1/x+exp(-x^2))), x, inf);
 1;
 
@@ -297,6 +304,21 @@ limit(floor(x), x, 5, minus);
 limit(floor(x), x, 5, plus);
 5;
 
+limit(ceiling(x), x, 5, minus);
+5;
+
+limit(ceiling(x), x, 5, plus);
+6;
+
+limit(round(x), x, 5/2, minus);
+2;
+
+limit(round(x), x, 5/2, plus);
+3;
+
+limit(floor(sin(x)), x, 0, minus);
+-1;
+
 /* [ 1587235 ] limit(floor(x),x,1) wrong */
 limit(floor(x),x,0);
 und;
@@ -325,6 +347,15 @@ limit(log(-1+x*%i), x, 0, minus);
 
 limit((log(y+h)-log(y))/h,h,0,plus);
 1/y;
+
+/* Bug 3587 */
+limit(log(3-sqrt(x)),x,9,minus);
+minf;
+
+/* Bug 3589 */
+limit((sqrt(x)-2)*log(1-sqrt(x)/2),x,4,minus);
+0;
+
 
 /* limit of incomplete gamma */
 /* function simplim%gamma_incomplete in gamma.lisp */
@@ -572,6 +603,10 @@ limit(x/(2+sin(1/x)),x,0);
 limit(x/sin(x)^2,x,inf);
 und;
 
+/* Bug ID: #3459 Wrong limit calculation */
+limit(x / (x+2^x+cos(x)),x,-inf);
+1;
+
 /* Bug ID: 811522 - redundant question in limit
  * b is assumed to be zero. Maxima now can deduce from the database
  * that b-2 is an even number.
@@ -749,5 +784,56 @@ integrate(x^3/(exp(x)-1),x,0,inf);
 integrate(x^3/(exp(x)-1),x,0,inf), numer;
 'limit(6.0*li[4](%e^x)-6.0*x*li[3](%e^x)+3.0*x^2*li[2](%e^x)
                       +1.0*x^3*log(1-%e^x)-0.25*x^4,x,inf,minus)
- -6.0*li[4](1.0)$
+ -6.49393940226683$
 
+/* #3142 limit((x^(1/x) - 1)*sqrt(x), x, inf) => inf */
+limit((x^(1/x) - 1)*sqrt(x), x, inf);
+0;
+
+/* #3143 limit((x^(1/x) - 1)*sqrt(x), x, 0, minus) => inf */
+/* should really be '$infinity */
+limit((x^(1/x) - 1)*sqrt(x), x, 0, minus);
+'limit((x^(1/x) - 1)*sqrt(x), x, 0, minus);
+
+/* SF bug #3185: "Error in sum with non-false modulus" */
+
+block([modulus:7], sum(i^-2,i,1,inf));
+'sum(i^-2,i,1,inf);
+
+block([modulus:7], limit(inf));
+inf;
+
+/* SF bug #3235: "ECL lisp arithmetic error in definite integration with large limits"
+ * the bug is actually in ECL (https://gitlab.com/embeddable-common-lisp/ecl/issues/299);
+ * here we'll test a work around.
+ */
+
+block ([actual, expected],
+  actual : limit(x*exp(x)*log(exp(x)+1),x,-1000,plus),
+  expected : -1000*%e^-1000*log(%e^-1000*(%e^1000+1)),
+  if ev (equal (actual, expected), logexpand='super) then true else [actual, expected]);
+true;
+
+/* accommodate different equivalent forms via 'equal' */
+block ([actual, expected],
+  actual : integrate((x^2)*exp(x) / (1 + exp(x))^2,x,-1000,1000),
+  expected : (-(2000*%e^1000*log(%e^-1000*(%e^1000+1)))/(%e^1000+1))
+  -(2000*log(%e^-1000*(%e^1000+1)))/(%e^1000+1)
+   -((2000*%e^1000+2000)*log(%e^1000+1)
+    +(2*%e^1000+2)*li[2](-%e^1000)-1000000*%e^1000)
+     /(%e^1000+1)+(2*%e^1000*li[2](-%e^-1000))/(%e^1000+1)
+     +(2*li[2](-%e^-1000))/(%e^1000+1)-1000000/(%e^1000+1),
+  if ev (equal (actual, expected), logexpand='super) then true else [actual, expected]);
+true;
+
+/* SF bug #3244: "error trying to promote float infinity to bigfloat in sign comparison"
+ * same as test under #3235 but ensure that bigfloat assume is present to trigger bug
+ */
+
+block ([actual, expected, ctxt:newcontext()],
+  assume (xfoo > 200b0),
+  actual : limit(xfoo*exp(xfoo)*log(exp(xfoo)+1),xfoo,-1000,plus),
+  expected : -1000*%e^-1000*log(%e^-1000*(%e^1000+1)),
+  killcontext (ctxt),
+  if ev (equal (actual, expected), logexpand='super) then true else [actual, expected]);
+true;

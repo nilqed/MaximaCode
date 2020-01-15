@@ -24,7 +24,11 @@ igeowedge_flag:false;
 
 "~"(any,body):=block
 (
-  [i,l1,l2,l11,l22,l1s,lk1,div],
+  [i,l1,l2,l11,l22,l1s,lk1,div,rp],
+  rp:false,
+  if length(first(indices(any)))>0 then rp:true,
+  if not rp then
+  (
   if listp(cartan_basis) and not member(body,cartan_basis) and
                              member(any,cartan_basis) then -body~any
   else if not atom(any) and op(any)="+" then
@@ -35,15 +39,17 @@ igeowedge_flag:false;
   else if not atom(body) and op(body)="-" then -(any~(-body))
   else if not atom(any) and op(any)="*" then
   (
-    if numberp(first(any)) then first(any)*(second(any)~body)
-    else (first(any)~body)*second(any)
+    if atom(first(any)) then first(any)*(rest(any)~body)
+    else if atom(last(any)) then last(any)*(rest(any,-1)~body)
+    else (first(any)~body)*rest(any)
   )
   else if not atom(body) and op(body)="*" then
   (
-    if numberp(first(body)) then first(body)*(any~second(body))
-    else (any~first(body))*second(body)
+    if atom(first(body)) then first(body)*(any~rest(body))
+    else if atom(last(body)) then last(body)*(any~rest(body,-1))
+    else (any~first(body))*rest(body)
   )
-  else if atom(any) and atom(body) then
+  else if atom(any) or atom(body) then
   (
     if any=body then 0
     else nounify("~")(any,body)
@@ -65,7 +71,9 @@ igeowedge_flag:false;
           member(any,body) then 0
   else if atom(body) and nounify(op(any))=nounify("~") and
           member(body,any) then 0
-  else
+  else rp:true
+  ),
+  if rp then
   (
     l1:first(indices(any)),
     l2:first(indices(body)),

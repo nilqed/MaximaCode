@@ -240,8 +240,8 @@
 
 (defun diagmatrix (n var fn)
   (prog (i ans)
-     (if (or (not (eq (ml-typep n) 'fixnum)) (minusp n))
-	 (improper-arg-err n fn))
+     (when (or (not (fixnump n)) (minusp n))
+       (improper-arg-err n fn))
      (setq i n)
      loop (if (zerop i) (return ans))
      (setq ans (cons (onen i n var 0) ans) i (1- i))
@@ -444,7 +444,7 @@
      (setq row (nconc row (ncons (if (> m j) '(0 . 1) (cons (aref nam m j) 1)))))
      (go loop2)))
 
-(defmfun onen (n i var fill)
+(defun onen (n i var fill)
   (prog (g)
    loop (cond ((= i n) (setq g (cons var g)))
 	      ((zerop i) (return g)) 
@@ -531,10 +531,10 @@
 			 a b)
 		 (getopr $matrix_element_add)))))
 
-(defmfun bbsort (l fn)
+(defun bbsort (l fn)
   (nreverse (sort (copy-list l) fn)))
 
-(defmfun powerx (mat x) 
+(defun powerx (mat x) 
   (prog (n y) 
      (cond ((not (fixnump x))
 	    (return (list '(mncexpt simp) mat x)))
@@ -585,7 +585,9 @@
 (defmfun $triangularize (x) 
   (let (($ratmx t))
     (newvarmat1 (setq x (check x))))
-  (setq x (cons '($matrix) (mxc (disreplist1 (triang (replist1 (mcx (cdr x)))))))) 
+  (let (($algebraic $algebraic))
+    (and (not $algebraic) (some #'algp varlist) (setq $algebraic t))
+    (setq x (cons '($matrix) (mxc (disreplist1 (triang (replist1 (mcx (cdr x)))))))))
   (if $ratmx x ($totaldisrep x)))
 
 (defmfun $col (mat n)
@@ -684,7 +686,7 @@
      (go b)))
 
 
-(defun $list_matrix_entries (m)
+(defmfun $list_matrix_entries (m)
   (unless ($matrixp m)
     (merror (intl:gettext "list_matrix_entries: argument must be a matrix; found: ~M") m))
   (cons (if (null (cdr m)) '(mlist) (caadr m))

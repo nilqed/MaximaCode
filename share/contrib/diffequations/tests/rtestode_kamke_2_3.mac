@@ -1,3 +1,6 @@
+(load("contrib_ode"),0);
+0$
+
 /* ODE tests - Second order linear equations 201-300
 
   Reference:
@@ -119,7 +122,7 @@ false;
 (pn_(212),ans:contrib_ode(eqn:x^2*'diff(y,x,2)+x*(a*x^2+b)*'diff(y,x,1)+f(x)*y,y,x));
 false;
 
-/* Kamke 2. 213  */ 
+/* Kamke 2. 213  */
 (pn_(213),ans:contrib_ode(eqn:x^2*'diff(y,x,2)+x*(x^3+1)*'diff(y,x,1)-y,y,x),0);
 0$
 /*
@@ -129,7 +132,7 @@ false;
 [method,ode_check(eqn,ans[1])];
 [odelin,0];
 
-/* Kamke 2. 214  */ 
+/* Kamke 2. 214  */
 (pn_(214),ans:contrib_ode(eqn:x^2*'diff(y,x,2)+(-x^4+(2*n+2*a+1)*x^2+a*(-1)^n-a^2)*y,y,x),0);
 0$
 /*
@@ -270,12 +273,12 @@ exact;
 [method,ode_check(eqn,ans[1])];
 [odelin,0];
 
-/* Kamke 2. 232  FIXME - What is Diff(LegendreP(n,x),x)? */ 
-(pn_(232),ans:contrib_ode(eqn:(x^2-1)*'diff(y,x,2)-n*(n+1)*y+Diff(LegendreP(n,x),x),y,x));
+/* Kamke 2. 232 */ 
+(pn_(232),ans:contrib_ode(eqn:(x^2-1)*'diff(y,x,2)-n*(n+1)*y+diff(legendre_p(n,x),x),y,x));
 false;
 
-/* Kamke 2. 233  FIXME - What is Diff(LegendreP(n,x),x)? */ 
-(pn_(233),ans:contrib_ode(eqn:(x^2-1)*'diff(y,x,2)-n*(n+1)*y+Diff(LegendreQ(n,x),x),y,x));
+/* Kamke 2. 233 */ 
+(pn_(233),ans:contrib_ode(eqn:(x^2-1)*'diff(y,x,2)-n*(n+1)*y+diff(legendre_q(n,x),x),y,x));
 false;
 
 /* Kamke 2. 234  */ 
@@ -344,7 +347,7 @@ variationofparameters;
 [method,ode_check(eqn,ans[1])];
 [odelin,0];
 
-/* Kamke 2. 242  */ 
+/* Kamke 2. 242  */
 (pn_(242),ans:contrib_ode(eqn:(x^2-1)*'diff(y,x,2)-(3*x+1)*'diff(y,x,1)+(x-x^2)*y,y,x));
 [y = %k2*(x^3*('integrate(8*x*%e^(2*x)/(x^4+4*x^3+6*x^2+4*x+1)
                                   -(7*%e^(2*x)/(x^4+4*x^3+6*x^2+4*x+1)),x))
@@ -460,7 +463,7 @@ ode_check(eqn,ans[1]);
 method;
 exact;
 
-/* Kamke 2. 254  */ 
+/* Kamke 2. 254  */
 (pn_(254),ans:contrib_ode(eqn:(x^2+x-2)*'diff(y,x,2)+(x^2-x)*'diff(y,x,1)+(-6*x^2-7*x)*y,y,x),0);
 0$
 /*
@@ -543,7 +546,7 @@ ode_check(eqn,ans[1]);
 method;
 freeofy;
 
-/* Kamke 2. 261  */ 
+/* Kamke 2. 261  */
 (pn_(261),ans:contrib_ode(eqn:x*(x+2)*'diff(y,x,2)+2*(-l*x^2+(n-2*l+1)*x+n+1)*'diff(y,x,1)+(2*l*(p-n-1)*x+2*l*p+m)*y,y,x));
 false;
 
@@ -570,9 +573,14 @@ false;
 [method,ode_check(eqn,ans[1])];
 [odelin,0];
 
-/* Kamke 2. 265  */ 
+/* Kamke 2. 265
+   2016-10:  Solvable with recent fixes to algsys.  Perhaps fragile solution */ 
 (pn_(265),ans:contrib_ode(eqn:(x-2)*(x-1)*'diff(y,x,2)-(2*x-3)*'diff(y,x,1)+y,y,x));
-false;
+[y = gauss_b((sqrt(5)+5)/2,-((sqrt(5)-5)/2),3,x-1)*%k2*(x-2)^2*(x-1)^2
+    +gauss_a((sqrt(5)+5)/2,-((sqrt(5)-5)/2),3,x-1)*%k1*(x-2)^2*(x-1)^2];
+[method,ode_check(eqn,ans[1])];
+[odelin,0];
+
 
 /* Kamke 2. 266  */ 
 (pn_(266),ans:contrib_ode(eqn:(x-2)^2*'diff(y,x,2)-(x-2)*'diff(y,x,1)-3*y,y,x));
@@ -643,11 +651,21 @@ xformtoconstcoeff;
 
 /* Kamke 2. 275  */ 
 (pn_(275),ans:contrib_ode(eqn:4*x^2*'diff(y,x,2)+4*x*'diff(y,x,1)+(-x^2+2*(-m+2*l+1)*x-m^2+1)*y,y,x));
-false;
+[y = (%k2*kummer_u(-((sqrt(m-1)*sqrt(m+1)+m-2*l-2)/2),
+                          1-sqrt(m-1)*sqrt(m+1),-x)*%e^(x/2))
+          /x^((sqrt(m-1)*sqrt(m+1))/2)
+    +(%k1*kummer_m(-((sqrt(m-1)*sqrt(m+1)+m-2*l-2)/2),
+                           1-sqrt(m-1)*sqrt(m+1),-x)*%e^(x/2))
+          /x^((sqrt(m-1)*sqrt(m+1))/2)];
+[method,ode_check(eqn,ans[1])];
+[odelin,0];
+
 
 /* Kamke 2. 276  */ 
 (pn_(276),ans:contrib_ode(eqn:4*x^2*'diff(y,x,2)+4*x*'diff(y,x,1)+(-4*x^2-1)*y-4*x^(3/2)*%e^x,y,x));
-false;
+[y=((2*x-1)*%e^x)/(4*sqrt(x))+(%k2*%e^x)/sqrt(x)+(%k1*%e^-x)/sqrt(x)];
+[method,ode_check(eqn,ans[1])];
+[kovacic,0];
 
 /* Kamke 2. 277  */ 
 (pn_(277),ans:contrib_ode(eqn:4*x^2*'diff(y,x,2)+4*x*'diff(y,x,1)+(-a*x^2-1)*y,y,x));
@@ -685,10 +703,17 @@ variationofparameters;
 [method,ode_check(eqn,ans[1])];
 [odelin,0];
 
-/* Kamke 2. 283  */ 
+/* Kamke 2. 283  */
+assume(x>0);
+[x>0];
 (pn_(283),ans:contrib_ode(eqn:4*x^2*'diff(y,x,2)+4*x^2*log(x)*'diff(y,x,1)+(x^2*log(x)^2+2*x-8)*y-4*x^2*%e^(x/2)/sqrt(x^x),y,x));
-false;
-
+[y = (3*x^2*%e^(x/2)*log(x)-x^2*%e^(x/2))/(9*x^(x/2))
+    +%k2*x^(2-x/2)*%e^(x/2)+%k1*x^((-x/2)-1)*%e^(x/2)];
+[method,radcan(ode_check(eqn,ans[1]))];
+[kovacic,0];
+forget(x>0);
+[x>0];
+	  
 /* Kamke 2. 284  */ 
 (pn_(284),ans:contrib_ode(eqn:(2*x+1)^2*'diff(y,x,2)-2*(2*x+1)*'diff(y,x,1)-12*y-3*x-1,y,x));
 [y=-%k1*(2*x+1)^3/(128*x^4+256*x^3+192*x^2+64*x+8)-(72*x^2+56*x+7)/(384*x+192)+%k2*(2*x+1)^3];
@@ -749,11 +774,20 @@ forget(x>0);
 
 /* Kamke 2. 291  */ 
 (pn_(291),ans:contrib_ode(eqn:48*(x-1)*x*'diff(y,x,2)+(152*x-40)*'diff(y,x,1)+53*y,y,x));
-false;
+[y = (gauss_b((sqrt(2)*sqrt(5)-3)/12,-((sqrt(2)*sqrt(5)+3)/12),5/6,x)
+          *%k2)
+          /(x-1)^(4/3)
+    +(gauss_a((sqrt(2)*sqrt(5)-3)/12,-((sqrt(2)*sqrt(5)+3)/12),5/6,x)*%k1)
+           /(x-1)^(4/3)];
+[method,ode_check(eqn,ans[1])];
+[odelin,0];
 
 /* Kamke 2. 292  */ 
-/* This equation presents a problem - asks question */ 
-/*(pn_(292),ans:contrib_ode(eqn:50*(x-1)*x*'diff(y,x,2)+25*(2*x-1)*'diff(y,x,1)-2*y,y,x));*/
+(pn_(292),ans:contrib_ode(eqn:50*(x-1)*x*'diff(y,x,2)+25*(2*x-1)*'diff(y,x,1)-2*y,y,x));
+[y = %i*%k1*sinh(log(5*2^(3/2)*sqrt(50*x^2-50*x)+100*x-50)/5)
+       +%k2*cosh(log(5*2^(3/2)*sqrt(50*x^2-50*x)+100*x-50)/5)];
+[method,ode_check(eqn,ans[1])];
+[xformtoconstcoeff,0];
 
 /* Kamke 2. 293  */ 
 (pn_(293),ans:contrib_ode(eqn:144*(x-1)*x*'diff(y,x,2)+(120*x-48)*'diff(y,x,1)+y,y,x));

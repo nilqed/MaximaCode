@@ -56,7 +56,7 @@ Option A - gcc-3.3.1 based system
 
 From 2006 until 2012, it was essential to install the versions of gcc and
 binutils listed here to obtain a working gcl.  The files are available
-from <http://sourceforge.net/project/showfiles.php?group_id=2435>:
+from <https://sourceforge.net/projects/mingw/files/>:
    a) Get and install MinGW-3.1.0-1.exe
    b) Install MSYS-1.0.10.exe 
       The installer should magically find your mingw installation
@@ -245,16 +245,15 @@ After building it, you can (and should) test the new Maxima installation package
 Install it on Windows and check that the installation (and later the deinstallation)
 works properly. To test Maxima, try the following:
 
- o Run the maxima testsuite: run_testsuite()
+ o Run the maxima testsuite: run_testsuite();
  o Try compiling a function.  This has been a problem in the past
-    - f(x):=x+2;
-    - compile(f);
-    - f(2);
+    f(x):=x+2;
+    compile(f);
+    f(2);
  o Test the graphics systems in both xmaxima and wxmaxima
     plot2d(sin(x),[x,0,10]);
     plot2d(sin(x),[x,0,10],[plot_format,xmaxima]);
     plot3d(x*y,[x,-1,1],[y,-1,1]);
-    scene(cone);
     plotdf([-y,x],[trajectory_at,5,0]);
     load(draw)$
     draw3d(xu_grid = 30, yv_grid = 60, surface_hide = true,
@@ -264,7 +263,7 @@ works properly. To test Maxima, try the following:
                        theta, 0, %pi, phi, 0, 2 * %pi))$
  o Check that plotting to Postscript works
     plot2d(sin(x),[x,0,10],[ps_file,"ps_test.ps"]);
- o Try out the on-line help: describe(sin)
+ o Try out the on-line help: describe(sin);
  o Try out, if external packages (e.g. lapack) work:
    load(lapack);
    fpprintprec : 6;

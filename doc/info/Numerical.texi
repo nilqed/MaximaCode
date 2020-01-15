@@ -15,7 +15,10 @@ The @code{fft} package comprises functions for the numerical (not symbolic)
 computation of the fast Fourier transform.
 
 @opencatbox
-@category{Fourier transform} @category{Numerical methods} @category{Share packages} @category{Package fft}
+@category{Fourier transform}
+@category{Numerical methods}
+@category{Share packages}
+@category{Package fft}
 @closecatbox
 
 @c end concepts Numerical
@@ -48,7 +51,8 @@ b = r sin(t)
 @code{load(fft)} loads this function.  See also @mrefdot{fft}
 
 @opencatbox
-@category{Package fft} @category{Complex variables}
+@category{Package fft}
+@category{Complex variables}
 @closecatbox
 @end deffn
 
@@ -77,7 +81,8 @@ The computed angle is in the range @code{-%pi} to @code{%pi}.
 @code{load(fft)} loads this function.  See also @mrefdot{fft}
 
 @opencatbox
-@category{Package fft} @category{Complex variables}
+@category{Package fft}
+@category{Complex variables}
 @closecatbox
 @end deffn
 
@@ -122,7 +127,7 @@ Examples:
 Real data.
 
 @c ===beg===
-@c load (fft) $
+@c load ("fft") $
 @c fpprintprec : 4 $
 @c L : [1, 2, 3, 4, -1, -2, -3, -4] $
 @c L1 : inverse_fft (L);
@@ -130,7 +135,7 @@ Real data.
 @c lmax (abs (L2 - L));
 @c ===end===
 @example
-(%i1) load (fft) $
+(%i1) load ("fft") $
 (%i2) fpprintprec : 4 $
 (%i3) L : [1, 2, 3, 4, -1, -2, -3, -4] $
 (%i4) L1 : inverse_fft (L);
@@ -147,7 +152,7 @@ Real data.
 Complex data.
 
 @c ===beg===
-@c load (fft) $
+@c load ("fft") $
 @c fpprintprec : 4 $
 @c L : [1, 1 + %i, 1 - %i, -1, -1, 1 - %i, 1 + %i, 1] $
 @c L1 : inverse_fft (L);
@@ -155,7 +160,7 @@ Complex data.
 @c lmax (abs (L2 - L));
 @c ===end===
 @example
-(%i1) load (fft) $
+(%i1) load ("fft") $
 (%i2) fpprintprec : 4 $                 
 (%i3) L : [1, 1 + %i, 1 - %i, -1, -1, 1 - %i, 1 + %i, 1] $
 (%i4) L1 : inverse_fft (L);
@@ -248,7 +253,7 @@ Examples:
 Real data.
 
 @c ===beg===
-@c load (fft) $
+@c load ("fft") $
 @c fpprintprec : 4 $
 @c L : [1, 2, 3, 4, -1, -2, -3, -4] $
 @c L1 : fft (L);
@@ -256,7 +261,7 @@ Real data.
 @c lmax (abs (L2 - L));
 @c ===end===
 @example
-(%i1) load (fft) $
+(%i1) load ("fft") $
 (%i2) fpprintprec : 4 $
 (%i3) L : [1, 2, 3, 4, -1, -2, -3, -4] $
 (%i4) L1 : fft (L);
@@ -273,7 +278,7 @@ Real data.
 Complex data.
 
 @c ===beg===
-@c load (fft) $
+@c load ("fft") $
 @c fpprintprec : 4 $
 @c L : [1, 1 + %i, 1 - %i, -1, -1, 1 - %i, 1 + %i, 1] $
 @c L1 : fft (L);
@@ -281,7 +286,7 @@ Complex data.
 @c lmax (abs (L2 - L));
 @c ===end===
 @example
-(%i1) load (fft) $
+(%i1) load ("fft") $
 (%i2) fpprintprec : 4 $
 (%i3) L : [1, 1 + %i, 1 - %i, -1, -1, 1 - %i, 1 + %i, 1] $
 (%i4) L1 : fft (L);
@@ -299,7 +304,7 @@ Complex data.
 Computation of sine and cosine coefficients.
 
 @c ===beg===
-@c load (fft) $
+@c load ("fft") $
 @c fpprintprec : 4 $
 @c L : [1, 2, 3, 4, 5, 6, 7, 8] $
 @c n : length (L) $
@@ -321,7 +326,7 @@ Computation of sine and cosine coefficients.
 @c makelist (float (f (j)), j, 0, n - 1);
 @c ===end===
 @example
-(%i1) load (fft) $
+(%i1) load ("fft") $
 (%i2) fpprintprec : 4 $
 (%i3) L : [1, 2, 3, 4, 5, 6, 7, 8] $
 (%i4) n : length (L) $
@@ -606,7 +611,8 @@ Examples:
 @end example
 
 @opencatbox
-@category{Algebraic equations} @category{Numerical methods}
+@category{Algebraic equations}
+@category{Numerical methods}
 @closecatbox
 @end deffn
 
@@ -633,7 +639,7 @@ See also @mrefcomma{realroots} @mrefcomma{allroots} @mref{find_root} and
 Examples:
 
 @c ===beg===
-@c load (newton1);
+@c load ("newton1");
 @c newton (cos (u), u, 1, 1/100);
 @c ev (cos (u), u = %);
 @c assume (a > 0);
@@ -641,7 +647,7 @@ Examples:
 @c ev (x^2 - a^2, x = %);
 @c ===end===
 @example
-(%i1) load (newton1);
+(%i1) load ("newton1");
 (%o1)  /maxima/share/numeric/newton1.mac
 (%i2) newton (cos (u), u, 1, 1/100);
 (%o2)                   1.570675277161251
@@ -657,7 +663,8 @@ Examples:
 @end example
 
 @opencatbox
-@category{Algebraic equations} @category{Numerical methods}
+@category{Algebraic equations}
+@category{Numerical methods}
 @closecatbox
 @end deffn
 
@@ -702,7 +709,9 @@ given do not depend on that independent variable, the system is called
 autonomous.
 
 @opencatbox
-@category{Differential equations} @category{Numerical methods} @category{Plotting}
+@category{Differential equations}
+@category{Numerical methods}
+@category{Plotting}
 @closecatbox
 
 
@@ -855,6 +864,9 @@ The default vertical range is from -10 to 10.
 @item
 @dfn{yaxislabel} will be used to identify the vertical axis. Its default value is the name of the second state variable.
 
+@item
+@dfn{number_of_arrows} should be set to a square number and defines the approximate
+density of the arrows being drawn. The default value is 225.
 @end itemize
 
 @strong{Examples:}
@@ -964,7 +976,9 @@ the two state variables as a function of time:
 @end itemize
 
 @opencatbox
-@category{Differential equations} @category{Plotting} @category{Numerical methods}
+@category{Differential equations}
+@category{Plotting}
+@category{Numerical methods}
 @closecatbox
 
 @end deffn
@@ -1001,7 +1015,9 @@ Clicking on a point will plot the equipotential curve that passes by that point
 (in red) and the orthogonal trajectory (in blue).
 
 @opencatbox
-@category{Differential equations} @category{Plotting} @category{Numerical methods}
+@category{Differential equations}
+@category{Plotting}
+@category{Numerical methods}
 @closecatbox
 
 @end deffn
@@ -1099,7 +1115,8 @@ for t between 0 and 4, and with values of -1.25 and 0.75 for x and y at t=0:
 The plot will show the solution for variable @var{y} as a function of @var{t}.
 
 @opencatbox
-@category{Differential equations} @category{Numerical methods}
+@category{Differential equations}
+@category{Numerical methods}
 @closecatbox
 
 @end deffn

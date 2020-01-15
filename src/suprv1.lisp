@@ -1,6 +1,6 @@
 ;;; -*-  Mode: Lisp; Package: Maxima; Syntax: Common-Lisp; Base: 10 -*- ;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;     The data in this file contains enhancments.                    ;;;;;
+;;;     The data in this file contains enhancements.                   ;;;;;
 ;;;                                                                    ;;;;;
 ;;;  Copyright (c) 1984,1987 by William Schelter,University of Texas   ;;;;;
 ;;;     All rights reserved                                            ;;;;;
@@ -26,7 +26,7 @@
 		       $rules $props $ratvars
 		       varlist genvar
 		       $gensumnum checkfactors $features featurel
-		       $weightlevels tellratlist $dontfactor
+		       tellratlist $dontfactor
 		       dispflag savefile $%% $error
 		       opers *ratweights $ratweights
 		       $stringdisp $lispdisp
@@ -35,8 +35,6 @@
 (defvar thistime 0)
 (defvar *refchkl* nil)
 (defvar *mdebug* nil)
-(defvar *baktrcl* nil)
-(defvar errbrksw nil)
 (defvar errcatch nil)
 (defvar mcatch nil)
 (defvar brklvl -1)
@@ -45,9 +43,6 @@
 (defvar greatorder nil)
 (defvar *in-translate-file* nil)
 (defvar *linelabel* nil)
-(defvar lisperrprint t)
-
-(defvar state-pdl (ncons 'lisp-toplevel))
 
 (defmvar $disptime nil)
 (defmvar $strdisp t)
@@ -95,13 +90,13 @@
 (defun meval* (expr)
   ;; Make sure that clearsign is called after the evaluation.
   (unwind-protect
-    (let (*refchkl* *baktrcl* checkfactors)
+    (let (*refchkl* checkfactors)
       (if $ratvarswitch (setq varlist (cdr $ratvars)))
       (meval expr))
     ;; Clear the facts from asksign and friends.
     (clearsign)))
 
-(defmfun makelabel (x)
+(defun makelabel (x)
   (setq *linelabel* ($concat '|| x $linenum))
   (unless $nolabels
     (when (or (null (cdr $labels))
@@ -111,18 +106,18 @@
       (setq $labels (cons (car $labels) (cons *linelabel* (cdr $labels))))))
   *linelabel*)
 
-(defmfun printlabel ()
+(defun printlabel ()
   (mtell-open "(~A) " (subseq (print-invert-case *linelabel*) 1)))
 
-(defmfun mexploden (x)
+(defun mexploden (x)
   (let (*print-radix*
 	(*print-base* 10))
     (exploden x)))
 
-(defmfun addlabel (label)
+(defun addlabel (label)
   (setq $labels (cons (car $labels) (cons label (delete label (cdr $labels) :count 1 :test #'eq)))))
 
-(defmfun tyi* ()
+(defun tyi* ()
   (clear-input)
   (do ((n (tyi) (tyi))) (nil)
     (cond ((or (char= n #\newline) (and (> (char-code n) 31) (char/= n #\rubout)))
@@ -172,7 +167,7 @@
 
 (defvar autoload 'generic-autoload)
 
-(defmfun load-function (func mexprp)	; The dynamic loader
+(defun load-function (func mexprp)	; The dynamic loader
   (declare (ignore mexprp))
   (let ((file (get func 'autoload)))
     (if file (funcall autoload (cons func file)))))
@@ -181,7 +176,7 @@
   (loadfile (namestring (maxima-string (meval (cadr form)))) nil
 	    (not (member $loadprint '(nil $autoload) :test #'equal))))
 
-(defun $setup_autoload (filename &rest functions)
+(defmfun $setup_autoload (filename &rest functions)
   (let ((file ($file_search filename)))
     (dolist (func functions)
       (nonsymchk func '$setup_autoload)
@@ -189,22 +184,22 @@
       (add2lnc func $props)))
   '$done)
 
-(defmfun dollarify (l)
-  (let ((errset 'errbreak1))
+(defun dollarify (l)
+  (let ((errset t))
     (cons '(mlist simp)
 	  (mapcar #'(lambda (x)
 		      (let (y)
 			(cond ((numberp x) x)
-			      ((numberp (setq y (car (errset (readlist (mexploden x)) nil))))
+			      ((numberp (setq y (car (errset (readlist (mexploden x))))))
 			       y)
 			      (t (makealias x)))))
 		  l))))
 
-(defmfun mfboundp (func)
+(defun mfboundp (func)
   (or (mgetl func '(mexpr mmacro))
       (getl func '(translated-mmacro mfexpr* mfexpr*s))))
 
-(defmfun loadfile (file findp printp)
+(defun loadfile (file findp printp)
   (and findp (member $loadprint '(nil $loadfile) :test #'equal) (setq printp nil))
   ;; Should really get the truename of FILE.
   (if printp (format t (intl:gettext "loadfile: loading ~A.~%") file))
@@ -216,7 +211,7 @@
     (or tem (merror (intl:gettext "loadfile: failed to load ~A") (namestring path)))
     (namestring path)))
 
-(defun $directory (path)
+(defmfun $directory (path)
   (cons '(mlist) (mapcar 'namestring (directory ($filename_merge path)))))
 
 (defmspec $kill (form)
@@ -264,8 +259,9 @@
       (dolist (u '(bindtest nonarray evfun evflag opers special mode))
 	(remprop x u))
       (dolist (u opers)
-	(if (and (remprop x u)
-		 (eq (get x 'operators) 'simpargs1))
+	(when (and (remprop x u)
+		 (let ((xopval (get x 'operators)))
+		   (or (eq xopval 'simpargs1) (eq xopval nil))))
 	    (remprop x 'operators)))
       (when (member x (cdr $props) :test #'equal)
 	(remprop x 'sp2)
@@ -279,6 +275,8 @@
       (remalias x nil)
       (setf $arrays (delete x $arrays :count 1 :test #'eq))
       (rempropchk x)
+      (setf *autoloaded-files*
+	    (delete (assoc x *autoloaded-files* :test #'eq) *autoloaded-files* :count 1 :test #'equal))
       (setf $functions
 	    (delete (assoc (ncons x) $functions :test #'equal) $functions :count 1 :test #'equal))
       (setf $macros
@@ -304,7 +302,7 @@
 	(initialize-numeric-constant x))	;; reset db value for $%pi, $%e, etc
       (if z (kill1 z)))))
 
-(defmfun kill1 (x)
+(defun kill1 (x)
   (if (and (stringp x) (not (getopr0 x))) (return-from kill1 nil))
   (funcall
    #'(lambda (z)
@@ -332,20 +330,20 @@
 	      (mapc #'kill1 (cdr $infolists))
 	      (setq $ratvars '((mlist simp)) varlist nil genvar nil
 		    checkfactors nil greatorder nil lessorder nil $gensumnum 0
-		    $weightlevels '((mlist)) *ratweights nil $ratweights
+		    *ratweights nil $ratweights
 		    '((mlist simp))
 		    tellratlist nil $dontfactor '((mlist)) $setcheck nil)
 	      (killallcontexts))
 	     ((setq z (assoc x '(($inlabels . $inchar) ($outlabels . $outchar) ($linelabels . $linechar)) :test #'eq))
 	      (mapc #'(lambda (y) (remvalue y '$kill))
 		    (getlabels* (eval (cdr z)) nil)))
-	     ((and (eq (ml-typep x) 'fixnum) (not (< x 0))) (remlabels x))
+	     ((and (fixnump x) (>= x 0)) (remlabels x))
 	     ((atom x) (kill1-atom x))
-	     ((and (eq (caar x) 'mlist) (eq (ml-typep (cadr x)) 'fixnum)
+	     ((and (eq (caar x) 'mlist) (fixnump (cadr x))
 		   (or (and (null (cddr x))
-			    (setq x (append x (ncons (cadr x)))))
-		       (and (eq (ml-typep (caddr x)) 'fixnum)
-			    (not (> (cadr x) (caddr x))))))
+                         (setq x (append x (ncons (cadr x)))))
+                      (and (fixnump (caddr x))
+                         (not (> (cadr x) (caddr x))))))
 	      (let (($linenum (caddr x))) (remlabels (- (caddr x) (cadr x)))))
 	     ((setq z (mgetl (caar x) '(hashar array))) (remarrelem z x))
 	     ((and ($subvarp x)
@@ -365,7 +363,7 @@
    nil))
 
 
-(defmfun remlabels (n)
+(defun remlabels (n)
   (prog (l x)
      (setq l (list (exploden $inchar)
 		   (exploden $outchar)
@@ -378,7 +376,7 @@
      (decf $linenum)
      (go loop)))
 
-(defmfun remvalue (x fn)
+(defun remvalue (x fn)
   (cond ((not (symbolp x)) (improper-arg-err x fn))
 	((boundp x)
 	 (let (y)
@@ -409,7 +407,7 @@
 		  (makunbound x)
 		  t))))))
 
-(defmfun ruleof (rule)
+(defun ruleof (rule)
   (or (mget rule 'ruleof)
       (let* ((pattern (cadr (mget rule '$rule)))
 	     (op (if (atom pattern) nil (caar pattern))) l)
@@ -424,16 +422,7 @@
   (declare (ignore assign-var))
   (setq *mdebug* y))
 
-(defun errbreak1 (ign)
-  (declare (ignore ign))
-  nil)					; Used to nullify ERRSETBREAKs
-
-(defun errbreak2 (ign) ;; An alternate ERRSET interr. function used by PARSE and DISPLAY
-  (declare (ignore ign))
-  (let ((state-pdl (cons 'lisp-break state-pdl)))
-    (break "erst ~S" '(errbrksw))))
-
-(defmfun errlfun1 (mpdls)
+(defun errlfun1 (mpdls)
   (do ((l bindlist (cdr l))
        (l1))
       ((eq l (car mpdls)) (munbind l1))
@@ -442,24 +431,24 @@
       ((eq loclist (cdr mpdls)))
     (munlocal)))
 
-(defmfun getalias (x)
+(defun getalias (x)
   (cond ((get x 'alias))
 	((eq x '$false) nil)
 	(t x)))
 
-(defmfun makealias (x)
+(defun makealias (x)
   (implode (cons #\$ (exploden x))))
 
 ;; (DEFMSPEC $F (FORM) (SETQ FORM (FEXPRCHECK FORM)) ...)
 ;; makes sure that F was called with exactly one argument and
 ;; returns that argument.
 
-(defmfun fexprcheck (form)
+(defun fexprcheck (form)
   (if (or (null (cdr form)) (cddr form))
       (merror (intl:gettext "~:M: expected just one argument; found: ~M") (caar form) form)
       (cadr form)))
 
-(defmfun nonsymchk (x fn)
+(defun nonsymchk (x fn)
   (unless (symbolp x)
     (merror (intl:gettext "~:M: argument must be a symbol; found: ~M") fn x)))
 
@@ -476,60 +465,59 @@
 (defmspec $playback (x)
   (declare (special $showtime))
   (setq x (cdr x))
-  (let ((state-pdl (cons 'playback state-pdl)))
-    (prog (l l1 l2 numbp slowp nostringp inputp timep grindp inchar largp)
-       (setq inchar (getlabcharn $inchar)) ; Only the 1st alphabetic char. of $INCHAR is tested
-       (setq timep $showtime grindp $grind)
-       (do ((x x (cdr x)))( (null x))
-	 (cond ((eq (ml-typep (car x)) 'fixnum) (setq numbp (car x)))
-	       ((eq (car x) '$all))
-	       ((eq (car x) '$slow) (setq slowp t))
-	       ((eq (car x) '$nostring) (setq nostringp t))
-	       ((eq (car x) '$grind) (setq grindp t))
-	       ((eq (car x) '$input) (setq inputp t))
-	       ((member (car x) '($showtime $time) :test #'equal) (setq timep (or timep t)))
-	       ((member (car x) '($gctime $totaltime) :test #'equal) (setq timep '$all))
-	       ((setq l2 (listargp (car x)))
-		(setq l1 (nconc l1 (getlabels (car l2) (cdr l2) nil)) largp t))
-	       (t (improper-arg-err (car x) '$playback))))
-       (cond ((and largp (null numbp)) (go loop))
-	     ((and (setq l (cdr $labels)) (not $nolabels)) (setq l (cdr l))))
-       (when (or (null numbp) (< (length l) numbp))
-	 (setq l1 (reverse l)) (go loop))
-       (do ((i numbp (1- i)) (l2)) ((zerop i) (setq l1 (nconc l1 l2)))
-	 (setq l2 (cons (car l) l2) l (cdr l)))
-       loop (if (null l1) (return '$done))
-       (let ((errset 'errbreak2)
-	     (incharp (char= (getlabcharn (car l1)) inchar)))
-	 (errset
-	  (cond ((and (not nostringp) incharp)
-		 (let ((*linelabel* (car l1))) (mterpri) (printlabel))
-		 (if grindp
-		     (mgrind (meval1 (car l1)) nil)
-		     (mapc #'(lambda (x) (write-char x)) (mstring (meval1 (car l1))))) ;gcl doesn't like a
-					; simple write-char, therefore wrapped it up in a lambda - are_muc
-		 (if (get (car l1) 'nodisp) (princ "$") (princ ";"))
-		 (mterpri))
-		((or incharp
-		     (prog2 (when (and timep (setq l (get (car l1) 'time)))
-			      (setq x (gctimep timep (cdr l)))
-			      (mtell (intl:gettext "~A seconds") (car l))
-			      (if x (mtell (intl:gettext "  GC time = ~A seconds") (cdr l)))
-			      (mterpri))
-			 (not (or inputp (get (car l1) 'nodisp)))))
-		 (mterpri) (displa (list '(mlabel) (car l1) (meval1 (car l1)))))
-		(t (go a)))))
-       (when (and slowp (cdr l1) (not (continuep)))
-	 (return '$terminated))
-       a    (setq l1 (cdr l1))
-       (go loop))))
+  (prog (l l1 l2 numbp slowp nostringp inputp timep grindp inchar largp)
+     (setq inchar (getlabcharn $inchar)) ; Only the 1st alphabetic char. of $INCHAR is tested
+     (setq timep $showtime grindp $grind)
+     (do ((x x (cdr x)))( (null x))
+       (cond ((fixnump (car x)) (setq numbp (car x)))
+             ((eq (car x) '$all))
+             ((eq (car x) '$slow) (setq slowp t))
+             ((eq (car x) '$nostring) (setq nostringp t))
+             ((eq (car x) '$grind) (setq grindp t))
+             ((eq (car x) '$input) (setq inputp t))
+             ((member (car x) '($showtime $time) :test #'equal) (setq timep (or timep t)))
+             ((member (car x) '($gctime $totaltime) :test #'equal) (setq timep '$all))
+             ((setq l2 (listargp (car x)))
+              (setq l1 (nconc l1 (getlabels (car l2) (cdr l2) nil)) largp t))
+             (t (improper-arg-err (car x) '$playback))))
+     (cond ((and largp (null numbp)) (go loop))
+           ((and (setq l (cdr $labels)) (not $nolabels)) (setq l (cdr l))))
+     (when (or (null numbp) (< (length l) numbp))
+       (setq l1 (reverse l)) (go loop))
+     (do ((i numbp (1- i)) (l2)) ((zerop i) (setq l1 (nconc l1 l2)))
+       (setq l2 (cons (car l) l2) l (cdr l)))
+     loop (if (null l1) (return '$done))
+     (let ((errset t)
+           (incharp (char= (getlabcharn (car l1)) inchar)))
+       (errset
+        (cond ((and (not nostringp) incharp)
+               (let ((*linelabel* (car l1))) (mterpri) (printlabel))
+               (if grindp
+                   (mgrind (meval1 (car l1)) nil)
+                   (mapc #'(lambda (x) (write-char x)) (mstring (meval1 (car l1))))) ;gcl doesn't like a
+                                      ; simple write-char, therefore wrapped it up in a lambda - are_muc
+               (if (get (car l1) 'nodisp) (princ "$") (princ ";"))
+               (mterpri))
+              ((or incharp
+                   (prog2 (when (and timep (setq l (get (car l1) 'time)))
+                            (setq x (gctimep timep (cdr l)))
+                            (mtell (intl:gettext "~A seconds") (car l))
+                            (if x (mtell (intl:gettext "  GC time = ~A seconds") (cdr l)))
+                            (mterpri))
+                       (not (or inputp (get (car l1) 'nodisp)))))
+               (mterpri) (displa (list '(mlabel) (car l1) (meval1 (car l1)))))
+              (t (go a)))))
+     (when (and slowp (cdr l1) (not (continuep)))
+       (return '$terminated))
+     a    (setq l1 (cdr l1))
+     (go loop)))
 
 (defun listargp (x)
   (let (high)
-    (if (and ($listp x) (eq (ml-typep (cadr x)) 'fixnum)
-	     (or (and (null (cddr x)) (setq high (cadr x)))
-		 (and (eq (ml-typep (setq high (caddr x))) 'fixnum)
-		      (not (> (cadr x) high)))))
+    (if (and ($listp x) (fixnump (cadr x))
+           (or (and (null (cddr x)) (setq high (cadr x)))
+              (and (fixnump (setq high (caddr x)))
+                 (not (> (cadr x) high)))))
 	(cons (cadr x) high))))
 
 (defmspec $alias (form)
@@ -540,22 +528,18 @@
       ((null form)
        `((mlist simp),@(nreverse l)))))
 
-(defmfun alias (x y)
+(defun alias (x y)
   (cond ((nonsymchk x '$alias))
 	((nonsymchk y '$alias))
         ((eq x y) y) ; x is already the alias of y
-; Not needed. We return the alias immediately if we already have one.
-;	((not (eq (getcharn x 1) #\$))
-;	 (merror "-ed symbols may not be aliased. ~M" x))
 	((get x 'reversealias)
-	 (if (not (eq x y))
-	     (merror (intl:gettext "alias: ~M already has an alias.") x)))
+	 (merror (intl:gettext "alias: ~M already has an alias.") x))
 	(t (putprop x y'alias)
 	   (putprop y x 'reversealias)
 	   (add2lnc y $aliases)
 	   y)))
 
-(defmfun remalias (x &optional remp)
+(defun remalias (x &optional remp)
   (let ((y (and (or remp (member x (cdr $aliases) :test #'equal)) (get x 'reversealias))))
     (cond ((and y (eq x '%derivative))
 	   (remprop x 'reversealias)
@@ -566,21 +550,21 @@
 	     (setf $aliases (delete x $aliases :count 1 :test #'eq))
 	     (remprop (setq x y) 'alias) (remprop x 'verb) x))))
 
-(defmfun stripdollar (x)
+(defun stripdollar (x)
   (cond ((not (atom x))
 	 (cond ((and (eq (caar x) 'bigfloat) (not (minusp (cadr x)))) (implode (fpformat x)))
 	       (t (merror (intl:gettext "STRIPDOLLAR: argument must be an atom; found: ~M") x))))
 	((numberp x) x)
 	((null x) 'false)
 	((eq x t) 'true)
-    ((member (getcharn x 1) '(#\$ #\%))
-     (intern (subseq (string x) 1)))
+        ((member (get-first-char x) '(#\$ #\%) :test #'char=)
+         (intern (subseq (string x) 1)))
 	(t x)))
 
-(defmfun fullstrip (x)
+(defun fullstrip (x)
   (mapcar #'fullstrip1 x))
 
-(defmfun fullstrip1 (x)
+(defun fullstrip1 (x)
   (or (and (numberp x) x)
       (let ((y (get x 'reversealias))) (if y (stripdollar y)))
       (stripdollar x)))
@@ -632,14 +616,14 @@
     (setq form (if $grind (strgrind form) (mstring form)))
     (coerce form 'string)))
 
-(defmfun makstring (x)
+(defun makstring (x)
   (setq x (mstring x))
   (do ((l x (cdr l)))
       ((null l))
     (rplaca l (ascii (car l))))
   x)
 
-(defmfun strmeval (x)
+(defun strmeval (x)
   (cond ((atom x) (meval1 x))
 	((member (caar x) '(msetq mdefine mdefmacro) :test #'equal) x)
 	(t (meval x))))
@@ -647,26 +631,26 @@
 
 (mapc #'(lambda (x) (putprop (car x) (cadr x) 'alias)
 		(putprop (cadr x) (car x) 'reversealias))
-      '(($block mprog block) ($lambda lambda lambda)
-	($subst $substitute subst)
-	($go mgo go) ($signum %signum signum)
-	($return mreturn return) ($factorial mfactorial factorial)
-        ($ibase *read-base* *read-base*) ($obase *print-base* obase)
-        ($nopoint *nopoint nopoint)
-	($modulus modulus modulus) ($zunderflow zunderflow zunderflow)
-	($ttyoff #.ttyoff ttyoff)
-	($mode_declare $modedeclare mode_declare)))
+      '(($block mprog) ($lambda lambda)
+	($subst $substitute)
+	($go mgo) ($signum %signum)
+	($return mreturn) ($factorial mfactorial)
+	($ibase *read-base*) ($obase *print-base*)
+	($modulus modulus)
+	($ttyoff #.ttyoff)
+	($mode_declare $modedeclare)))
 
 (mapc #'(lambda (x) (putprop (car x) (cadr x) 'alias))
       '(($ratcoeff $ratcoef) ($ratnum $ratnumer) ($true t)
         ($derivative $diff) ($prod $product)
 	($bothcoeff $bothcoef)))
 
-(defmfun amperchk (name)
+(defun amperchk (name)
   (cond
     ((symbolp name) name)
     ((stringp name)
-     (getalias (or (getopr0 name) (implode (cons #\$ (coerce name 'list))))))))
+     (getalias (or (getopr0 name) (implode (cons #\$ (coerce name 'list))))))
+    (t name)))
 
 (defmspec $stringout (x)
   (setq x (cdr x))
@@ -718,7 +702,7 @@
 		     (setq maxima-error t)))
 	      (setq truename (truename savefile))
 	      (terpri savefile))
-	    (if maxima-error (let ((errset 'errbreak1)) (merror (intl:gettext "stringout: unspecified error."))))
+	    (if maxima-error (merror (intl:gettext "stringout: unspecified error.")))
 	    (cl:namestring truename)))))
 
 (defmfun $labels (label-prefix)
@@ -727,7 +711,7 @@
 
 (defmfun $%th (x)
   (prog (l outchar)
-     (if (or (not (eq (ml-typep x) 'fixnum)) (= x 0))
+     (if (or (not (fixnump x)) (zerop x))
 	 (improper-arg-err x '$%th))
      (if (> x 0) (setq x (- x)))
      (if (cdr $labels)
@@ -739,7 +723,7 @@
      (setq l (cdr l))
      (go loop)))
 
-(defmfun getlabels (n1 n2 flag)	; FLAG = T for STRINGOUT, = NIL for PLAYBACK and SAVE.
+(defun getlabels (n1 n2 flag)	; FLAG = T for STRINGOUT, = NIL for PLAYBACK and SAVE.
   (do ((i n1 (1+ i)) (l1)
        (l (if flag (list (exploden $inchar))
 	      (list (exploden $inchar) (exploden $linechar)
@@ -749,7 +733,7 @@
       (if (boundp (setq z (implode (append (car l) x))))
 	  (setq l1 (cons z l1))))))
 
-(defmfun getlabels* (label-prefix flag)		; FLAG = T only for STRINGOUT
+(defun getlabels* (label-prefix flag)		; FLAG = T only for STRINGOUT
   (let*
     ((label-prefix-name (symbol-name label-prefix))
      (label-prefix-length (length label-prefix-name)))
@@ -762,18 +746,29 @@
               (string= label-name-1 label-prefix-name :end1 label-prefix-length))
             (setq l1 (cons (car l) l1)))))))
 
-(defmfun getlabcharn (label)
+(defun getlabcharn (label)
   (let ((c (char (symbol-name label) 1)))
     (if (char= c #\%)
 	(char (symbol-name label) 2)
 	c)))
 
 (defmspec $errcatch (form)
-  (let ((errcatch (cons bindlist loclist)) ret)
-    (if (null (setq ret (let (*mdebug*)
-			  (errset (rat-error-to-merror (mevaln (cdr form))) lisperrprint))))
-	(errlfun1 errcatch))
-    (cons '(mlist) ret)))
+  (let ((errcatch (cons bindlist loclist))
+        (*mdebug* nil))
+    (handler-case (list '(mlist) (rat-error-to-merror (mevaln (cdr form))))
+      (maxima-$error ()
+        ; merror already set the error variable and printed the error
+        ; message if errormsg is true, so we just need to clean up.
+        (errlfun1 errcatch)
+        (list '(mlist simp)))
+      (error (e)
+        ; We store the error report message in the error variable and
+        ; print the message if errormsg is true.  Then we clean up.
+        (setq $error (list '(mlist simp) (princ-to-string e)))
+        (when $errormsg
+          ($errormsg))
+        (errlfun1 errcatch)
+        (list '(mlist simp))))))
 
 (defmspec $catch (form)
   (let ((mcatch (cons bindlist loclist)))
@@ -798,7 +793,7 @@
 		 '$unknown))
 	 l)))
 
-(defmfun timeorg (tim)
+(defun timeorg (tim)
   (if (> thistime 0)
       (incf thistime (- (get-internal-run-time) tim))))
 
@@ -810,8 +805,9 @@
 
 ;; File-processing stuff.
 
-(defmfun mterpri ()
-   (terpri))
+(defun mterpri ()
+   (terpri)
+   (finish-output))
 
 (defmspec $status (form)
   (setq form (cdr form))

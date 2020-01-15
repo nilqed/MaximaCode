@@ -4,6 +4,58 @@
 @section Arrays
 @c -----------------------------------------------------------------------------
 
+Maxima supports 3 array-like constructs:
+@itemize
+@anchor{hashed array}
+@anchor{hashed arrays}
+@anchor{undeclared array}
+@anchor{undeclared arrays}
+@item If one tries to write to an indexed variable without creating a list first an
+      undeclared array (also named hashed array) is created that grows dynamically and
+      allows numbers, symbols and strings as indices:
+@c ===beg===
+@c a["feww"]:1;
+@c a[qqwdqwd]:3;
+@c a[5]:99;
+@c a[qqwdqwd];
+@c a[5];
+@c a["feww"];
+@c ===end===
+@example
+@group
+(%i1) a["feww"]:1;
+(%o1)                           1
+@end group
+@group
+(%i2) a[qqwdqwd]:3;
+(%o2)                           3
+@end group
+@group
+(%i3) a[5]:99;
+(%o3)                          99
+@end group
+@group
+(%i4) a[qqwdqwd];
+(%o4)                           3
+@end group
+@group
+(%i5) a[5];
+(%o5)                          99
+@end group
+@group
+(%i6) a["feww"];
+(%o6)                           1
+@end group
+@end example
+Since lisp handles hashed arrays and @mref{memoizing functions} similar to arrays
+many of the  functions that can be applied to arrays can be applied to them, as well.
+@item Lists (see @mref{makelist} allow for fast addition and removal
+      of elements, can be created without knowing their final size.
+@item Declared arrays that allow fast access to random elements at the cost that their
+      size needs to be known at construction time.
+      (@xref{Performance considerations for Lists}.)
+@end itemize
+
 @menu
 * Functions and Variables for Arrays::  
 @end menu
@@ -35,19 +87,7 @@ for integers of limited size or @code{flonum} for floating-point numbers.
 creates @math{m} arrays, all of the same dimensions.
 @c SAME TYPE AS WELL ??
 
-@c THIS DISCUSSION OF UNDECLARED ARRAYS REALLY WANTS TO BE SOMEWHERE ELSE
-If the user assigns to a subscripted variable before declaring the
-corresponding array, an undeclared array is created.
-Undeclared arrays, otherwise known as hashed arrays (because hash
-coding is done on the subscripts), are more general than declared
-arrays.  The user does not declare their maximum size, and they grow
-dynamically by hashing as more elements are assigned values.  The
-subscripts of undeclared arrays need not even be numbers.  However,
-unless an array is rather sparse, it is probably more efficient to
-declare it when possible than to leave it undeclared.  The @code{array}
-function can be used to transform an undeclared array into a declared
-array.
-@c HOW DOES ONE CHANGE AN UNDECLARED ARRAY INTO A DECLARED ARRAY EXACTLY ??
+See also @mrefcomma{arraymake} @mref{arrayinfo} and @mrefdot{make_array}
 
 @opencatbox
 @category{Arrays}
@@ -65,7 +105,8 @@ This is reminiscent of @mrefcomma{apply} except the first argument is an array
 instead of a function.
 
 @opencatbox
-@category{Expressions} @category{Arrays}
+@category{Expressions}
+@category{Arrays}
 @closecatbox
 @end deffn
 
@@ -74,34 +115,34 @@ instead of a function.
 @deffn {Function} arrayinfo (@var{A})
 
 Returns information about the array @var{A}.
-The argument @var{A} may be a declared array, an undeclared (hashed) array,
-an array function, or a subscripted function.
+The argument @var{A} may be a declared array, a @mrefcomma{hashed array}
+a @mrefcomma{memoizing function} or a subscripted function.
 
 For declared arrays, @code{arrayinfo} returns a list comprising the atom
 @code{declared}, the number of dimensions, and the size of each dimension.
 The elements of the array, both bound and unbound, are returned by
-@code{listarray}.
+@mrefdot{listarray}
 
 For undeclared arrays (hashed arrays), @code{arrayinfo} returns a list
 comprising the atom @code{hashed}, the number of subscripts,
 and the subscripts of every element which has a value.
-The values are returned by @code{listarray}.
+The values are returned by @mrefdot{listarray}
 
-For array functions, @code{arrayinfo} returns a list comprising the atom
+For @mrefcomma{memoizing functions} @code{arrayinfo} returns a list comprising the atom
 @code{hashed}, the number of subscripts,
 and any subscript values for which there are stored function values.
-The stored function values are returned by @code{listarray}.
+The stored function values are returned by @mrefdot{listarray}
 
 For subscripted functions, @code{arrayinfo} returns a list comprising the atom
 @code{hashed}, the number of subscripts,
 and any subscript values for which there are lambda expressions.
-The lambda expressions are returned by @code{listarray}.
+The lambda expressions are returned by @mrefdot{listarray}
 
 See also @mrefdot{listarray}
 
 Examples:
 
-@code{arrayinfo} and @code{listarray} applied to a declared array.
+@code{arrayinfo} and @mref{listarray} applied to a declared array.
 
 @c ===beg===
 @c array (aa, 2, 3);
@@ -134,7 +175,7 @@ Examples:
 @end group
 @end example
 
-@code{arrayinfo} and @code{listarray} applied to an undeclared (hashed) array.
+@code{arrayinfo} and @mref{listarray} applied to a undeclared array (@mrefdot{hashed array}).
 
 @c ===beg===
 @c bb [FOO] : (a + b)^2;
@@ -164,7 +205,7 @@ Examples:
 @end group
 @end example
 
-@code{arrayinfo} and @code{listarray} applied to an array function.
+@code{arrayinfo} and @mref{listarray} applied to a @mrefdot{memoizing function}
 
 @c ===beg===
 @c cc [x, y] := y / x;
@@ -204,7 +245,31 @@ Examples:
 @end group
 @end example
 
-@code{arrayinfo} and @code{listarray} applied to a subscripted function.
+
+Using @code{arrayinfo} in order to convert an undeclared array to a declared array:
+
+@c ===beg===
+@c for i:0 thru 10 do a[i]:i^2$
+@c indices:map(first,rest(rest(arrayinfo(a))));
+@c array(A,fixnum,length(indices)-1)$
+@c fillarray(A,map(lambda([x],a[x]),indices))$
+@c listarray(A);
+@c ===end===
+@example
+(%i1) for i:0 thru 10 do a[i]:i^2$
+@group
+(%i2) indices:map(first,rest(rest(arrayinfo(a))));
+(%o2)          [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+@end group
+(%i3) array(A,fixnum,length(indices)-1)$
+(%i4) fillarray(A,map(lambda([x],a[x]),indices))$
+@group
+(%i5) listarray(A);
+(%o5)       [0, 1, 4, 9, 16, 25, 36, 49, 64, 81, 100]
+@end group
+@end example
+
+@code{arrayinfo} and @mref{listarray} applied to a subscripted function.
 
 @c ===beg===
 @c dd [x] (y) := y ^ x;
@@ -321,11 +386,11 @@ Examples:
 @end group
 @group
 (%i11) A2 : make_array (fixnum, 10);
-(%o11)          @{Array:  #(0 0 0 0 0 0 0 0 0 0)@}
+(%o11)        @{Lisp Array: #(0 0 0 0 0 0 0 0 0 0)@}
 @end group
 @group
 (%i12) fillarray (A2, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
-(%o12)          @{Array:  #(1 2 3 4 5 6 7 8 9 10)@}
+(%o12)        @{Lisp Array: #(1 2 3 4 5 6 7 8 9 10)@}
 @end group
 @group
 (%i13) arraymake ('A2, [8]);
@@ -339,7 +404,8 @@ Examples:
 @end example
 
 @opencatbox
-@category{Expressions} @category{Arrays}
+@category{Expressions}
+@category{Arrays}
 @closecatbox
 @end deffn
 
@@ -349,9 +415,10 @@ Examples:
 Default value: @code{[]}
 
 @code{arrays} is a list of arrays that have been allocated.
-These comprise arrays declared by @code{array}, hashed arrays constructed by
-implicit definition (assigning something to an array element),
-and array functions defined by @code{:=} and @code{define}.
+These comprise arrays declared by @mrefcomma{array} @mref{hashed arrays} that can be
+constructed by implicit definition (assigning something to an element that isn't yet
+declared as a list or an array),
+and @mref{memoizing functions} defined by @code{:=} and @mrefdot{define}
 Arrays defined by @mref{make_array} are not included.
 
 See also
@@ -387,7 +454,7 @@ Examples:
 @end group
 @group
 (%i4) dd : make_array ('any, 7);
-(%o4)       @{Array:  #(NIL NIL NIL NIL NIL NIL NIL)@}
+(%o4)     @{Lisp Array: #(NIL NIL NIL NIL NIL NIL NIL)@}
 @end group
 @group
 (%i5) arrays;
@@ -396,7 +463,8 @@ Examples:
 @end example
 
 @opencatbox
-@category{Arrays} @category{Global variables}
+@category{Arrays}
+@category{Global variables}
 @closecatbox
 @end defvr
 
@@ -410,7 +478,8 @@ where @var{A} is an array and @var{i_1}, @dots{}, @var{i_n} are integers.
 @code{arraysetapply} evaluates its arguments.
 
 @opencatbox
-@category{Expressions} @category{Arrays}
+@category{Expressions}
+@category{Arrays}
 @closecatbox
 @end deffn
 
@@ -434,6 +503,7 @@ rest of @var{A}.  If there are too many, the remaining ones are ignored.
 Examples:
 
 Create an array of 9 elements and fill it from a list.
+
 @c ===beg===
 @c array (a1, fixnum, 8);
 @c listarray (a1);
@@ -463,6 +533,7 @@ When there are too few elements to fill the array,
 the last element is repeated.
 When there are too many elements,
 the extra elements are ignored.
+
 @c ===beg===
 @c a2 : make_array (fixnum, 8);
 @c fillarray (a2, [1, 2, 3, 4, 5]);
@@ -472,23 +543,23 @@ the extra elements are ignored.
 @example
 @group
 (%i1) a2 : make_array (fixnum, 8);
-(%o1)             @{Array:  #(0 0 0 0 0 0 0 0)@}
+(%o1)           @{Lisp Array: #(0 0 0 0 0 0 0 0)@}
 @end group
 @group
 (%i2) fillarray (a2, [1, 2, 3, 4, 5]);
-(%o2)             @{Array:  #(1 2 3 4 5 5 5 5)@}
+(%o2)           @{Lisp Array: #(1 2 3 4 5 5 5 5)@}
 @end group
 @group
 (%i3) fillarray (a2, [4]);
-(%o3)             @{Array:  #(4 4 4 4 4 4 4 4)@}
+(%o3)           @{Lisp Array: #(4 4 4 4 4 4 4 4)@}
 @end group
 @group
 (%i4) fillarray (a2, makelist (i, i, 1, 100));
-(%o4)             @{Array:  #(1 2 3 4 5 6 7 8)@}
+(%o4)           @{Lisp Array: #(1 2 3 4 5 6 7 8)@}
 @end group
 @end example
 
-Multple-dimension arrays are filled in row-major order.
+Multiple-dimension arrays are filled in row-major order.
 
 @c ===beg===
 @c a3 : make_array (fixnum, 2, 5);
@@ -499,19 +570,19 @@ Multple-dimension arrays are filled in row-major order.
 @example
 @group
 (%i1) a3 : make_array (fixnum, 2, 5);
-(%o1)        @{Array:  #2A((0 0 0 0 0) (0 0 0 0 0))@}
+(%o1)      @{Lisp Array: #2A((0 0 0 0 0) (0 0 0 0 0))@}
 @end group
 @group
 (%i2) fillarray (a3, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
-(%o2)        @{Array:  #2A((1 2 3 4 5) (6 7 8 9 10))@}
+(%o2)      @{Lisp Array: #2A((1 2 3 4 5) (6 7 8 9 10))@}
 @end group
 @group
 (%i3) a4 : make_array (fixnum, 5, 2);
-(%o3)     @{Array:  #2A((0 0) (0 0) (0 0) (0 0) (0 0))@}
+(%o3)   @{Lisp Array: #2A((0 0) (0 0) (0 0) (0 0) (0 0))@}
 @end group
 @group
 (%i4) fillarray (a4, a3);
-(%o4)     @{Array:  #2A((1 2) (3 4) (5 6) (7 8) (9 10))@}
+(%o4)   @{Lisp Array: #2A((1 2) (3 4) (5 6) (7 8) (9 10))@}
 @end group
 @end example
 
@@ -525,27 +596,27 @@ Multple-dimension arrays are filled in row-major order.
 @deffn {Function} listarray (@var{A})
 
 Returns a list of the elements of the array @var{A}.
-The argument @var{A} may be a declared array, an undeclared (hashed) array,
-an array function, or a subscripted function.
+The argument @var{A} may be an array, an undeclared array (@mref{hashed array}),
+a @mrefcomma{memoizing function} or a subscripted function.
 
 Elements are listed in row-major order.
 That is, elements are sorted according to the first index, then according to
 the second index, and so on.  The sorting order of index values is the same as
 the order established by @mrefdot{orderless}
 
-For undeclared arrays, array functions, and subscripted functions,
+For undeclared arrays (@mref{hashed arrays}), @mrefcomma{memoizing functions} and subscripted functions,
 the elements correspond to the index values returned by @mrefdot{arrayinfo}
 
-Unbound elements of declared general arrays (that is, not @code{fixnum} and not
+Unbound elements of general arrays (that is, not @code{fixnum} and not
 @code{flonum}) are returned as @code{#####}.
-Unbound elements of declared @code{fixnum} or @code{flonum} arrays
+Unbound elements of @code{fixnum} or @code{flonum} arrays
 are returned as 0 or 0.0, respectively.
-Unbound elements of undeclared arrays, array functions,
+Unbound elements of hashed arrays, @mrefcomma{memoizing functions}
 and subscripted functions are not returned.
 
 Examples:
 
-@code{listarray} and @code{arrayinfo} applied to a declared array.
+@code{listarray} and @mref{arrayinfo} applied to a declared array.
 
 @c ===beg===
 @c array (aa, 2, 3);
@@ -578,7 +649,7 @@ Examples:
 @end group
 @end example
 
-@code{listarray} and @code{arrayinfo} applied to an undeclared (hashed) array.
+@code{listarray} and @mref{arrayinfo} applied to a undeclared array (@mref{hashed array}).
 
 @c ===beg===
 @c bb [FOO] : (a + b)^2;
@@ -608,7 +679,7 @@ Examples:
 @end group
 @end example
 
-@code{listarray} and @code{arrayinfo} applied to an array function.
+@code{listarray} and @mref{arrayinfo} applied to an @mrefdot{memoizing function}
 
 @c ===beg===
 @c cc [x, y] := y / x;
@@ -648,7 +719,7 @@ Examples:
 @end group
 @end example
 
-@code{listarray} and @code{arrayinfo} applied to a subscripted function.
+@code{listarray} and @mref{arrayinfo} applied to a subscripted function.
 
 @c ===beg===
 @c dd [x] (y) := y ^ x;
@@ -736,7 +807,7 @@ Examples:
 @example
 @group
 (%i1) A1 : make_array (fixnum, 10);
-(%o1)           @{Array:  #(0 0 0 0 0 0 0 0 0 0)@}
+(%o1)         @{Lisp Array: #(0 0 0 0 0 0 0 0 0 0)@}
 @end group
 @group
 (%i2) A1 [8] : 1729;
@@ -744,11 +815,11 @@ Examples:
 @end group
 @group
 (%i3) A1;
-(%o3)          @{Array:  #(0 0 0 0 0 0 0 0 1729 0)@}
+(%o3)        @{Lisp Array: #(0 0 0 0 0 0 0 0 1729 0)@}
 @end group
 @group
 (%i4) A2 : make_array (flonum, 10);
-(%o4) @{Array:  #(0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0)@}
+(%o4) @{Lisp Array: #(0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0)@}
 @end group
 @group
 (%i5) A2 [2] : 2.718281828;
@@ -757,31 +828,34 @@ Examples:
 @group
 (%i6) A2;
 (%o6) 
-     @{Array:  #(0.0 0.0 2.718281828 0.0 0.0 0.0 0.0 0.0 0.0 0.0)@}
+ @{Lisp Array: #(0.0 0.0 2.718281828 0.0 0.0 0.0 0.0 0.0 0.0 0.0)@}
 @end group
 @group
 (%i7) A3 : make_array (any, 10);
-(%o7) @{Array:  #(NIL NIL NIL NIL NIL NIL NIL NIL NIL NIL)@}
+(%o7) @{Lisp Array: #(NIL NIL NIL NIL NIL NIL NIL NIL NIL NIL)@}
 @end group
 @group
 (%i8) A3 [4] : x - y - z;
-(%o8)                      - z - y + x
+(%o8)                     (- z) - y + x
 @end group
 @group
 (%i9) A3;
-(%o9) @{Array:  #(NIL NIL NIL NIL ((MPLUS SIMP) $X ((MTIMES SIMP)\
- -1 $Y) ((MTIMES SIMP) -1 $Z))
-  NIL NIL NIL NIL NIL)@}
+(%o9) @{Lisp Array: #(NIL NIL NIL NIL
+               ((MPLUS SIMP) $X ((MTIMES SIMP) -1 $Y) ((MTIMES S\
+IMP) -1 $Z))
+               NIL NIL NIL NIL NIL)@}
 @end group
 @group
 (%i10) A4 : make_array (fixnum, 2, 3, 5);
-(%o10) @{Array:  #3A(((0 0 0 0 0) (0 0 0 0 0) (0 0 0 0 0)) ((0 0 \
-0 0 0) (0 0 0 0 0) (0 0 0 0 0)))@}
+(%o10) @{Lisp Array: #3A(((0 0 0 0 0) (0 0 0 0 0) (0 0 0 0 0))
+                 ((0 0 0 0 0) (0 0 0 0 0) (0 0 0 0 0)))@}
 @end group
 @group
 (%i11) fillarray (A4, makelist (i, i, 1, 2*3*5));
-(%o11) @{Array:  #3A(((1 2 3 4 5) (6 7 8 9 10) (11 12 13 14 15))
-    ((16 17 18 19 20) (21 22 23 24 25) (26 27 28 29 30)))@}
+(%o11) @{Lisp Array: #3A(((1 2 3 4 5) (6 7 8 9 10) (11 12 13 14 1\
+5))
+                 ((16 17 18 19 20) (21 22 23 24 25) (26 27 28 29\
+ 30)))@}
 @end group
 @group
 (%i12) A4 [0, 2, 1];
@@ -820,14 +894,13 @@ changed.
 @fname{remarray} (all)
 
 Removes arrays and array associated functions and frees the storage occupied.
-The arguments may be declared arrays, undeclared (hashed) arrays, array
+The arguments may be declared arrays, @mrefcomma{hashed arrays} array
 functions, and subscripted functions.
 
 @code{remarray (all)} removes all items in the global list @mrefdot{arrays}
 
-@c WHAT DOES THIS MEAN EXACTLY ??
 It may be necessary to use this function if it is
-desired to redefine the values in a hashed array.
+desired to clear the cache of a @mrefdot{memoizing function}
 
 @code{remarray} returns the list of arrays removed.
 
@@ -885,7 +958,8 @@ Examples:
 @end example
 
 @opencatbox
-@category{Expressions} @category{Arrays}
+@category{Expressions}
+@category{Arrays}
 @closecatbox
 @end deffn
 
@@ -909,19 +983,22 @@ Returns @code{true} if @var{expr} is a subscripted variable, for example
 Default value: @code{false}
 
 When @code{use_fast_arrays} is @code{true},
-undeclared arrays and arrays declared by @code{array} are values instead of properties,
-and undeclared arrays are implemented as Lisp hash tables.
+arrays declared by @code{array} are values instead of properties,
+and undeclared arrays (@mref{hashed arrays}) are implemented as Lisp hashed arrays.
 
 When @code{use_fast_arrays} is @code{false},
-undeclared arrays and arrays declared by @code{array} are properties,
-and undeclared arrays are implemented with Maxima's own hash table implementation.
+arrays declared by @code{array} are properties,
+and undeclared arrays are implemented with Maxima's own hashed array implementation.
 
-Arrays created by @code{make_array} are not affected by @code{use_fast_arrays}.
+Note that the code @code{use_fast_arrays} switches to is not necessarily faster
+than the default one; Arrays created by @mref{make_array} are not affected by
+@code{use_fast_arrays}.
 
 See also @mrefdot{translate_fast_arrays}
 
 @opencatbox
-@category{Arrays} @category{Global flags}
+@category{Arrays}
+@category{Global flags}
 @closecatbox
 @end defvr
 
@@ -939,6 +1016,7 @@ the Maxima-to-Lisp translator generates code that assumes arrays are properties,
 as if @code{use_fast_arrays} were @code{false}.
 
 @opencatbox
-@category{Arrays} @category{Translation flags and variables}
+@category{Arrays}
+@category{Translation flags and variables}
 @closecatbox
 @end defvr

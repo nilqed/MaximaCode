@@ -483,7 +483,7 @@ true;
 closeto(
   double_factorial(7.0),
   105.0,
-  1e-13);
+  1.279e-13);
 true;
 
 closeto(
@@ -871,7 +871,7 @@ relerror(
   gamma(75.5+%i),
   (-1.092860022497734443706055997676557155572470037327121860702819811b108 
    -2.622326961675321010452173874453854546607804545768376326095021243b108*%i),
-  5e-14);
+  5.339e-14);
 true;
 
 /* Check negative real arguments in double float precision. 
@@ -1526,7 +1526,7 @@ relerror(
   gamma_incomplete(10.0+1.5*%i,10.0+1.5*%i),
   (-143260.5455945276009736506823530548923946268185687353440779787855b0 
   -36427.8601104063533811294405176711748076293661563594190640674077b0*%i),
-  5.0e-15);
+  1.02e-14);
 true;
 
 relerror(
@@ -1540,7 +1540,7 @@ relerror(
   gamma_incomplete(10.0+1.5*%i,10.0+0.5*%i),
   (-134422.2837349310843015830622649231296922981730868773827217434186b0 
   -76495.4696532860249045908863041952283847028641854696387454419024b0*%i),
-  5.0e-15);
+  1.271e-14);
 true;
 
 relerror(
@@ -1965,7 +1965,7 @@ true;
 relerror(
   gamma_incomplete(0.5,-10+10.0*%i),
   921.0687349037275816861912330294 + 5931.0759029700741177372337479958*%i,
-  1e-15);
+  1.072e-15);
 true;
 
 relerror(
@@ -2013,7 +2013,7 @@ true;
 relerror(
   gamma_incomplete(0.5,-10+10.0*%i),
   921.0687349037275816861912330294 + 5931.0759029700741177372337479958*%i,
-  1e-15);
+  1.072e-15);
 true;
 
 relerror(
@@ -2595,7 +2595,7 @@ true;
 relerror(
   erfc(6.0),
   2.15197367124989131659335039918738463047751406e-17,
-  2e-15);
+  2.005e-15);
 true;
 
 relerror(
@@ -3453,13 +3453,13 @@ true;
 closeto(
   beta_incomplete(0.5,1.0,0.50),
   1.414213562373095048801688724209698078569671875376948073176679738b0,
-  1e-15);
+  1.416e-15);
 true;
 
 closeto(
   beta_incomplete(0.5,1.0,0.75),
   1.732050807568877293527446341505872366942805253810380628055806979b0,
-  2.0e-15);
+  2.11e-15);
 true;
 
 closeto(
@@ -3483,13 +3483,13 @@ true;
 closeto(
   beta_incomplete(0.5,1.0,1.75),
   2.645751311064590590501615753639260425710259183082450180368334459b0,
-  1e-15);
+  1.446e-15);
 true;
 
 closeto(
   beta_incomplete(0.5,1.0,2.00),
   2.828427124746190097603377448419396157139343750753896146353359476b0,
-  1e-15);
+  1.503e-15);
 true;
 
 /* Some numerical tests in bigfloat precision */
@@ -3584,7 +3584,7 @@ true;
 relerror(
   gamma_incomplete(1/5,-32.0),
   -4.0986398326716649399d12 - %i*2.9778361454160762231d12,
-  2e-15);
+  2.545e-15);
 true;
 
 relerror(
@@ -3602,7 +3602,7 @@ true;
 relerror(
   gamma_incomplete(10,-100d0+%i),
   subst(x=-100d0+%i, block([gamma_expand : true], gamma_incomplete(10,x))),
-  8.1e-15);
+  1.046e-14);
 true;
       
 relerror(
@@ -3728,3 +3728,142 @@ true;
 (fpprec:oldfpprec,done);
 done;
 
+/* SF bug #3090: "erfi switches sign at approximately -0.476 and 0.476" */
+
+block
+  (kill (x, L1, L2),
+   x : makelist (i/10.0, i, -20, 20),
+   L1 : makelist (erfi (x1), x1, x),
+   L2 : makelist (-%i*erf (%i*x1), x1, x),
+   every (lambda ([x1, x2], x1 = x2), L1, L2));
+true;
+
+every (lambda ([x1, e1], sign(x1) = sign(e1)), x, L1);
+true;
+
+every (lambda ([x1, e1], sign(x1) = sign(e1)), x, L2);
+true;
+
+/* SF bug #3277: "no numerical evaluation for gamma_greek" */
+
+expand (gamma_incomplete_lower(10, 1));
+362880-986410*%e^-1;
+
+/* numerical value not very accurate; perhaps it is being computed naively via preceding formula? */
+closeto (ev (gamma_incomplete_lower(10, 1), numer), 4.043407757955496e-2, 1e-10);
+true;
+
+/* this one is way off the mark ... sheesh. */
+closeto (gamma_incomplete_lower(10, 1.0), 4.043407757955496e-2, 1e-8);
+true;
+
+(reset (fpprec),
+ closeto (gamma_incomplete_lower(10, 1b0), 4.043407757955496b-2, 1b-10));
+true;
+
+gamma_incomplete_lower(1, 10);
+1 - %e^-10;
+
+closeto (ev (gamma_incomplete_lower(1, 10), numer), 0.9999546000702375e0, 1e-15);
+true;
+
+closeto (gamma_incomplete_lower(1.0, 10), 0.9999546000702375e0, 1e-15);
+true;
+
+closeto (gamma_incomplete_lower(1b0, 10), 0.9999546000702375b0, 1b-15);
+true;
+
+/* complex float and complex bfloat */
+
+/* yikes */
+closeto (ev (gamma_incomplete_lower(10, 1 + %i), numer), 7.992250288513467e-1*%i + 1.011121671734864e0, 1e-7);
+true;
+
+/* ditto */
+closeto (gamma_incomplete_lower(10, 1.0 + %i), 7.992250288513467e-1*%i + 1.011121671734864e0, 1e-7);
+true;
+
+closeto (gamma_incomplete_lower(10, 1b0 + %i), 7.992250288513467b-1*%i + 1.011121671734864b0, 1b-10);
+true;
+
+/* mailing list 2018-02-04: "Bug in beta_incomplete_regularized." */
+
+(kill(f, g, x, y),
+ f(x) := beta_incomplete_regularized(2,2,x/(1+x)),
+ g(x) := beta_incomplete(2,2,x),
+ should_be_equal(a, b) := if equal(a, b) then true else notequal(a, b),
+ 0);
+0;
+
+f(1/y);
+(2*(1-1/((1/y+1)*y))+1)/((1/y+1)^2*y^2);
+
+f(1/x);
+(2*(1-1/((1/x+1)*x))+1)/((1/x+1)^2*x^2);
+
+should_be_equal (f(1/x), subst (y = 1/x, f(y)));
+true;
+
+g(-y);
+(y^2*(2*(y+1)+1))/6;
+
+g(-x);
+(x^2*(2*(x+1)+1))/6;
+
+should_be_equal (g(-x), subst (y = -x, g(y)));
+true;
+
+(kill(a, h, i, j, k, u, v, w),
+ h(u) := gamma_incomplete(3, u),
+ i(v, w) := gamma_incomplete_generalized(3 + a, v, w),
+ j(u) := gamma_incomplete_regularized(4, u),
+ k(v, w) := beta_incomplete_regularized(2, v, w),
+ 0);
+0;
+
+gamma_expand : true;
+true;
+
+should_be_equal (h(u), integrate (t^2*exp(-t),t,u,inf));
+true;
+
+[h(u), h(-u)];
+[2*(u^2/2+u+1)*%e^-u,2*(u^2/2-u+1)*%e^u];
+
+should_be_equal (h(-u), subst (v = -u, h(v)));
+true;
+
+should_be_equal (i(2*v, 4*w), a*(a+1)*(a+2)
+                               *((-((4^(a+2)*w^(a+2))/(a*(a+1)*(a+2))+(4^(a+1)*w^(a+1))/(a*(a+1))
+                                                                     +(4^a*w^a)/a)
+                                *%e^-(4*w))
+                                +((2^(a+2)*v^(a+2))/(a*(a+1)*(a+2))+(2^(a+1)*v^(a+1))/(a*(a+1))+(2^a*v^a)/a)
+                                 *%e^-(2*v)+gamma_incomplete_generalized(a,2*v,4*w))); /* FOR SURE ?? */
+true;
+
+should_be_equal (i(2*v, 4*w), subst ([x = 2*v, y = 4*w], i(x, y)));
+true;
+
+should_be_equal (j(u), integrate (t^3*exp(-t),t,u,inf)/gamma(4));
+true;
+
+should_be_equal (j(1 + u), ((u+1)^3/6+(u+1)^2/2+u+2)*%e^((-u)-1));
+true;
+
+should_be_equal (j(1 + u), subst (v = 1 + u, j(v)));
+true;
+
+block ([foo, bar, l:[0.1, 0.25, 0.5, 0.8, 0.9, 0.95]],
+       foo : makelist (k(4, x), x, l),
+       bar : ev (makelist (first (quad_qags (t^(a-1)*(1-t)^(b-1), t, 0, x))/beta(a, b), x, l), a=2, b=4),
+       if lmax (abs (foo - bar)) < 1e-8 then true else notequal (foo, bar));
+true;
+
+k(1 - w, 2*v);
+1-(1-2*v)^(1-w)*(2*v*(1-w)+1); /* assuming k(v, w) = 1-(1-w)^v*(v*w+1) */
+
+should_be_equal (k(1 - v, 2*w), subst ([x = 1 - v, y = 2*w], k(x, y)));
+true;
+
+reset (gamma_expand);
+[gamma_expand];

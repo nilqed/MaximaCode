@@ -15,7 +15,7 @@
 
 (declare-top (special $props $dotdistrib))
 
-(defmfun diffint (e x)
+(defun diffint (e x)
   (let (a)
     (cond ((null (cdddr e))
 	   (cond ((alike1 x (caddr e)) (cadr e))
@@ -39,7 +39,7 @@
     (list (if (pzerop u) 0 (mul2 u (maxima-substitute (cadddr e) y (car e))))
 	  (if (pzerop v) 0 (mul3 v (maxima-substitute (caddr e) y (car e)) -1)))))
 
-(defmfun diffsumprod (e x)
+(defun diffsumprod (e x)
   (cond ((or (not ($mapatom x)) (not (free (cadddr e) x)) (not (free (car (cddddr e)) x)))
 	 (diff%deriv (list e x 1)))
 	((eq (caddr e) x) 0)
@@ -50,24 +50,24 @@
 				t))
 	     (if (eq (caar e) '%sum) u (mul2 e u))))))
 
-(defmfun difflaplace (e x)
+(defun difflaplace (e x)
   (cond ((or (not (atom x)) (eq (cadddr e) x)) (diff%deriv (list e x 1)))
 	((eq (caddr e) x) 0)
 	(t ($laplace (sdiff (cadr e) x) (caddr e) (cadddr e)))))
 
-(defmfun diff-%at (e x)
+(defun diff-%at (e x)
   (cond ((freeof x e) 0)
 	((not (freeofl x (hand-side (caddr e) 'r))) (diff%deriv (list e x 1)))
 	(t ($at (sdiff (cadr e) x) (caddr e)))))
 
-(defmfun diffncexpt (e x)
+(defun diffncexpt (e x)
   (let ((base* (cadr e))
 	(pow (caddr e)))
-    (cond ((and (mnump pow) (or (not (eq (ml-typep pow) 'fixnum)) (< pow 0))) ; POW cannot be 0
+    (cond ((and (mnump pow) (or (not (fixnump pow)) (< pow 0))) ; POW cannot be 0
 	   (diff%deriv (list e x 1)))
 	  ((and (atom base*) (eq base* x) (free pow base*))
 	   (mul2* pow (list '(mncexpt) base* (add2 pow -1))))
-	  ((ml-typep pow 'fixnum)
+	  ((fixnump pow)
 	   (let ((deriv (sdiff base* x))
 		 (ans nil))
 	     (do ((i 0 (1+ i))) ((= i pow))
@@ -88,7 +88,7 @@
 		    index 0 (list '(mplus) pow -1)) nil)))
 	  (t (diff%deriv (list e x 1))))))
 
-(defmfun stotaldiff (e)
+(defun stotaldiff (e)
   (cond ((or (mnump e) (constant e)) 0)
 	((or (atom e) (member 'array (cdar e) :test #'eq))
 	 (let ((w (mget (if (atom e) e (caar e)) 'depends)))
@@ -103,7 +103,7 @@
 	   (add2 (ncmuln (cons (stotaldiff (cadr e)) (cddr e)) t)
 		 (ncmul2 (cadr e) (stotaldiff (ncmuln (cddr e) t))))))
 	((eq (caar e) 'mncexpt)
-	 (if (and (ml-typep (caddr e) 'fixnum) (> (caddr e) 0))
+	 (if (and (fixnump (caddr e)) (> (caddr e) 0))
 	     (stotaldiff (list '(mnctimes) (cadr e)
 			       (ncpower (cadr e) (1- (caddr e)))))
 	     (list '(%derivative) e)))
@@ -139,7 +139,9 @@
 	  ((or (atom exp) (and (eq (caar exp) '%derivative) (atom (cadr exp))))
 	   (improper-arg-err exp '$atvalue)))
     (cond ((not (eq (caar exp) '%derivative))
-	   (setq fun (caar exp) vl (cdr exp) dl (listof0s vl)))
+	   (setq fun (caar exp)
+                 vl (cdr exp)
+                 dl (make-list (length vl) :initial-element 0)))
 	  (t (setq fun (caaadr exp) vl (cdadr exp))
 	     (dolist (v vl)
 	       (setq dl (nconc dl (ncons (or (getf (cddr exp) v) 0)))))))
@@ -233,7 +235,7 @@
         (t (recur-apply #'(lambda (x) (atscan x ateqs)) expr))))
 
 (defun at1 (expr)
-  (atfind (caar expr) (cdr expr) (listof0s (cdr expr))))
+  (atfind (caar expr) (cdr expr) (make-list (length (cdr expr)) :initial-element 0)))
 
 (defun atfind (fun vl dl)
   (do ((atvalues (mget fun 'atvalues) (cdr atvalues)))
@@ -247,10 +249,6 @@
          (return (prog2
                     (atvarschk vl)
                     (substitutel vl atvars (caddar atvalues)))))))
-
-(defun listof0s (llist)
-  (do ((llist llist (cdr llist)) (l nil (cons 0 l)))
-      ((null llist) l)))
 
 (declare-top (special $ratfac genvar varlist $keepfloat))
 
@@ -397,7 +395,7 @@
 
 (defmvar $rootsconmode t)
 
-(defun $rootscontract (e)	       ; E is assumed to be simplified
+(defmfun $rootscontract (e)	       ; E is assumed to be simplified
   (let ((radpe (and $radexpand (not (eq $radexpand '$all)) (eq $domain '$real)))
 	($radexpand nil))
     (rtcon e radpe)))
@@ -409,10 +407,11 @@
 	     ((null x)
 	      (cond ((null roots) (subst0 (cons '(mtimes) (nreverse notroots)) e))
 		    (t (if $rootsconmode
-			   (destructuring-let (((min gcd lcm) (rtc-getinfo roots)))
+			   (multiple-value-bind (min gcd lcm)
+                               (rtc-getinfo roots)
 			     (cond ((and (= min gcd) (not (= gcd 1))
-					 (not (= min lcm))
-					 (not (eq $rootsconmode '$all)))
+                                       (not (= min lcm))
+                                       (not (eq $rootsconmode '$all)))
 				    (setq roots
 					  (rt-separ
 					   (list gcd
@@ -461,11 +460,14 @@
       (push (list '(mexpt) (muln (cdar x) nil) (quotient lcm (caar x)))
 	    root1))))
 
-(defun rtc-getinfo (llist)
-  (let ((m (caar llist)) (g (caar llist)) (l (caar llist)))
-    (do ((x (cdr llist) (cdr x)))
-	((null x) (list m g l))
-      (setq m (min m (caar x)) g (gcd g (caar x)) l (lcm l (caar x))))))
+(defun rtc-getinfo (list)
+  (let ((m (caar list))
+        (g (caar list))
+        (l (caar list)))
+    (dolist (x (cdr list) (values m g l))
+      (setq m (min m (car x))
+            g (gcd g (car x))
+            l (lcm l (car x))))))
 
 (defun rtc-fixitup (roots notroots)
   (mapcar #'(lambda (x) (rplacd x (list (sratsimp (muln (cdr x) (not $rootsconmode))))))
@@ -627,7 +629,7 @@
       (list '(mlabox) e (box-label l))
       (list '(mbox) e)))
 
-(defmfun box (e label)
+(defun box (e label)
   (if (eq label t)
       (list '(mbox) e)
       ($box e (car label))))
@@ -658,7 +660,7 @@
   (let ((scanmapp t))
     (resimplify (apply #'scanmap1 (mmapev l)))))
 
-(defmfun scanmap1 (func e &optional (flag nil flag?))
+(defun scanmap1 (func e &optional (flag nil flag?))
   (let ((arg2 (specrepcheck e)) newarg2)
     (cond ((eq func '$rat)
 	   (merror (intl:gettext "scanmap: cannot apply 'rat'.")))
@@ -769,9 +771,16 @@
   (declare (dynamic-extent cols))
   (cond ((not ($matrixp m)) (merror (intl:gettext "addcol: first argument must be a matrix; found ~M") m))
 	((null cols) m)
+	((null (cdr m))
+	 (apply '$addcol (cons (ensure-matrix-column (first cols)) (rest cols))))
 	(t (let ((m ($transpose m)))
 	     (dolist (c cols ($transpose m))
 	       (setq m (addrow m ($transpose c))))))))
+
+(defun ensure-matrix-column (a)
+  (if ($matrixp a) a
+    ;; otherwise must be a MLIST.
+    `(($matrix) ,@(mapcar #'(lambda (e) `((mlist) ,e)) (cdr a)))))
 
 (defun addrow (m r)
   (cond ((not (mxorlistp r)) (merror (intl:gettext "addrow or addcol: argument must be a matrix or list; found ~M") r))
@@ -786,10 +795,22 @@
 
 ;;;; ARRAYF
 
+(defun my-nonatomic-expr-p (e)
+  (and (consp e) (consp (car e)) (symbolp (caar e))))
+
+(defun my-lambda-expr-p (e)
+  (and (consp e) (consp (car e)) (eq 'lambda (caar e))))
+
 (defmfun $arraymake (ary subs)
-  (cond ((or (not ($listp subs)) (null (cdr subs)))
+  (cond
+    ;; We go through some gyrations here to allow as wide a range of inputs as possible.
+    ;; Previously $ARRAYMAKE didn't check the first argument at all;
+    ;; this is an attempt at a minimally-restrictive change.
+	((not (or (symbolp ary) ($subvarp ary) (and (my-nonatomic-expr-p ary) (not (my-lambda-expr-p ary)))))
+	 (merror (intl:gettext "arraymake: first argument must be a symbol, subscripted symbol, or nonatomic expression (but not a lambda expression); found: ~M") ary))
+	((or (not ($listp subs)) (null (cdr subs)))
 	 (merror (intl:gettext "arraymake: second argument must be a list of one or more elements; found ~M") subs))
-	((eq (ml-typep ary) 'symbol)
+	((symbolp ary)
 	 (cons (cons (getopr ary) '(array)) (cdr subs)))
 	(t (cons '(mqapply array) (cons ary (cdr subs))))))
 
@@ -877,7 +898,10 @@
 
 ;;;; CONCAT
 
-(defun $concat (&rest l)
+(defmfun $concat (&rest l)
+  "Concatenates its arguments.
+The arguments must evaluate to atoms. The return value is a symbol if
+the first argument is a symbol and a string otherwise."
   (when (null l)
     (merror (intl:gettext "concat: there must be at least one argument.")))
   (let ((result-is-a-string (or (numberp (car l)) (stringp (car l)))))

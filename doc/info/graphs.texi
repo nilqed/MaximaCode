@@ -23,10 +23,11 @@ algorithm. @code{draw_graph} can also use graphviz programs available
 from @url{http://www.graphviz.org}. @code{draw_graph} is based on the maxima
 @code{draw} package.
 
-To use the @code{graphs} package, first load it with @code{load(graphs)}.
+To use the @code{graphs} package, first load it with @code{load("graphs")}.
 
 @opencatbox
-@category{Share packages} @category{Package graphs}
+@category{Share packages}
+@category{Package graphs}
 @closecatbox
 
 @node Functions and Variables for graphs, , Introduction to graphs, graphs-pkg
@@ -54,12 +55,12 @@ If @var{directed} is not @code{false}, a directed graph will be returned.
 
 Example 1: create a cycle on 3 vertices:
 @c ===beg===
-@c load (graphs)$
+@c load ("graphs")$
 @c g : create_graph([1,2,3], [[1,2], [2,3], [1,3]])$
 @c print_graph(g)$
 @c ===end===
 @example
-(%i1) load (graphs)$
+(%i1) load ("graphs")$
 (%i2) g : create_graph([1,2,3], [[1,2], [2,3], [1,3]])$
 (%i3) print_graph(g)$
 Graph on 3 vertices with 3 edges.
@@ -71,13 +72,13 @@ Adjacencies:
 
 Example 2: create a cycle on 3 vertices with edge weights:
 @c ===beg===
-@c load (graphs)$
+@c load ("graphs")$
 @c g : create_graph([1,2,3], [[[1,2], 1.0], [[2,3], 2.0],
 @c                           [[1,3], 3.0]])$
 @c print_graph(g)$
 @c ===end===
 @example
-(%i1) load (graphs)$
+(%i1) load ("graphs")$
 (%i2) g : create_graph([1,2,3], [[[1,2], 1.0], [[2,3], 2.0],
                           [[1,3], 3.0]])$
 (%i3) print_graph(g)$
@@ -90,7 +91,7 @@ Adjacencies:
 
 Example 3: create a directed graph:
 @c ===beg===
-@c load (graphs)$
+@c load ("graphs")$
 @c d : create_graph(
 @c         [1,2,3,4], 
 @c         [
@@ -101,7 +102,7 @@ Example 3: create a directed graph:
 @c print_graph(d)$
 @c ===end===
 @example
-(%i1) load (graphs)$
+(%i1) load ("graphs")$
 (%i2) d : create_graph(
         [1,2,3,4],
         [
@@ -128,7 +129,8 @@ Adjacencies:
 Returns a copy of the graph @var{g}.
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - constructions}
+@category{Package graphs}
+@category{Package graphs - constructions}
 @closecatbox
 @end deffn
 
@@ -138,12 +140,12 @@ Returns the circulant graph with parameters @var{n} and @var{d}.
 
 Example:
 @c ===beg===
-@c load (graphs)$
+@c load ("graphs")$
 @c g : circulant_graph(10, [1,3])$
 @c print_graph(g)$
 @c ===end===
 @example
-(%i1) load (graphs)$
+(%i1) load ("graphs")$
 (%i2) g : circulant_graph(10, [1,3])$
 (%i3) print_graph(g)$
 Graph on 10 vertices with 20 edges.
@@ -161,7 +163,8 @@ Adjacencies:
 @end example
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - constructions}
+@category{Package graphs}
+@category{Package graphs - constructions}
 @closecatbox
 @end deffn
 
@@ -170,7 +173,8 @@ Adjacencies:
 Returns the Clebsch graph.
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - constructions}
+@category{Package graphs}
+@category{Package graphs - constructions}
 @closecatbox
 @end deffn
 
@@ -179,7 +183,8 @@ Returns the Clebsch graph.
 Returns the complement of the graph @var{g}.
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - constructions}
+@category{Package graphs}
+@category{Package graphs - constructions}
 @closecatbox
 @end deffn
 
@@ -188,7 +193,8 @@ Returns the complement of the graph @var{g}.
 Returns the complete bipartite graph on @var{n+m} vertices.
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - constructions}
+@category{Package graphs}
+@category{Package graphs - constructions}
 @closecatbox
 @end deffn
 
@@ -197,7 +203,8 @@ Returns the complete bipartite graph on @var{n+m} vertices.
 Returns the complete graph on @var{n} vertices.
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - constructions}
+@category{Package graphs}
+@category{Package graphs - constructions}
 @closecatbox
 @end deffn
 
@@ -206,7 +213,8 @@ Returns the complete graph on @var{n} vertices.
 Returns the directed cycle on @var{n} vertices.
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - constructions}
+@category{Package graphs}
+@category{Package graphs - constructions}
 @closecatbox
 @end deffn
 
@@ -215,7 +223,8 @@ Returns the directed cycle on @var{n} vertices.
 Returns the cycle on @var{n} vertices.
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - constructions}
+@category{Package graphs}
+@category{Package graphs - constructions}
 @closecatbox
 @end deffn
 
@@ -224,7 +233,8 @@ Returns the cycle on @var{n} vertices.
 Returns the cuboctahedron graph.
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - constructions}
+@category{Package graphs}
+@category{Package graphs - constructions}
 @closecatbox
 @end deffn
 
@@ -233,7 +243,8 @@ Returns the cuboctahedron graph.
 Returns the @var{n}-dimensional cube.
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - constructions}
+@category{Package graphs}
+@category{Package graphs - constructions}
 @closecatbox
 @end deffn
 
@@ -242,7 +253,8 @@ Returns the @var{n}-dimensional cube.
 Returns the dodecahedron graph.
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - constructions}
+@category{Package graphs}
+@category{Package graphs - constructions}
 @closecatbox
 @end deffn
 
@@ -251,7 +263,8 @@ Returns the dodecahedron graph.
 Returns the empty graph on @var{n} vertices.
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - constructions}
+@category{Package graphs}
+@category{Package graphs - constructions}
 @closecatbox
 @end deffn
 
@@ -261,19 +274,20 @@ Returns the flower graph on @var{4n} vertices.
 
 Example:
 @c ===beg===
-@c load (graphs)$
+@c load ("graphs")$
 @c f5 : flower_snark(5)$
 @c chromatic_index(f5);
 @c ===end===
 @example
-(%i1) load (graphs)$
+(%i1) load ("graphs")$
 (%i2) f5 : flower_snark(5)$
 (%i3) chromatic_index(f5);
 (%o3)                           4
 @end example
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - constructions}
+@category{Package graphs}
+@category{Package graphs - constructions}
 @closecatbox
 @end deffn
 
@@ -282,7 +296,8 @@ Example:
 Returns the graph represented by its adjacency matrix @var{A}.
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - constructions}
+@category{Package graphs}
+@category{Package graphs - constructions}
 @closecatbox
 @end deffn
 
@@ -291,7 +306,8 @@ Returns the graph represented by its adjacency matrix @var{A}.
 Returns the Frucht graph.
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - constructions}
+@category{Package graphs}
+@category{Package graphs - constructions}
 @closecatbox
 @end deffn
 
@@ -301,18 +317,19 @@ Returns the direct product of graphs @var{g1} and @var{g2}.
 
 Example:
 @c ===beg===
-@c load (graphs)$
+@c load ("graphs")$
 @c grid : graph_product(path_graph(3), path_graph(4))$
 @c draw_graph(grid)$
 @c ===end===
 @example
-(%i1) load (graphs)$
+(%i1) load ("graphs")$
 (%i2) grid : graph_product(path_graph(3), path_graph(4))$
 (%i3) draw_graph(grid)$
 @end example
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - constructions}
+@category{Package graphs}
+@category{Package graphs - constructions}
 @closecatbox
 @end deffn
 
@@ -325,7 +342,8 @@ Example:
 Returns the union (sum) of graphs @var{g1} and @var{g2}.
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - constructions}
+@category{Package graphs}
+@category{Package graphs - constructions}
 @closecatbox
 @end deffn
 
@@ -334,7 +352,8 @@ Returns the union (sum) of graphs @var{g1} and @var{g2}.
 Returns the @var{n x m} grid.
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - constructions}
+@category{Package graphs}
+@category{Package graphs - constructions}
 @closecatbox
 @end deffn
 
@@ -343,7 +362,8 @@ Returns the @var{n x m} grid.
 Returns the great rhombicosidodecahedron graph.
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - constructions}
+@category{Package graphs}
+@category{Package graphs - constructions}
 @closecatbox
 @end deffn
 
@@ -352,7 +372,8 @@ Returns the great rhombicosidodecahedron graph.
 Returns the great rhombicuboctahedron graph.
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - constructions}
+@category{Package graphs}
+@category{Package graphs - constructions}
 @closecatbox
 @end deffn
 
@@ -361,7 +382,8 @@ Returns the great rhombicuboctahedron graph.
 Returns the Grotzch graph.
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - constructions}
+@category{Package graphs}
+@category{Package graphs - constructions}
 @closecatbox
 @end deffn
 
@@ -370,7 +392,8 @@ Returns the Grotzch graph.
 Returns the Heawood graph.
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - constructions}
+@category{Package graphs}
+@category{Package graphs - constructions}
 @closecatbox
 @end deffn
 
@@ -379,7 +402,8 @@ Returns the Heawood graph.
 Returns the icosahedron graph.
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - constructions}
+@category{Package graphs}
+@category{Package graphs - constructions}
 @closecatbox
 @end deffn
 
@@ -388,7 +412,8 @@ Returns the icosahedron graph.
 Returns the icosidodecahedron graph.
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - constructions}
+@category{Package graphs}
+@category{Package graphs - constructions}
 @closecatbox
 @end deffn
 
@@ -399,14 +424,14 @@ Returns the graph induced on the subset @var{V} of vertices of the graph
 
 Example:
 @c ===beg===
-@c load (graphs)$
+@c load ("graphs")$
 @c p : petersen_graph()$
 @c V : [0,1,2,3,4]$
 @c g : induced_subgraph(V, p)$
 @c print_graph(g)$
 @c ===end===
 @example
-(%i1) load (graphs)$
+(%i1) load ("graphs")$
 (%i2) p : petersen_graph()$
 (%i3) V : [0,1,2,3,4]$
 (%i4) g : induced_subgraph(V, p)$
@@ -421,7 +446,8 @@ Adjacencies:
 @end example
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - constructions}
+@category{Package graphs}
+@category{Package graphs - constructions}
 @closecatbox
 @end deffn
 
@@ -430,7 +456,8 @@ Adjacencies:
 Returns the line graph of the graph @var{g}.
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - constructions}
+@category{Package graphs}
+@category{Package graphs - constructions}
 @closecatbox
 @end deffn
 
@@ -452,13 +479,13 @@ If @var{directed} is not @var{false}, then the graph will be directed.
 
 Example 1:
 @c ===beg===
-@c load(graphs)$
+@c load("graphs")$
 @c g : make_graph(powerset({1,2,3,4,5}, 2), disjointp)$
 @c is_isomorphic(g, petersen_graph());
 @c get_vertex_label(1, g);
 @c ===end===
 @example
-(%i1) load(graphs)$
+(%i1) load("graphs")$
 (%i2) g : make_graph(powerset(@{1,2,3,4,5@}, 2), disjointp)$
 (%i3) is_isomorphic(g, petersen_graph());
 (%o3)                         true
@@ -468,14 +495,14 @@ Example 1:
 
 Example 2:
 @c ===beg===
-@c load(graphs)$
+@c load("graphs")$
 @c f(i, j) := is (mod(j, i)=0)$
 @c g : make_graph(20, f, directed=true)$
 @c out_neighbors(4, g);
 @c in_neighbors(18, g);
 @c ===end===
 @example
-(%i1) load(graphs)$
+(%i1) load("graphs")$
 (%i2) f(i, j) := is (mod(j, i)=0)$
 (%i3) g : make_graph(20, f, directed=true)$
 (%i4) out_neighbors(4, g);
@@ -485,7 +512,8 @@ Example 2:
 @end example
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - constructions}
+@category{Package graphs}
+@category{Package graphs - constructions}
 @closecatbox
 @end deffn
 
@@ -494,7 +522,8 @@ Example 2:
 Returns the mycielskian graph of the graph @var{g}.
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - constructions}
+@category{Package graphs}
+@category{Package graphs - constructions}
 @closecatbox
 @end deffn
 
@@ -503,7 +532,8 @@ Returns the mycielskian graph of the graph @var{g}.
 Returns the graph with no vertices and no edges.
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - constructions}
+@category{Package graphs}
+@category{Package graphs - constructions}
 @closecatbox
 @end deffn
 
@@ -512,7 +542,8 @@ Returns the graph with no vertices and no edges.
 Returns the directed path on @var{n} vertices.
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - constructions}
+@category{Package graphs}
+@category{Package graphs - constructions}
 @closecatbox
 @end deffn
 
@@ -521,7 +552,8 @@ Returns the directed path on @var{n} vertices.
 Returns the path on @var{n} vertices.
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - constructions}
+@category{Package graphs}
+@category{Package graphs - constructions}
 @closecatbox
 @end deffn
 
@@ -534,7 +566,8 @@ Returns the petersen graph @var{P_@{n,d@}}. The default values for
 @var{n} and @var{d} are @code{n=5} and @code{d=2}.
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - constructions}
+@category{Package graphs}
+@category{Package graphs - constructions}
 @closecatbox
 @end deffn
 
@@ -544,7 +577,8 @@ Returns a random bipartite graph on @code{a+b} vertices. Each edge is
 present with probability @var{p}.
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - constructions}
+@category{Package graphs}
+@category{Package graphs - constructions}
 @closecatbox
 @end deffn
 
@@ -554,7 +588,8 @@ Returns a random directed graph on @var{n} vertices. Each arc is present
 with probability @var{p}.
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - constructions}
+@category{Package graphs}
+@category{Package graphs - constructions}
 @closecatbox
 @end deffn
 
@@ -567,7 +602,8 @@ Returns a random @var{d}-regular graph on @var{n} vertices. The default
 value for @var{d} is @code{d=3}.
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - constructions}
+@category{Package graphs}
+@category{Package graphs - constructions}
 @closecatbox
 @end deffn
 
@@ -577,7 +613,8 @@ Returns a random graph on @var{n} vertices. Each edge is present with
 probability @var{p}.
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - constructions}
+@category{Package graphs}
+@category{Package graphs - constructions}
 @closecatbox
 @end deffn
 
@@ -586,7 +623,8 @@ probability @var{p}.
 Returns a random graph on @var{n} vertices and random @var{m} edges.
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - constructions}
+@category{Package graphs}
+@category{Package graphs - constructions}
 @closecatbox
 @end deffn
 
@@ -598,13 +636,13 @@ function returns a list @code{[network, source, sink]}.
 
 Example:
 @c ===beg===
-@c load (graphs)$
+@c load ("graphs")$
 @c [net, s, t] : random_network(50, 0.2, 10.0);
 @c max_flow(net, s, t)$
 @c first(%);
 @c ===end===
 @example
-(%i1) load (graphs)$
+(%i1) load ("graphs")$
 (%i2) [net, s, t] : random_network(50, 0.2, 10.0);
 (%o2)                   [DIGRAPH, 50, 51]
 (%i3) max_flow(net, s, t)$
@@ -613,7 +651,8 @@ Example:
 @end example
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - constructions}
+@category{Package graphs}
+@category{Package graphs - constructions}
 @closecatbox
 @end deffn
 
@@ -622,7 +661,8 @@ Example:
 Returns a random tournament on @var{n} vertices.
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - constructions}
+@category{Package graphs}
+@category{Package graphs - constructions}
 @closecatbox
 @end deffn
 
@@ -631,7 +671,8 @@ Returns a random tournament on @var{n} vertices.
 Returns a random tree on @var{n} vertices.
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - constructions}
+@category{Package graphs}
+@category{Package graphs - constructions}
 @closecatbox
 @end deffn
 
@@ -640,7 +681,8 @@ Returns a random tree on @var{n} vertices.
 Returns the small rhombicosidodecahedron graph.
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - constructions}
+@category{Package graphs}
+@category{Package graphs - constructions}
 @closecatbox
 @end deffn
 
@@ -649,7 +691,8 @@ Returns the small rhombicosidodecahedron graph.
 Returns the small rhombicuboctahedron graph.
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - constructions}
+@category{Package graphs}
+@category{Package graphs - constructions}
 @closecatbox
 @end deffn
 
@@ -658,7 +701,8 @@ Returns the small rhombicuboctahedron graph.
 Returns the snub cube graph.
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - constructions}
+@category{Package graphs}
+@category{Package graphs - constructions}
 @closecatbox
 @end deffn
 
@@ -667,7 +711,8 @@ Returns the snub cube graph.
 Returns the snub dodecahedron graph.
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - constructions}
+@category{Package graphs}
+@category{Package graphs - constructions}
 @closecatbox
 @end deffn
 
@@ -676,7 +721,8 @@ Returns the snub dodecahedron graph.
 Returns the truncated cube graph.
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - constructions}
+@category{Package graphs}
+@category{Package graphs - constructions}
 @closecatbox
 @end deffn
 
@@ -685,7 +731,8 @@ Returns the truncated cube graph.
 Returns the truncated dodecahedron graph.
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - constructions}
+@category{Package graphs}
+@category{Package graphs - constructions}
 @closecatbox
 @end deffn
 
@@ -695,7 +742,8 @@ Returns the truncated dodecahedron graph.
 Returns the truncated icosahedron graph.
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - constructions}
+@category{Package graphs}
+@category{Package graphs - constructions}
 @closecatbox
 @end deffn
 
@@ -705,7 +753,8 @@ Returns the truncated icosahedron graph.
 Returns the truncated tetrahedron graph.
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - constructions}
+@category{Package graphs}
+@category{Package graphs - constructions}
 @closecatbox
 @end deffn
 
@@ -714,7 +763,8 @@ Returns the truncated tetrahedron graph.
 Returns the Tutte graph.
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - constructions}
+@category{Package graphs}
+@category{Package graphs - constructions}
 @closecatbox
 @end deffn
 
@@ -723,7 +773,8 @@ Returns the Tutte graph.
 Returns the underlying graph of the directed graph @var{g}.
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - constructions}
+@category{Package graphs}
+@category{Package graphs - constructions}
 @closecatbox
 @end deffn
 
@@ -732,7 +783,8 @@ Returns the underlying graph of the directed graph @var{g}.
 Returns the wheel graph on @var{n+1} vertices.
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - constructions}
+@category{Package graphs}
+@category{Package graphs - constructions}
 @closecatbox
 @end deffn
 
@@ -744,12 +796,12 @@ Returns the adjacency matrix of the graph @var{gr}.
 
 Example:
 @c ===beg===
-@c load (graphs)$
+@c load ("graphs")$
 @c c5 : cycle_graph(4)$
 @c adjacency_matrix(c5);
 @c ===end===
 @example
-(%i1) load (graphs)$
+(%i1) load ("graphs")$
 (%i2) c5 : cycle_graph(4)$
 (%i3) adjacency_matrix(c5);
                          [ 0  1  0  1 ]
@@ -762,7 +814,8 @@ Example:
 @end example
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - properties}
+@category{Package graphs}
+@category{Package graphs - properties}
 @closecatbox
 @end deffn
 
@@ -772,11 +825,11 @@ Returns the average degree of vertices in the graph @var{gr}.
 
 Example:
 @c ===beg===
-@c load (graphs)$
+@c load ("graphs")$
 @c average_degree(grotzch_graph());
 @c ===end===
 @example
-(%i1) load (graphs)$
+(%i1) load ("graphs")$
 (%i2) average_degree(grotzch_graph());
                                40
 (%o2)                          --
@@ -784,7 +837,8 @@ Example:
 @end example
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - properties}
+@category{Package graphs}
+@category{Package graphs - properties}
 @closecatbox
 @end deffn
 
@@ -795,7 +849,7 @@ Returns the (vertex sets of) 2-connected components of the graph
 
 Example:
 @c ===beg===
-@c load (graphs)$
+@c load ("graphs")$
 @c g : create_graph(
 @c             [1,2,3,4,5,6,7],
 @c             [
@@ -805,7 +859,7 @@ Example:
 @c biconnected_components(g);
 @c ===end===
 @example
-(%i1) load (graphs)$
+(%i1) load ("graphs")$
 (%i2) g : create_graph(
             [1,2,3,4,5,6,7],
             [
@@ -821,7 +875,8 @@ Example:
 @end ifhtml
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - properties}
+@category{Package graphs}
+@category{Package graphs - properties}
 @closecatbox
 @end deffn
 
@@ -833,13 +888,13 @@ list if @var{gr} is not bipartite.
 Example:
 
 @c ===beg===
-@c load (graphs)$
+@c load ("graphs")$
 @c h : heawood_graph()$
 @c [A,B]:bipartition(h);
 @c draw_graph(h, show_vertices=A, program=circular)$
 @c ===end===
 @example
-(%i1) load (graphs)$
+(%i1) load ("graphs")$
 (%i2) h : heawood_graph()$
 (%i3) [A,B]:bipartition(h);
 (%o3)  [[8, 12, 6, 10, 0, 2, 4], [13, 5, 11, 7, 9, 1, 3]]
@@ -847,7 +902,8 @@ Example:
 @end example
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - properties}
+@category{Package graphs}
+@category{Package graphs - properties}
 @closecatbox
 @end deffn
 
@@ -861,19 +917,20 @@ Returns the chromatic index of the graph @var{gr}.
 
 Example:
 @c ===beg===
-@c load (graphs)$
+@c load ("graphs")$
 @c p : petersen_graph()$
 @c chromatic_index(p);
 @c ===end===
 @example
-(%i1) load (graphs)$
+(%i1) load ("graphs")$
 (%i2) p : petersen_graph()$
 (%i3) chromatic_index(p);
 (%o3)                           4
 @end example
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - properties}
+@category{Package graphs}
+@category{Package graphs - properties}
 @closecatbox
 @end deffn
 
@@ -883,12 +940,12 @@ Returns the chromatic number of the graph @var{gr}.
 
 Example:
 @c ===beg===
-@c load (graphs)$
+@c load ("graphs")$
 @c chromatic_number(cycle_graph(5));
 @c chromatic_number(cycle_graph(6));
 @c ===end===
 @example
-(%i1) load (graphs)$
+(%i1) load ("graphs")$
 (%i2) chromatic_number(cycle_graph(5));
 (%o2)                           3
 (%i3) chromatic_number(cycle_graph(6));
@@ -896,7 +953,8 @@ Example:
 @end example
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - properties}
+@category{Package graphs}
+@category{Package graphs - properties}
 @closecatbox
 @end deffn
 
@@ -907,14 +965,14 @@ Removes the weight of the edge  @var{e} in the graph @var{gr}.
 Example:
 
 @c ===beg===
-@c load (graphs)$
+@c load ("graphs")$
 @c g : create_graph(3, [[[0,1], 1.5], [[1,2], 1.3]])$
 @c get_edge_weight([0,1], g);
 @c clear_edge_weight([0,1], g)$
 @c get_edge_weight([0,1], g);
 @c ===end===
 @example
-(%i1) load (graphs)$
+(%i1) load ("graphs")$
 (%i2) g : create_graph(3, [[[0,1], 1.5], [[1,2], 1.3]])$
 (%i3) get_edge_weight([0,1], g);
 (%o3)                          1.5
@@ -924,7 +982,8 @@ Example:
 @end example
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - properties}
+@category{Package graphs}
+@category{Package graphs - properties}
 @closecatbox
 @end deffn
 
@@ -934,14 +993,14 @@ Removes the label of the vertex @var{v} in the graph @var{gr}.
 
 Example:
 @c ===beg===
-@c load (graphs)$
+@c load ("graphs")$
 @c g : create_graph([[0,"Zero"], [1, "One"]], [[0,1]])$
 @c get_vertex_label(0, g);
 @c clear_vertex_label(0, g);
 @c get_vertex_label(0, g);
 @c ===end===
 @example
-(%i1) load (graphs)$
+(%i1) load ("graphs")$
 (%i2) g : create_graph([[0,"Zero"], [1, "One"]], [[0,1]])$
 (%i3) get_vertex_label(0, g);
 (%o3)                         Zero
@@ -952,7 +1011,8 @@ Example:
 @end example
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - properties}
+@category{Package graphs}
+@category{Package graphs - properties}
 @closecatbox
 @end deffn
 
@@ -962,19 +1022,20 @@ Returns the (vertex sets of) connected components of the graph @var{gr}.
 
 Example:
 @c ===beg===
-@c load (graphs)$
+@c load ("graphs")$
 @c g: graph_union(cycle_graph(5), path_graph(4))$
 @c connected_components(g);
 @c ===end===
 @example
-(%i1) load (graphs)$
+(%i1) load ("graphs")$
 (%i2) g: graph_union(cycle_graph(5), path_graph(4))$
 (%i3) connected_components(g);
 (%o3)            [[1, 2, 3, 4, 0], [8, 7, 6, 5]]
 @end example
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - properties}
+@category{Package graphs}
+@category{Package graphs - properties}
 @closecatbox
 @end deffn
 
@@ -984,17 +1045,18 @@ Returns the diameter of the graph @var{gr}.
 
 Example:
 @c ===beg===
-@c load (graphs)$
+@c load ("graphs")$
 @c diameter(dodecahedron_graph());
 @c ===end===
 @example
-(%i1) load (graphs)$
+(%i1) load ("graphs")$
 (%i2) diameter(dodecahedron_graph());
 (%o2)                           5
 @end example
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - properties}
+@category{Package graphs}
+@category{Package graphs - properties}
 @closecatbox
 @end deffn
 
@@ -1007,14 +1069,14 @@ coloring of the edges of @var{gr}.
 
 Example:
 @c ===beg===
-@c load (graphs)$
+@c load ("graphs")$
 @c p : petersen_graph()$
 @c [ch_index, col] : edge_coloring(p);
 @c assoc([0,1], col);
 @c assoc([0,5], col);
 @c ===end===
 @example
-(%i1) load (graphs)$
+(%i1) load ("graphs")$
 (%i2) p : petersen_graph()$
 (%i3) [ch_index, col] : edge_coloring(p);
 (%o3) [4, [[[0, 5], 3], [[5, 7], 1], [[0, 1], 1], [[1, 6], 2], 
@@ -1028,7 +1090,8 @@ Example:
 @end example
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - properties}
+@category{Package graphs}
+@category{Package graphs - properties}
 @closecatbox
 @end deffn
 
@@ -1038,17 +1101,18 @@ Returns the list of vertex degrees of the graph @var{gr}.
 
 Example:
 @c ===beg===
-@c load (graphs)$
+@c load ("graphs")$
 @c degree_sequence(random_graph(10, 0.4));
 @c ===end===
 @example
-(%i1) load (graphs)$
+(%i1) load ("graphs")$
 (%i2) degree_sequence(random_graph(10, 0.4));
 (%o2)            [2, 2, 2, 2, 2, 2, 3, 3, 3, 3]
 @end example
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - properties}
+@category{Package graphs}
+@category{Package graphs - properties}
 @closecatbox
 @end deffn
 
@@ -1059,7 +1123,8 @@ Returns the edge-connectivity of the graph @var{gr}.
 See also @mref{min_edge_cut}.
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - properties}
+@category{Package graphs}
+@category{Package graphs - properties}
 @closecatbox
 @end deffn
 
@@ -1069,17 +1134,18 @@ Returns the list of edges (arcs) in a (directed) graph @var{gr}.
 
 Example:
 @c ===beg===
-@c load (graphs)$
+@c load ("graphs")$
 @c edges(complete_graph(4));
 @c ===end===
 @example
-(%i1) load (graphs)$
+(%i1) load ("graphs")$
 (%i2) edges(complete_graph(4));
 (%o2)   [[2, 3], [1, 3], [1, 2], [0, 3], [0, 2], [0, 1]]
 @end example
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - properties}
+@category{Package graphs}
+@category{Package graphs - properties}
 @closecatbox
 @end deffn
 
@@ -1096,14 +1162,14 @@ returns the optional argument @var{ifnot}.
 
 Example:
 @c ===beg===
-@c load (graphs)$
+@c load ("graphs")$
 @c c5 : cycle_graph(5)$
 @c get_edge_weight([1,2], c5);
 @c set_edge_weight([1,2], 2.0, c5);
 @c get_edge_weight([1,2], c5);
 @c ===end===
 @example
-(%i1) load (graphs)$
+(%i1) load ("graphs")$
 (%i2) c5 : cycle_graph(5)$
 (%i3) get_edge_weight([1,2], c5);
 (%o3)                           1
@@ -1114,7 +1180,8 @@ Example:
 @end example
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - properties}
+@category{Package graphs}
+@category{Package graphs - properties}
 @closecatbox
 @end deffn
 
@@ -1124,19 +1191,20 @@ Returns the label of the vertex @var{v} in the graph @var{gr}.
 
 Example:
 @c ===beg===
-@c load (graphs)$
+@c load ("graphs")$
 @c g : create_graph([[0,"Zero"], [1, "One"]], [[0,1]])$
 @c get_vertex_label(0, g);
 @c ===end===
 @example
-(%i1) load (graphs)$
+(%i1) load ("graphs")$
 (%i2) g : create_graph([[0,"Zero"], [1, "One"]], [[0,1]])$
 (%i3) get_vertex_label(0, g);
 (%o3)                         Zero
 @end example
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - properties}
+@category{Package graphs}
+@category{Package graphs - properties}
 @closecatbox
 @end deffn
 
@@ -1147,12 +1215,12 @@ Returns the characteristic polynomial (in variable @var{x}) of the graph
 
 Example:
 @c ===beg===
-@c load (graphs)$
+@c load ("graphs")$
 @c p : petersen_graph()$
 @c graph_charpoly(p, x), factor;
 @c ===end===
 @example
-(%i1) load (graphs)$
+(%i1) load ("graphs")$
 (%i2) p : petersen_graph()$
 (%i3) graph_charpoly(p, x), factor;
                                    5        4
@@ -1160,7 +1228,8 @@ Example:
 @end example
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - properties}
+@category{Package graphs}
+@category{Package graphs - properties}
 @closecatbox
 @end deffn
 
@@ -1170,19 +1239,20 @@ Returns the center of the graph @var{gr}.
 
 Example:
 @c ===beg===
-@c load (graphs)$
+@c load ("graphs")$
 @c g : grid_graph(5,5)$
 @c graph_center(g);
 @c ===end===
 @example
-(%i1) load (graphs)$
+(%i1) load ("graphs")$
 (%i2) g : grid_graph(5,5)$
 (%i3) graph_center(g);
 (%o3)                         [12]
 @end example
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - properties}
+@category{Package graphs}
+@category{Package graphs - properties}
 @closecatbox
 @end deffn
 
@@ -1193,19 +1263,20 @@ eigenvalues in the same format as maxima @mref{eigenvalues} function.
 
 Example:
 @c ===beg===
-@c load (graphs)$
+@c load ("graphs")$
 @c p : petersen_graph()$
 @c graph_eigenvalues(p);
 @c ===end===
 @example
-(%i1) load (graphs)$
+(%i1) load ("graphs")$
 (%i2) p : petersen_graph()$
 (%i3) graph_eigenvalues(p);
 (%o3)               [[3, - 2, 1], [1, 4, 5]]
 @end example
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - properties}
+@category{Package graphs}
+@category{Package graphs - properties}
 @closecatbox
 @end deffn
 
@@ -1215,19 +1286,20 @@ Returns the periphery of the graph @var{gr}.
 
 Example:
 @c ===beg===
-@c load (graphs)$
+@c load ("graphs")$
 @c g : grid_graph(5,5)$
 @c graph_periphery(g);
 @c ===end===
 @example
-(%i1) load (graphs)$
+(%i1) load ("graphs")$
 (%i2) g : grid_graph(5,5)$
 (%i3) graph_periphery(g);
 (%o3)                    [24, 20, 4, 0]
 @end example
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - properties}
+@category{Package graphs}
+@category{Package graphs - properties}
 @closecatbox
 @end deffn
 
@@ -1237,19 +1309,20 @@ Returns the number of edges in the graph @var{gr}.
 
 Example:
 @c ===beg===
-@c load (graphs)$
+@c load ("graphs")$
 @c p : petersen_graph()$
 @c graph_size(p);
 @c ===end===
 @example
-(%i1) load (graphs)$
+(%i1) load ("graphs")$
 (%i2) p : petersen_graph()$
 (%i3) graph_size(p);
 (%o3)                          15
 @end example
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - properties}
+@category{Package graphs}
+@category{Package graphs - properties}
 @closecatbox
 @end deffn
 
@@ -1259,19 +1332,20 @@ Returns the number of vertices in the graph @var{gr}.
 
 Example:
 @c ===beg===
-@c load (graphs)$
+@c load ("graphs")$
 @c p : petersen_graph()$
 @c graph_order(p);
 @c ===end===
 @example
-(%i1) load (graphs)$
+(%i1) load ("graphs")$
 (%i2) p : petersen_graph()$
 (%i3) graph_order(p);
 (%o3)                          10
 @end example
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - properties}
+@category{Package graphs}
+@category{Package graphs - properties}
 @closecatbox
 @end deffn
 
@@ -1281,19 +1355,20 @@ Returns the length of the shortest cycle in @var{gr}.
 
 Example:
 @c ===beg===
-@c load (graphs)$
+@c load ("graphs")$
 @c g : heawood_graph()$
 @c girth(g);
 @c ===end===
 @example
-(%i1) load (graphs)$
+(%i1) load ("graphs")$
 (%i2) g : heawood_graph()$
 (%i3) girth(g);
 (%o3)                           6
 @end example
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - properties}
+@category{Package graphs}
+@category{Package graphs - properties}
 @closecatbox
 @end deffn
 
@@ -1304,13 +1379,13 @@ Returns the Hamilton cycle of the graph @var{gr} or an empty list if
 
 Example:
 @c ===beg===
-@c load (graphs)$
+@c load ("graphs")$
 @c c : cube_graph(3)$
 @c hc : hamilton_cycle(c);
 @c draw_graph(c, show_edges=vertices_to_cycle(hc))$
 @c ===end===
 @example
-(%i1) load (graphs)$
+(%i1) load ("graphs")$
 (%i2) c : cube_graph(3)$
 (%i3) hc : hamilton_cycle(c);
 (%o3)              [7, 3, 2, 6, 4, 0, 1, 5, 7]
@@ -1318,7 +1393,8 @@ Example:
 @end example
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - properties}
+@category{Package graphs}
+@category{Package graphs - properties}
 @closecatbox
 @end deffn
 
@@ -1333,13 +1409,13 @@ Returns the Hamilton path of the graph @var{gr} or an empty list if
 
 Example:
 @c ===beg===
-@c load (graphs)$
+@c load ("graphs")$
 @c p : petersen_graph()$
 @c hp : hamilton_path(p);
 @c draw_graph(p, show_edges=vertices_to_path(hp))$
 @c ===end===
 @example
-(%i1) load (graphs)$
+(%i1) load ("graphs")$
 (%i2) p : petersen_graph()$
 (%i3) hp : hamilton_path(p);
 (%o3)            [0, 5, 7, 2, 1, 6, 8, 3, 4, 9]
@@ -1347,7 +1423,8 @@ Example:
 @end example
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - properties}
+@category{Package graphs}
+@category{Package graphs - properties}
 @closecatbox
 @end deffn
 
@@ -1364,12 +1441,12 @@ an empty list.
 
 Example:
 @c ===beg===
-@c load (graphs)$
+@c load ("graphs")$
 @c clk5:complement_graph(line_graph(complete_graph(5)))$
 @c isomorphism(clk5, petersen_graph());
 @c ===end===
 @example
-(%i1) load (graphs)$
+(%i1) load ("graphs")$
 (%i2) clk5:complement_graph(line_graph(complete_graph(5)))$
 (%i3) isomorphism(clk5, petersen_graph());
 (%o3) [9 -> 0, 2 -> 1, 6 -> 2, 5 -> 3, 0 -> 4, 1 -> 5, 3 -> 6, 
@@ -1377,7 +1454,8 @@ Example:
 @end example
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - properties}
+@category{Package graphs}
+@category{Package graphs - properties}
 @closecatbox
 @end deffn
 
@@ -1388,13 +1466,13 @@ graph @var{gr}.
 
 Example:
 @c ===beg===
-@c load (graphs)$
+@c load ("graphs")$
 @c p : path_digraph(3)$
 @c in_neighbors(2, p);
 @c out_neighbors(2, p);
 @c ===end===
 @example
-(%i1) load (graphs)$
+(%i1) load ("graphs")$
 (%i2) p : path_digraph(3)$
 (%i3) in_neighbors(2, p);
 (%o3)                          [1]
@@ -1403,7 +1481,8 @@ Example:
 @end example
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - properties}
+@category{Package graphs}
+@category{Package graphs - properties}
 @closecatbox
 @end deffn
 
@@ -1413,12 +1492,12 @@ Returns @code{true} if @var{gr} is 2-connected and @code{false} otherwise.
 
 Example:
 @c ===beg===
-@c load (graphs)$
+@c load ("graphs")$
 @c is_biconnected(cycle_graph(5));
 @c is_biconnected(path_graph(5));
 @c ===end===
 @example
-(%i1) load (graphs)$
+(%i1) load ("graphs")$
 (%i2) is_biconnected(cycle_graph(5));
 (%o2)                         true
 (%i3) is_biconnected(path_graph(5));
@@ -1426,7 +1505,8 @@ Example:
 @end example
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - properties}
+@category{Package graphs}
+@category{Package graphs - properties}
 @closecatbox
 @end deffn
 
@@ -1436,12 +1516,12 @@ Returns @code{true} if @var{gr} is bipartite (2-colorable) and @code{false} othe
 
 Example:
 @c ===beg===
-@c load (graphs)$
+@c load ("graphs")$
 @c is_bipartite(petersen_graph());
 @c is_bipartite(heawood_graph());
 @c ===end===
 @example
-(%i1) load (graphs)$
+(%i1) load ("graphs")$
 (%i2) is_bipartite(petersen_graph());
 (%o2)                         false
 (%i3) is_bipartite(heawood_graph());
@@ -1449,7 +1529,8 @@ Example:
 @end example
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - properties}
+@category{Package graphs}
+@category{Package graphs - properties}
 @closecatbox
 @end deffn
 
@@ -1459,17 +1540,18 @@ Returns @code{true} if the graph @var{gr} is connected and @code{false} otherwis
 
 Example:
 @c ===beg===
-@c load (graphs)$
+@c load ("graphs")$
 @c is_connected(graph_union(cycle_graph(4), path_graph(3)));
 @c ===end===
 @example
-(%i1) load (graphs)$
+(%i1) load ("graphs")$
 (%i2) is_connected(graph_union(cycle_graph(4), path_graph(3)));
 (%o2)                         false
 @end example
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - properties}
+@category{Package graphs}
+@category{Package graphs - properties}
 @closecatbox
 @end deffn
 
@@ -1479,12 +1561,12 @@ Returns @code{true} if @var{gr} is a directed graph and @code{false} otherwise.
 
 Example:
 @c ===beg===
-@c load (graphs)$
+@c load ("graphs")$
 @c is_digraph(path_graph(5));
 @c is_digraph(path_digraph(5));
 @c ===end===
 @example
-(%i1) load (graphs)$
+(%i1) load ("graphs")$
 (%i2) is_digraph(path_graph(5));
 (%o2)                         false
 (%i3) is_digraph(path_digraph(5));
@@ -1492,7 +1574,8 @@ Example:
 @end example
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - properties}
+@category{Package graphs}
+@category{Package graphs - properties}
 @closecatbox
 @end deffn
 
@@ -1503,7 +1586,7 @@ and @code{false} otherwise.
 
 Example:
 @c ===beg===
-@c load (graphs)$
+@c load ("graphs")$
 @c c4 : cycle_graph(4)$
 @c is_edge_in_graph([2,3], c4);
 @c is_edge_in_graph([3,2], c4);
@@ -1511,7 +1594,7 @@ Example:
 @c is_edge_in_graph([3,2], cycle_digraph(4));
 @c ===end===
 @example
-(%i1) load (graphs)$
+(%i1) load ("graphs")$
 (%i2) c4 : cycle_graph(4)$
 (%i3) is_edge_in_graph([2,3], c4);
 (%o3)                         true
@@ -1524,7 +1607,8 @@ Example:
 @end example
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - properties}
+@category{Package graphs}
+@category{Package graphs - properties}
 @closecatbox
 @end deffn
 
@@ -1534,12 +1618,12 @@ Returns @code{true} if @var{gr} is a graph and @code{false} otherwise.
 
 Example:
 @c ===beg===
-@c load (graphs)$
+@c load ("graphs")$
 @c is_graph(path_graph(5));
 @c is_graph(path_digraph(5));
 @c ===end===
 @example
-(%i1) load (graphs)$
+(%i1) load ("graphs")$
 (%i2) is_graph(path_graph(5));
 (%o2)                         true
 (%i3) is_graph(path_digraph(5));
@@ -1547,7 +1631,8 @@ Example:
 @end example
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - properties}
+@category{Package graphs}
+@category{Package graphs - properties}
 @closecatbox
 @end deffn
 
@@ -1557,12 +1642,12 @@ Returns @code{true} if @var{gr} is a graph or a directed graph and @code{false} 
 
 Example:
 @c ===beg===
-@c load (graphs)$
+@c load ("graphs")$
 @c is_graph_or_digraph(path_graph(5));
 @c is_graph_or_digraph(path_digraph(5));
 @c ===end===
 @example
-(%i1) load (graphs)$
+(%i1) load ("graphs")$
 (%i2) is_graph_or_digraph(path_graph(5));
 (%o2)                         true
 (%i3) is_graph_or_digraph(path_digraph(5));
@@ -1570,7 +1655,8 @@ Example:
 @end example
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - properties}
+@category{Package graphs}
+@category{Package graphs - properties}
 @closecatbox
 @end deffn
 
@@ -1584,19 +1670,20 @@ See also @mrefdot{isomorphism}
 
 Example:
 @c ===beg===
-@c load (graphs)$
+@c load ("graphs")$
 @c clk5:complement_graph(line_graph(complete_graph(5)))$
 @c is_isomorphic(clk5, petersen_graph());
 @c ===end===
 @example
-(%i1) load (graphs)$
+(%i1) load ("graphs")$
 (%i2) clk5:complement_graph(line_graph(complete_graph(5)))$
 (%i3) is_isomorphic(clk5, petersen_graph());
 (%o3)                         true
 @end example
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - properties}
+@category{Package graphs}
+@category{Package graphs - properties}
 @closecatbox
 @end deffn
 
@@ -1610,13 +1697,13 @@ algorithm.
 
 Example:
 @c ===beg===
-@c load (graphs)$
+@c load ("graphs")$
 @c is_planar(dodecahedron_graph());
 @c is_planar(petersen_graph());
 @c is_planar(petersen_graph(10,2));
 @c ===end===
 @example
-(%i1) load (graphs)$
+(%i1) load ("graphs")$
 (%i2) is_planar(dodecahedron_graph());
 (%o2)                         true
 (%i3) is_planar(petersen_graph());
@@ -1626,7 +1713,8 @@ Example:
 @end example
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - properties}
+@category{Package graphs}
+@category{Package graphs - properties}
 @closecatbox
 @end deffn
 
@@ -1637,12 +1725,12 @@ Returns @code{true} if the directed graph @var{gr} is strongly connected and
 
 Example:
 @c ===beg===
-@c load (graphs)$
+@c load ("graphs")$
 @c is_sconnected(cycle_digraph(5));
 @c is_sconnected(path_digraph(5));
 @c ===end===
 @example
-(%i1) load (graphs)$
+(%i1) load ("graphs")$
 (%i2) is_sconnected(cycle_digraph(5));
 (%o2)                         true
 (%i3) is_sconnected(path_digraph(5));
@@ -1650,7 +1738,8 @@ Example:
 @end example
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - properties}
+@category{Package graphs}
+@category{Package graphs - properties}
 @closecatbox
 @end deffn
 
@@ -1660,13 +1749,13 @@ Returns @code{true} if @var{v} is a vertex in the graph @var{g} and @code{false}
 
 Example:
 @c ===beg===
-@c load (graphs)$
+@c load ("graphs")$
 @c c4 : cycle_graph(4)$
 @c is_vertex_in_graph(0, c4);
 @c is_vertex_in_graph(6, c4);
 @c ===end===
 @example
-(%i1) load (graphs)$
+(%i1) load ("graphs")$
 (%i2) c4 : cycle_graph(4)$
 (%i3) is_vertex_in_graph(0, c4);
 (%o3)                         true
@@ -1675,7 +1764,8 @@ Example:
 @end example
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - properties}
+@category{Package graphs}
+@category{Package graphs - properties}
 @closecatbox
 @end deffn
 
@@ -1685,12 +1775,12 @@ Returns @code{true} if @var{gr} is a tree and @code{false}  otherwise.
 
 Example:
 @c ===beg===
-@c load (graphs)$
+@c load ("graphs")$
 @c is_tree(random_tree(4));
 @c is_tree(graph_union(random_tree(4), random_tree(5)));
 @c ===end===
 @example
-(%i1) load (graphs)$
+(%i1) load ("graphs")$
 (%i2) is_tree(random_tree(4));
 (%o2)                         true
 (%i3) is_tree(graph_union(random_tree(4), random_tree(5)));
@@ -1698,7 +1788,8 @@ Example:
 @end example
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - properties}
+@category{Package graphs}
+@category{Package graphs - properties}
 @closecatbox
 @end deffn
 
@@ -1708,11 +1799,11 @@ Returns the laplacian matrix of the graph @var{gr}.
 
 Example:
 @c ===beg===
-@c load (graphs)$
+@c load ("graphs")$
 @c laplacian_matrix(cycle_graph(5));
 @c ===end===
 @example
-(%i1) load (graphs)$
+(%i1) load ("graphs")$
 (%i2) laplacian_matrix(cycle_graph(5));
                    [  2   - 1   0    0   - 1 ]
                    [                         ]
@@ -1726,7 +1817,8 @@ Example:
 @end example
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - properties}
+@category{Package graphs}
+@category{Package graphs - properties}
 @closecatbox
 @end deffn
 
@@ -1736,19 +1828,20 @@ Returns a maximum clique of the graph @var{gr}.
 
 Example:
 @c ===beg===
-@c load (graphs)$
+@c load ("graphs")$
 @c g : random_graph(100, 0.5)$
 @c max_clique(g);
 @c ===end===
 @example
-(%i1) load (graphs)$
+(%i1) load ("graphs")$
 (%i2) g : random_graph(100, 0.5)$
 (%i3) max_clique(g);
 (%o3)          [6, 12, 31, 36, 52, 59, 62, 63, 80]
 @end example
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - properties}
+@category{Package graphs}
+@category{Package graphs - properties}
 @closecatbox
 @end deffn
 
@@ -1759,13 +1852,13 @@ vertex of maximal degree.
 
 Example:
 @c ===beg===
-@c load (graphs)$
+@c load ("graphs")$
 @c g : random_graph(100, 0.02)$
 @c max_degree(g);
 @c vertex_degree(95, g);
 @c ===end===
 @example
-(%i1) load (graphs)$
+(%i1) load ("graphs")$
 (%i2) g : random_graph(100, 0.02)$
 (%i3) max_degree(g);
 (%o3)                        [6, 79]
@@ -1774,7 +1867,8 @@ Example:
 @end example
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - properties}
+@category{Package graphs}
+@category{Package graphs - properties}
 @closecatbox
 @end deffn
 
@@ -1788,7 +1882,7 @@ representing the weights of the arcs in the optimal flow.
 
 Example:
 @c ===beg===
-@c load (graphs)$
+@c load ("graphs")$
 @c net : create_graph(
 @c   [1,2,3,4,5,6],
 @c   [[[1,2], 1.0],
@@ -1807,7 +1901,7 @@ Example:
 @c fl;
 @c ===end===
 @example
-(%i1) load (graphs)$
+(%i1) load ("graphs")$
 (%i2) net : create_graph(
   [1,2,3,4,5,6],
   [[[1,2], 1.0],
@@ -1831,7 +1925,8 @@ Example:
 @end example
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - properties}
+@category{Package graphs}
+@category{Package graphs - properties}
 @closecatbox
 @end deffn
 
@@ -1841,13 +1936,13 @@ Returns a maximum independent set of the graph @var{gr}.
 
 Example:
 @c ===beg===
-@c load (graphs)$
+@c load ("graphs")$
 @c d : dodecahedron_graph()$
 @c mi : max_independent_set(d);
 @c draw_graph(d, show_vertices=mi)$
 @c ===end===
 @example
-(%i1) load (graphs)$
+(%i1) load ("graphs")$
 (%i2) d : dodecahedron_graph()$
 (%i3) mi : max_independent_set(d);
 (%o3)             [0, 3, 5, 9, 10, 11, 18, 19]
@@ -1855,7 +1950,8 @@ Example:
 @end example
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - properties}
+@category{Package graphs}
+@category{Package graphs - properties}
 @closecatbox
 @end deffn
 
@@ -1869,13 +1965,13 @@ Returns a maximum matching of the graph @var{gr}.
 
 Example:
 @c ===beg===
-@c load (graphs)$
+@c load ("graphs")$
 @c d : dodecahedron_graph()$
 @c m : max_matching(d);
 @c draw_graph(d, show_edges=m)$
 @c ===end===
 @example
-(%i1) load (graphs)$
+(%i1) load ("graphs")$
 (%i2) d : dodecahedron_graph()$
 (%i3) m : max_matching(d);
 (%o3) [[5, 7], [8, 9], [6, 10], [14, 19], [13, 18], [12, 17], 
@@ -1884,7 +1980,8 @@ Example:
 @end example
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - properties}
+@category{Package graphs}
+@category{Package graphs - properties}
 @closecatbox
 @end deffn
 
@@ -1899,13 +1996,13 @@ vertex of minimum degree.
 
 Example:
 @c ===beg===
-@c load (graphs)$
+@c load ("graphs")$
 @c g : random_graph(100, 0.1)$
 @c min_degree(g);
 @c vertex_degree(21, g);
 @c ===end===
 @example
-(%i1) load (graphs)$
+(%i1) load ("graphs")$
 (%i2) g : random_graph(100, 0.1)$
 (%i3) min_degree(g);
 (%o3)                        [3, 49]
@@ -1914,7 +2011,8 @@ Example:
 @end example
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - properties}
+@category{Package graphs}
+@category{Package graphs - properties}
 @closecatbox
 @end deffn
 
@@ -1925,7 +2023,8 @@ Returns the minimum edge cut in the graph @var{gr}.
 See also @mrefdot{edge_connectivity}
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - properties}
+@category{Package graphs}
+@category{Package graphs - properties}
 @closecatbox
 @end deffn
 
@@ -1934,7 +2033,8 @@ See also @mrefdot{edge_connectivity}
 Returns the minimum vertex cover of the graph @var{gr}.
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - properties}
+@category{Package graphs}
+@category{Package graphs - properties}
 @closecatbox
 @end deffn
 
@@ -1945,7 +2045,8 @@ Returns the minimum vertex cut in the graph @var{gr}.
 See also @mrefdot{vertex_connectivity}
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - properties}
+@category{Package graphs}
+@category{Package graphs - properties}
 @closecatbox
 @end deffn
 
@@ -1955,20 +2056,21 @@ Returns the minimum spanning tree of the graph @var{gr}.
 
 Example:
 @c ===beg===
-@c load (graphs)$
+@c load ("graphs")$
 @c g : graph_product(path_graph(10), path_graph(10))$
 @c t : minimum_spanning_tree(g)$
 @c draw_graph(g, show_edges=edges(t))$
 @c ===end===
 @example
-(%i1) load (graphs)$
+(%i1) load ("graphs")$
 (%i2) g : graph_product(path_graph(10), path_graph(10))$
 (%i3) t : minimum_spanning_tree(g)$
 (%i4) draw_graph(g, show_edges=edges(t))$
 @end example
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - properties}
+@category{Package graphs}
+@category{Package graphs - properties}
 @closecatbox
 @end deffn
 
@@ -1982,19 +2084,20 @@ Returns the list of neighbors of the vertex @var{v} in the graph @var{gr}.
 
 Example:
 @c ===beg===
-@c load (graphs)$
+@c load ("graphs")$
 @c p : petersen_graph()$
 @c neighbors(3, p);
 @c ===end===
 @example
-(%i1) load (graphs)$
+(%i1) load ("graphs")$
 (%i2) p : petersen_graph()$
 (%i3) neighbors(3, p);
 (%o3)                       [4, 8, 2]
 @end example
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - properties}
+@category{Package graphs}
+@category{Package graphs - properties}
 @closecatbox
 @end deffn
 
@@ -2004,13 +2107,13 @@ Returns the length of the shortest odd cycle in the graph @var{gr}.
 
 Example:
 @c ===beg===
-@c load (graphs)$
+@c load ("graphs")$
 @c g : graph_product(cycle_graph(4), cycle_graph(7))$
 @c girth(g);
 @c odd_girth(g);
 @c ===end===
 @example
-(%i1) load (graphs)$
+(%i1) load ("graphs")$
 (%i2) g : graph_product(cycle_graph(4), cycle_graph(7))$
 (%i3) girth(g);
 (%o3)                           4
@@ -2019,7 +2122,8 @@ Example:
 @end example
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - properties}
+@category{Package graphs}
+@category{Package graphs - properties}
 @closecatbox
 @end deffn
 
@@ -2030,13 +2134,13 @@ graph @var{gr}.
 
 Example:
 @c ===beg===
-@c load (graphs)$
+@c load ("graphs")$
 @c p : path_digraph(3)$
 @c in_neighbors(2, p);
 @c out_neighbors(2, p);
 @c ===end===
 @example
-(%i1) load (graphs)$
+(%i1) load ("graphs")$
 (%i2) p : path_digraph(3)$
 (%i3) in_neighbors(2, p);
 (%o3)                          [1]
@@ -2045,7 +2149,8 @@ Example:
 @end example
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - properties}
+@category{Package graphs}
+@category{Package graphs - properties}
 @closecatbox
 @end deffn
 
@@ -2062,18 +2167,19 @@ algorithm.
 
 Example:
 @c ===beg===
-@c load (graphs)$
+@c load ("graphs")$
 @c planar_embedding(grid_graph(3,3));
 @c ===end===
 @example
-(%i1) load (graphs)$
+(%i1) load ("graphs")$
 (%i2) planar_embedding(grid_graph(3,3));
 (%o2) [[3, 6, 7, 8, 5, 2, 1, 0], [4, 3, 0, 1], [3, 4, 7, 6], 
                                       [8, 7, 4, 5], [1, 2, 5, 4]]
 @end example
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - properties}
+@category{Package graphs}
+@category{Package graphs - properties}
 @closecatbox
 @end deffn
 
@@ -2083,7 +2189,7 @@ Prints some information about the graph @var{gr}.
 
 Example:
 @c ===beg===
-@c load (graphs)$
+@c load ("graphs")$
 @c c5 : cycle_graph(5)$
 @c print_graph(c5)$
 @c dc5 : cycle_digraph(5)$
@@ -2091,7 +2197,7 @@ Example:
 @c out_neighbors(0, dc5);
 @c ===end===
 @example
-(%i1) load (graphs)$
+(%i1) load ("graphs")$
 (%i2) c5 : cycle_graph(5)$
 (%i3) print_graph(c5)$
 Graph on 5 vertices with 5 edges.
@@ -2125,17 +2231,18 @@ Returns the radius of the graph @var{gr}.
 
 Example:
 @c ===beg===
-@c load (graphs)$
+@c load ("graphs")$
 @c radius(dodecahedron_graph());
 @c ===end===
 @example
-(%i1) load (graphs)$
+(%i1) load ("graphs")$
 (%i2) radius(dodecahedron_graph());
 (%o2)                           5
 @end example
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - properties}
+@category{Package graphs}
+@category{Package graphs - properties}
 @closecatbox
 @end deffn
 
@@ -2145,14 +2252,14 @@ Assigns the weight @var{w} to the edge @var{e} in the graph @var{gr}.
 
 Example:
 @c ===beg===
-@c load (graphs)$
+@c load ("graphs")$
 @c g : create_graph([1, 2], [[[1,2], 1.2]])$
 @c get_edge_weight([1,2], g);
 @c set_edge_weight([1,2], 2.1, g);
 @c get_edge_weight([1,2], g);
 @c ===end===
 @example
-(%i1) load (graphs)$
+(%i1) load ("graphs")$
 (%i2) g : create_graph([1, 2], [[[1,2], 1.2]])$
 (%i3) get_edge_weight([1,2], g);
 (%o3)                          1.2
@@ -2163,7 +2270,8 @@ Example:
 @end example
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - properties}
+@category{Package graphs}
+@category{Package graphs - properties}
 @closecatbox
 @end deffn
 
@@ -2173,14 +2281,14 @@ Assigns the label @var{l} to the vertex @var{v} in the graph @var{gr}.
 
 Example:
 @c ===beg===
-@c load (graphs)$
+@c load ("graphs")$
 @c g : create_graph([[1, "One"], [2, "Two"]], [[1,2]])$
 @c get_vertex_label(1, g);
 @c set_vertex_label(1, "oNE", g);
 @c get_vertex_label(1, g);
 @c ===end===
 @example
-(%i1) load (graphs)$
+(%i1) load ("graphs")$
 (%i2) g : create_graph([[1, "One"], [2, "Two"]], [[1,2]])$
 (%i3) get_vertex_label(1, g);
 (%o3)                          One
@@ -2191,7 +2299,8 @@ Example:
 @end example
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - properties}
+@category{Package graphs}
+@category{Package graphs - properties}
 @closecatbox
 @end deffn
 
@@ -2201,13 +2310,13 @@ Returns the shortest path from @var{u} to @var{v} in the graph @var{gr}.
 
 Example:
 @c ===beg===
-@c load (graphs)$
+@c load ("graphs")$
 @c d : dodecahedron_graph()$
 @c path : shortest_path(0, 7, d);
 @c draw_graph(d, show_edges=vertices_to_path(path))$
 @c ===end===
 @example
-(%i1) load (graphs)$
+(%i1) load ("graphs")$
 (%i2) d : dodecahedron_graph()$
 (%i3) path : shortest_path(0, 7, d);
 (%o3)                   [0, 1, 19, 13, 7]
@@ -2215,7 +2324,8 @@ Example:
 @end example
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - properties}
+@category{Package graphs}
+@category{Package graphs - properties}
 @closecatbox
 @end deffn
 
@@ -2234,13 +2344,13 @@ path. If an edge has no weight, then it has a default weight 1.
 Example:
 
 @c ===beg===
-@c load (graphs)$
+@c load ("graphs")$
 @c g: petersen_graph(20, 2)$
 @c for e in edges(g) do set_edge_weight(e, random(1.0), g)$
 @c shortest_weighted_path(0, 10, g);
 @c ===end===
 @example
-(%i1) load (graphs)$
+(%i1) load ("graphs")$
 (%i2) g: petersen_graph(20, 2)$
 (%i3) for e in edges(g) do set_edge_weight(e, random(1.0), g)$
 (%i4) shortest_weighted_path(0, 10, g);
@@ -2248,7 +2358,8 @@ Example:
 @end example
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - properties}
+@category{Package graphs}
+@category{Package graphs - properties}
 @closecatbox
 @end deffn
 
@@ -2258,13 +2369,13 @@ Returns the strong components of a directed graph @var{gr}.
 
 Example:
 @c ===beg===
-@c load (graphs)$
+@c load ("graphs")$
 @c t : random_tournament(4)$
 @c strong_components(t);
 @c vertex_out_degree(3, t);
 @c ===end===
 @example
-(%i1) load (graphs)$
+(%i1) load ("graphs")$
 (%i2) t : random_tournament(4)$
 (%i3) strong_components(t);
 (%o3)                 [[1], [0], [2], [3]]
@@ -2273,7 +2384,8 @@ Example:
 @end example
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - properties}
+@category{Package graphs}
+@category{Package graphs - properties}
 @closecatbox
 @end deffn
 
@@ -2285,7 +2397,7 @@ Returns a topological sorting of the vertices of a directed graph
 
 Example:
 @c ===beg===
-@c load (graphs)$
+@c load ("graphs")$
 @c g:create_graph(
 @c          [1,2,3,4,5],
 @c          [
@@ -2296,7 +2408,7 @@ Example:
 @c topological_sort(g);
 @c ===end===
 @example
-(%i1) load (graphs)$
+(%i1) load ("graphs")$
 (%i2) g:create_graph(
          [1,2,3,4,5],
          [
@@ -2309,7 +2421,8 @@ Example:
 @end example
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - properties}
+@category{Package graphs}
+@category{Package graphs - properties}
 @closecatbox
 @end deffn
 
@@ -2320,7 +2433,8 @@ Returns the vertex connectivity of the graph @var{g}.
 See also @mrefdot{min_vertex_cut}
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - properties}
+@category{Package graphs}
+@category{Package graphs - properties}
 @closecatbox
 @end deffn
 
@@ -2329,7 +2443,8 @@ See also @mrefdot{min_vertex_cut}
 Returns the degree of the vertex @var{v} in the graph @var{gr}.
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - properties}
+@category{Package graphs}
+@category{Package graphs - properties}
 @closecatbox
 @end deffn
 
@@ -2340,13 +2455,13 @@ the (directed) graph @var{gr}.
 
 Example:
 @c ===beg===
-@c load (graphs)$
+@c load ("graphs")$
 @c d : dodecahedron_graph()$
 @c vertex_distance(0, 7, d);
 @c shortest_path(0, 7, d);
 @c ===end===
 @example
-(%i1) load (graphs)$
+(%i1) load ("graphs")$
 (%i2) d : dodecahedron_graph()$
 (%i3) vertex_distance(0, 7, d);
 (%o3)                           4
@@ -2355,7 +2470,8 @@ Example:
 @end example
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - properties}
+@category{Package graphs}
+@category{Package graphs - properties}
 @closecatbox
 @end deffn
 
@@ -2366,19 +2482,20 @@ Returns the eccentricity of the vertex @var{v} in the graph @var{gr}.
 
 Example:
 @c ===beg===
-@c load (graphs)$
+@c load ("graphs")$
 @c g:cycle_graph(7)$
 @c vertex_eccentricity(0, g);
 @c ===end===
 @example
-(%i1) load (graphs)$
+(%i1) load ("graphs")$
 (%i2) g:cycle_graph(7)$
 (%i3) vertex_eccentricity(0, g);
 (%o3)                           3
 @end example
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - properties}
+@category{Package graphs}
+@category{Package graphs - properties}
 @closecatbox
 @end deffn
 
@@ -2388,14 +2505,14 @@ Returns the in-degree of the vertex @var{v} in the directed graph @var{gr}.
 
 Example:
 @c ===beg===
-@c load (graphs)$
+@c load ("graphs")$
 @c p5 : path_digraph(5)$
 @c print_graph(p5)$
 @c vertex_in_degree(4, p5);
 @c in_neighbors(4, p5);
 @c ===end===
 @example
-(%i1) load (graphs)$
+(%i1) load ("graphs")$
 (%i2) p5 : path_digraph(5)$
 (%i3) print_graph(p5)$
 Digraph on 5 vertices with 4 arcs.
@@ -2412,7 +2529,8 @@ Adjacencies:
 @end example
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - properties}
+@category{Package graphs}
+@category{Package graphs - properties}
 @closecatbox
 @end deffn
 
@@ -2422,13 +2540,13 @@ Returns the out-degree of the vertex @var{v} in the directed graph @var{gr}.
 
 Example:
 @c ===beg===
-@c load (graphs)$
+@c load ("graphs")$
 @c t : random_tournament(10)$
 @c vertex_out_degree(0, t);
 @c out_neighbors(0, t);
 @c ===end===
 @example
-(%i1) load (graphs)$
+(%i1) load ("graphs")$
 (%i2) t : random_tournament(10)$
 (%i3) vertex_out_degree(0, t);
 (%o3)                           2
@@ -2437,7 +2555,8 @@ Example:
 @end example
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - properties}
+@category{Package graphs}
+@category{Package graphs - properties}
 @closecatbox
 @end deffn
 
@@ -2447,17 +2566,18 @@ Returns the list of vertices in the graph @var{gr}.
 
 Example:
 @c ===beg===
-@c load (graphs)$
+@c load ("graphs")$
 @c vertices(complete_graph(4));
 @c ===end===
 @example
-(%i1) load (graphs)$
+(%i1) load ("graphs")$
 (%i2) vertices(complete_graph(4));
 (%o2)                     [3, 2, 1, 0]
 @end example
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - properties}
+@category{Package graphs}
+@category{Package graphs - properties}
 @closecatbox
 @end deffn
 
@@ -2470,12 +2590,12 @@ coloring of the vertices of @var{gr}.
 
 Example:
 @c ===beg===
-@c load (graphs)$
+@c load ("graphs")$
 @c p:petersen_graph()$
 @c vertex_coloring(p);
 @c ===end===
 @example
-(%i1) load (graphs)$
+(%i1) load ("graphs")$
 (%i2) p:petersen_graph()$
 (%i3) vertex_coloring(p);
 (%o3) [3, [[0, 2], [1, 3], [2, 2], [3, 3], [4, 1], [5, 3], 
@@ -2483,7 +2603,8 @@ Example:
 @end example
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - properties}
+@category{Package graphs}
+@category{Package graphs - properties}
 @closecatbox
 @end deffn
 
@@ -2493,7 +2614,7 @@ Returns the Wiener index of the graph @var{gr}.
 
 Example:
 @c ===beg===
-@c load (graphs)$
+@c load ("graphs")$
 @c wiener_index(dodecahedron_graph());
 @c ===end===
 @example
@@ -2502,7 +2623,8 @@ Example:
 @end example
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - properties}
+@category{Package graphs}
+@category{Package graphs - properties}
 @closecatbox
 @end deffn
 
@@ -2514,14 +2636,14 @@ Adds the edge @var{e} to the graph @var{gr}.
 
 Example:
 @c ===beg===
-@c load (graphs)$
+@c load ("graphs")$
 @c p : path_graph(4)$
 @c neighbors(0, p);
 @c add_edge([0,3], p);
 @c neighbors(0, p);
 @c ===end===
 @example
-(%i1) load (graphs)$
+(%i1) load ("graphs")$
 (%i2) p : path_graph(4)$
 (%i3) neighbors(0, p);
 (%o3)                          [1]
@@ -2532,7 +2654,8 @@ Example:
 @end example
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - modifications}
+@category{Package graphs}
+@category{Package graphs - modifications}
 @closecatbox
 @end deffn
 
@@ -2542,13 +2665,13 @@ Adds all edges in the list @var{e_list} to the graph @var{gr}.
 
 Example:
 @c ===beg===
-@c load (graphs)$
+@c load ("graphs")$
 @c g : empty_graph(3)$
 @c add_edges([[0,1],[1,2]], g)$
 @c print_graph(g)$
 @c ===end===
 @example
-(%i1) load (graphs)$
+(%i1) load ("graphs")$
 (%i2) g : empty_graph(3)$
 (%i3) add_edges([[0,1],[1,2]], g)$
 (%i4) print_graph(g)$
@@ -2560,7 +2683,8 @@ Adjacencies:
 @end example
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - modifications}
+@category{Package graphs}
+@category{Package graphs - modifications}
 @closecatbox
 @end deffn
 
@@ -2570,13 +2694,13 @@ Adds the vertex @var{v} to the graph @var{gr}.
 
 Example:
 @c ===beg===
-@c load (graphs)$
+@c load ("graphs")$
 @c g : path_graph(2)$
 @c add_vertex(2, g)$
 @c print_graph(g)$
 @c ===end===
 @example
-(%i1) load (graphs)$
+(%i1) load ("graphs")$
 (%i2) g : path_graph(2)$
 (%i3) add_vertex(2, g)$
 (%i4) print_graph(g)$
@@ -2588,7 +2712,8 @@ Adjacencies:
 @end example
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - modifications}
+@category{Package graphs}
+@category{Package graphs - modifications}
 @closecatbox
 @end deffn
 
@@ -2597,7 +2722,8 @@ Adjacencies:
 Adds all vertices in the list @var{v_list} to the graph @var{gr}.
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - modifications}
+@category{Package graphs}
+@category{Package graphs - modifications}
 @closecatbox
 @end deffn
 
@@ -2611,13 +2737,13 @@ vertices.
 
 Example:
 @c ===beg===
-@c load (graphs)$
+@c load ("graphs")$
 @c g : empty_graph(4)$
 @c connect_vertices(0, [1,2,3], g)$
 @c print_graph(g)$
 @c ===end===
 @example
-(%i1) load (graphs)$
+(%i1) load ("graphs")$
 (%i2) g : empty_graph(4)$
 (%i3) connect_vertices(0, [1,2,3], g)$
 (%i4) print_graph(g)$
@@ -2630,7 +2756,8 @@ Adjacencies:
 @end example
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - modifications}
+@category{Package graphs}
+@category{Package graphs - modifications}
 @closecatbox
 @end deffn
 
@@ -2640,7 +2767,7 @@ Contracts the edge @var{e} in the graph @var{gr}.
 
 Example:
 @c ===beg===
-@c load (graphs)$
+@c load ("graphs")$
 @c g: create_graph(
 @c       8, [[0,3],[1,3],[2,3],[3,4],[4,5],[4,6],[4,7]])$
 @c print_graph(g)$
@@ -2648,7 +2775,7 @@ Example:
 @c print_graph(g)$
 @c ===end===
 @example
-(%i1) load (graphs)$
+(%i1) load ("graphs")$
 (%i2) g: create_graph(
       8, [[0,3],[1,3],[2,3],[3,4],[4,5],[4,6],[4,7]])$
 (%i3) print_graph(g)$
@@ -2676,7 +2803,8 @@ Adjacencies:
 @end example
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - modifications}
+@category{Package graphs}
+@category{Package graphs - modifications}
 @closecatbox
 @end deffn
 
@@ -2686,13 +2814,13 @@ Removes the edge @var{e} from the graph @var{gr}.
 
 Example:
 @c ===beg===
-@c load (graphs)$
+@c load ("graphs")$
 @c c3 : cycle_graph(3)$
 @c remove_edge([0,1], c3)$
 @c print_graph(c3)$
 @c ===end===
 @example
-(%i1) load (graphs)$
+(%i1) load ("graphs")$
 (%i2) c3 : cycle_graph(3)$
 (%i3) remove_edge([0,1], c3)$
 (%i4) print_graph(c3)$
@@ -2704,7 +2832,8 @@ Adjacencies:
 @end example
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - modifications}
+@category{Package graphs}
+@category{Package graphs - modifications}
 @closecatbox
 @end deffn
 
@@ -2728,7 +2857,8 @@ Exports the graph into the file @var{fl} in the DIMACS format. Optional
 comments will be added to the top of the file.
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - io}
+@category{Package graphs}
+@category{Package graphs - io}
 @closecatbox
 @end deffn
 
@@ -2738,7 +2868,8 @@ comments will be added to the top of the file.
 Returns the graph from file @var{fl} in the DIMACS format.
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - io}
+@category{Package graphs}
+@category{Package graphs - io}
 @closecatbox
 @end deffn
 
@@ -2748,7 +2879,8 @@ Returns the graph from file @var{fl} in the DIMACS format.
 Returns the graph encoded in the graph6 format in the string @var{str}.
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - io}
+@category{Package graphs}
+@category{Package graphs - io}
 @closecatbox
 @end deffn
 
@@ -2758,7 +2890,8 @@ Returns the graph encoded in the graph6 format in the string @var{str}.
 Returns a string which encodes the graph @var{gr} in the graph6 format.
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - io}
+@category{Package graphs}
+@category{Package graphs - io}
 @closecatbox
 @end deffn
 
@@ -2769,7 +2902,8 @@ Exports graphs in the list @var{gr_list} to the file @var{fl} in the
 graph6 format.
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - io}
+@category{Package graphs}
+@category{Package graphs - io}
 @closecatbox
 @end deffn
 
@@ -2779,7 +2913,8 @@ graph6 format.
 Returns a list of graphs from the file @var{fl} in the graph6 format.
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - io}
+@category{Package graphs}
+@category{Package graphs - io}
 @closecatbox
 @end deffn
 
@@ -2789,7 +2924,8 @@ Returns a list of graphs from the file @var{fl} in the graph6 format.
 Returns the graph encoded in the sparse6 format in the string @var{str}.
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - io}
+@category{Package graphs}
+@category{Package graphs - io}
 @closecatbox
 @end deffn
 
@@ -2799,7 +2935,8 @@ Returns the graph encoded in the sparse6 format in the string @var{str}.
 Returns a string which encodes the graph @var{gr} in the sparse6 format.
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - io}
+@category{Package graphs}
+@category{Package graphs - io}
 @closecatbox
 @end deffn
 
@@ -2810,7 +2947,8 @@ Exports graphs in the list @var{gr_list} to the file @var{fl} in the
 sparse6 format.
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - io}
+@category{Package graphs}
+@category{Package graphs - io}
 @closecatbox
 @end deffn
 
@@ -2820,7 +2958,8 @@ sparse6 format.
 Returns a list of graphs from the file @var{fl} in the sparse6 format.
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - io}
+@category{Package graphs}
+@category{Package graphs - io}
 @closecatbox
 @end deffn
 
@@ -2842,7 +2981,7 @@ installed separately.
 Example 1:
 
 @c ===beg===
-@c load (graphs)$
+@c load ("graphs")$
 @c g:grid_graph(10,10)$
 @c m:max_matching(g)$
 @c draw_graph(g,
@@ -2851,7 +2990,7 @@ Example 1:
 @c    vertex_size=0)$
 @c ===end===
 @example
-(%i1) load (graphs)$
+(%i1) load ("graphs")$
 (%i2) g:grid_graph(10,10)$
 (%i3) m:max_matching(g)$
 (%i4) draw_graph(g,
@@ -2867,7 +3006,7 @@ Example 1:
 Example 2:
 
 @c ===beg===
-@c load (graphs)$
+@c load ("graphs")$
 @c g:create_graph(16,
 @c     [
 @c      [0,1],[1,3],[2,3],[0,2],[3,4],[2,4],
@@ -2886,7 +3025,7 @@ Example 2:
 @c     )$
 @c ===end===
 @example
-(%i1) load (graphs)$
+(%i1) load ("graphs")$
 (%i2) g:create_graph(16,
     [
      [0,1],[1,3],[2,3],[0,2],[3,4],[2,4],
@@ -2912,7 +3051,7 @@ Example 2:
 Example 3:
 
 @c ===beg===
-@c load (graphs)$
+@c load ("graphs")$
 @c g:create_graph(16,
 @c     [
 @c      [0,1],[1,3],[2,3],[0,2],[3,4],[2,4],
@@ -2933,7 +3072,7 @@ Example 3:
 @c     )$
 @c ===end===
 @example
-(%i1) load (graphs)$
+(%i1) load ("graphs")$
 (%i2) g:create_graph(16,
     [
      [0,1],[1,3],[2,3],[0,2],[3,4],[2,4],
@@ -2961,7 +3100,7 @@ Example 3:
 Example 4:
 
 @c ===beg===
-@c load (graphs)$
+@c load ("graphs")$
 @c net : create_graph(
 @c     [0,1,2,3,4,5],
 @c     [
@@ -2985,7 +3124,7 @@ Example 4:
 @c     )$
 @c ===end===
 @example
-(%i1) load (graphs)$
+(%i1) load ("graphs")$
 (%i2) net : create_graph(
     [0,1,2,3,4,5],
     [
@@ -3016,12 +3155,12 @@ Example 4:
 Example 5:
 
 @c ===beg===
-@c load(graphs)$
+@c load("graphs")$
 @c g: petersen_graph(20, 2);
 @c draw_graph(g, redraw=true, program=planar_embedding);
 @c ===end===
 @example
-(%i1) load(graphs)$
+(%i1) load("graphs")$
 (%i2) g: petersen_graph(20, 2);
 (%o2)                         GRAPH
 (%i3) draw_graph(g, redraw=true, program=planar_embedding);
@@ -3035,13 +3174,13 @@ Example 5:
 Example 6:
 
 @c ===beg===
-@c load(graphs)$
+@c load("graphs")$
 @c t: tutte_graph();
 @c draw_graph(t, redraw=true, 
 @c               fixed_vertices=[1,2,3,4,5,6,7,8,9]);
 @c ===end===
 @example
-(%i1) load(graphs)$
+(%i1) load("graphs")$
 (%i2) t: tutte_graph();
 (%o2)                         GRAPH
 (%i3) draw_graph(t, redraw=true, 
@@ -3066,7 +3205,8 @@ The default value for the program used to position vertices in
 @code{draw_graph} program.
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - draw_graphs options}
+@category{Package graphs}
+@category{Package graphs - draw_graphs options}
 @closecatbox
 @end defvr
 
@@ -3077,7 +3217,8 @@ Default value: @var{false}
 If @var{true} then ids of the vertices are displayed.
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - draw_graphs options}
+@category{Package graphs}
+@category{Package graphs - draw_graphs options}
 @closecatbox
 @end defvr
 
@@ -3088,7 +3229,8 @@ Default value: @var{false}
 If @var{true} then labels of the vertices are displayed.
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - draw_graphs options}
+@category{Package graphs}
+@category{Package graphs - draw_graphs options}
 @closecatbox
 @end defvr
 
@@ -3100,7 +3242,8 @@ Determines how to align the labels/ids of the vertices. Can
 be @code{left}, @code{center} or @code{right}.
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - draw_graphs options}
+@category{Package graphs}
+@category{Package graphs - draw_graphs options}
 @closecatbox
 @end defvr
 
@@ -3111,7 +3254,8 @@ Default value: @var{false}
 If @var{true} then weights of the edges are displayed.
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - draw_graphs options}
+@category{Package graphs}
+@category{Package graphs - draw_graphs options}
 @closecatbox
 @end defvr
 
@@ -3123,7 +3267,8 @@ Defines how vertices are displayed. See the @var{point_type} option for
 the @code{draw} package for possible values.
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - draw_graphs options}
+@category{Package graphs}
+@category{Package graphs - draw_graphs options}
 @closecatbox
 @end defvr
 
@@ -3132,7 +3277,8 @@ the @code{draw} package for possible values.
 The size of vertices.
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - draw_graphs options}
+@category{Package graphs}
+@category{Package graphs - draw_graphs options}
 @closecatbox
 @end defvr
 
@@ -3141,7 +3287,8 @@ The size of vertices.
 The color used for displaying vertices.
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - draw_graphs options}
+@category{Package graphs}
+@category{Package graphs - draw_graphs options}
 @closecatbox
 @end defvr
 
@@ -3152,7 +3299,8 @@ Default value: []
 Display selected vertices in the using a different color.
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - draw_graphs options}
+@category{Package graphs}
+@category{Package graphs - draw_graphs options}
 @closecatbox
 @end defvr
 
@@ -3163,7 +3311,8 @@ See the @var{point_type} option for the @code{draw} package for possible
 values.
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - draw_graphs options}
+@category{Package graphs}
+@category{Package graphs - draw_graphs options}
 @closecatbox
 @end defvr
 
@@ -3172,7 +3321,8 @@ values.
 The size of vertices in @var{show_vertices}.
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - draw_graphs options}
+@category{Package graphs}
+@category{Package graphs - draw_graphs options}
 @closecatbox
 @end defvr
 
@@ -3181,7 +3331,8 @@ The size of vertices in @var{show_vertices}.
 The color used for displaying vertices in the @var{show_vertices} list.
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - draw_graphs options}
+@category{Package graphs}
+@category{Package graphs - draw_graphs options}
 @closecatbox
 @end defvr
 
@@ -3194,7 +3345,8 @@ graph. The vertices of each list in the partition will be drawn in a
 different color.
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - draw_graphs options}
+@category{Package graphs}
+@category{Package graphs - draw_graphs options}
 @closecatbox
 @end defvr
 
@@ -3204,7 +3356,8 @@ Specifies coloring of the vertices. The coloring @var{col} must be
 specified in the format as returned by @var{vertex_coloring}.
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - draw_graphs options}
+@category{Package graphs}
+@category{Package graphs - draw_graphs options}
 @closecatbox
 @end defvr
 
@@ -3213,7 +3366,8 @@ specified in the format as returned by @var{vertex_coloring}.
 The color used for displaying edges.
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - draw_graphs options}
+@category{Package graphs}
+@category{Package graphs - draw_graphs options}
 @closecatbox
 @end defvr
 
@@ -3222,7 +3376,8 @@ The color used for displaying edges.
 The width of edges.
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - draw_graphs options}
+@category{Package graphs}
+@category{Package graphs - draw_graphs options}
 @closecatbox
 @end defvr
 
@@ -3232,7 +3387,8 @@ Defines how edges are displayed. See the @var{line_type} option for the
 @code{draw} package.
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - draw_graphs options}
+@category{Package graphs}
+@category{Package graphs - draw_graphs options}
 @closecatbox
 @end defvr
 
@@ -3242,7 +3398,8 @@ Display edges specified in the list @var{e_list} using a different
 color.
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - draw_graphs options}
+@category{Package graphs}
+@category{Package graphs - draw_graphs options}
 @closecatbox
 @end defvr
 
@@ -3251,7 +3408,8 @@ color.
 The color used for displaying edges in the @var{show_edges} list.
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - draw_graphs options}
+@category{Package graphs}
+@category{Package graphs - draw_graphs options}
 @closecatbox
 @end defvr
 
@@ -3260,7 +3418,8 @@ The color used for displaying edges in the @var{show_edges} list.
 The width of edges in @var{show_edges}.
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - draw_graphs options}
+@category{Package graphs}
+@category{Package graphs - draw_graphs options}
 @closecatbox
 @end defvr
 
@@ -3270,7 +3429,8 @@ Defines how edges in @var{show_edges} are displayed. See the
 @var{line_type} option for the @code{draw} package.
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - draw_graphs options}
+@category{Package graphs}
+@category{Package graphs - draw_graphs options}
 @closecatbox
 @end defvr
 
@@ -3281,7 +3441,8 @@ graph. The edges of each list in the partition will be drawn using a
 different color.
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - draw_graphs options}
+@category{Package graphs}
+@category{Package graphs - draw_graphs options}
 @closecatbox
 @end defvr
 
@@ -3291,7 +3452,8 @@ The coloring of edges. The coloring must be specified in the
 format as returned by the function @var{edge_coloring}.
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - draw_graphs options}
+@category{Package graphs}
+@category{Package graphs - draw_graphs options}
 @closecatbox
 @end defvr
 
@@ -3303,7 +3465,8 @@ If @code{true}, vertex positions are recomputed even if the positions
 have been saved from a previous drawing of the graph.
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - draw_graphs options}
+@category{Package graphs}
+@category{Package graphs - draw_graphs options}
 @closecatbox
 @end defvr
 
@@ -3314,7 +3477,8 @@ Default value: 15
 The angle for the arrows displayed on arcs (in directed graphs).
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - draw_graphs options}
+@category{Package graphs}
+@category{Package graphs - draw_graphs options}
 @closecatbox
 @end defvr
 
@@ -3325,7 +3489,8 @@ Default value: 0.1
 The length for the arrows displayed on arcs (in directed graphs).
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - draw_graphs options}
+@category{Package graphs}
+@category{Package graphs - draw_graphs options}
 @closecatbox
 @end defvr
 
@@ -3337,7 +3502,8 @@ The number of iterations in the spring embedding graph drawing
 algorithm.
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - draw_graphs options}
+@category{Package graphs}
+@category{Package graphs - draw_graphs options}
 @closecatbox
 @end defvr
 
@@ -3347,7 +3513,8 @@ The terminal used for drawing (see the @var{terminal} option in the
 @code{draw} package).
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - draw_graphs options}
+@category{Package graphs}
+@category{Package graphs - draw_graphs options}
 @closecatbox
 @end defvr
 
@@ -3356,7 +3523,8 @@ The terminal used for drawing (see the @var{terminal} option in the
 The filename of the drawing if terminal is not screen.
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - draw_graphs options}
+@category{Package graphs}
+@category{Package graphs - draw_graphs options}
 @closecatbox
 @end defvr
 
@@ -3371,7 +3539,8 @@ of vertices with fixed position can be specified with the
 @var{fixed_vertices} option.
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - draw_graphs options}
+@category{Package graphs}
+@category{Package graphs - draw_graphs options}
 @closecatbox
 @end defvr
 
@@ -3381,7 +3550,8 @@ Specifies a list of vertices which will have positions fixed along a regular pol
 Can be used when @code{program=spring_embedding}.
 
 @opencatbox
-@category{Package graphs} @category{Package graphs - draw_graphs options}
+@category{Package graphs}
+@category{Package graphs - draw_graphs options}
 @closecatbox
 @end defvr
 

@@ -18,18 +18,12 @@
 ;;; system dependent part of the code, although certain behavior
 ;;; of RENAMEF/MERGEF/DELETE-FILE is assumed.
 
-(defmvar $tr_output_file_default '$trlisp
-  "This is the second file name to be used for translated lisp
-	 output.")
-
 (defmvar $tr_file_tty_messagesp nil
   "It TRUE messages about translation of the file are sent
 	 to the TTY also.")
 
 (defvar *translation-msgs-files* nil
   "Where the warning and other comments goes.")
-
-(defvar $tr_version (get 'transl-autoload 'version))
 
 (defmvar transl-file nil "output stream of $compfile and $translate_file")
 
@@ -102,7 +96,7 @@
     (cond (tr-abort  nil)
 	  (t fun))))
 
-(defun $compile_file (input-file &optional bin-file translation-output-file &aux result)
+(defmfun $compile_file (input-file &optional bin-file translation-output-file &aux result)
   (setq input-file (maxima-string input-file))
   (and bin-file(setq  bin-file (maxima-string bin-file)))
   (and translation-output-file
@@ -132,9 +126,6 @@
   (setq input-file (maxima-string input-file))
   (cond (output-file (setq output-file (maxima-string output-file))))
   (translate-file input-file output-file))
-
-(defmvar $tr_gen_tags nil
-  "If TRUE, TRANSLATE_FILE generates a TAGS file for use by the text editor")
 
 (defvar *pretty-print-translation* t)
 
@@ -274,19 +265,11 @@ translated."
 	       (mapcar 'namestring
 		       (mapcar 'pathname (list in-stream out-stream warn-stream)))))))))
 
-;; Should be rewritten to use streams.  Barf -- perhaps SPRINTER
-;; doesn't take a stream argument?
-;; Yes Carl SPRINTER is old i/o, but KMP is writing a new one for NIL. -GJC
-
 (defun print* (p)
     (sub-print* p))
 
-;;; i might as well be real pretty and flatten out PROGN's.
-
 (defun sub-print* (p &aux (flag nil))
   (cond ((atom p))
-	((and (eq (car p) 'progn) (cdr p) (equal (cadr p) ''compile))
-	 (mapc #'sub-print* (cddr p)))
 	(t
 	 (setq flag (and $tr_semicompile
 			 (not (eq (car p) 'eval-when))))
@@ -300,18 +283,8 @@ translated."
 (defun princ* (form)
   (princ form transl-file))
 
-(defun nprinc* (&rest form)
-  (mapc #'(lambda (x) (princ x transl-file)) form))
-
 (defun terpri* ()
   (terpri transl-file))
-
-(defun print-module (m)
-  (nprinc* " " m " version " (get m 'version)))
-
-(defun new-comment-line ()
-  (terpri*)
-  (princ* ";;;"))
 
 (defun print-abort-msg (fun from)
   (mformat *translation-msgs-files*

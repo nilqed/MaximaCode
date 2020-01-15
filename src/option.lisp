@@ -18,7 +18,7 @@
   (setq x (cdr x))
   (cond ((null x)
 	 (princ "`options' interpreter  (Type `exit' to exit.)")
-	 (terpri) (options '$all))
+	 (mterpri) (options '$all))
 	((nonsymchk (car x) 'options))
 	(t (cons '(mlist) (downs (car x))))))
 
@@ -39,19 +39,19 @@
 
 (defun down (node &aux opts)
   (setq node (decode node) opts (downs node))
-  (cond ((null opts) (princ "No options") (terpri))
+  (cond ((null opts) (princ "No options") (mterpri))
 	(t (setq history (cons node history) options opts)
 	   (menu options))))
 
 (defun up (node &aux opts)
   (setq node (decode node) opts (ups node))
-  (cond ((null opts) (princ "No options") (terpri))
+  (cond ((null opts) (princ "No options") (mterpri))
 	(t (setq history (cons node history) options opts)
 	   (menu options))))
 
-(defun downs (node) (oldget node 'subc))
+(defun downs (node) (zl-get node 'subc))
 
-(defun ups (node) (oldget node 'supc))
+(defun ups (node) (zl-get node 'supc))
 
 (defun decode (node)
   (cond ((not (integerp node)) node)
@@ -61,13 +61,13 @@
 (defun menu (opts)
   (do ((l opts (cdr l)) (i 1 (f1+ i))) ((null l))
     (princ i) (princ " - ") (princ (fullstrip1 (car l)))
-    (cond ((oldget (car l) 'kind) (write-char #\space) (princ (oldget (car l) 'kind))))
-    (terpri)))
+    (cond ((zl-get (car l) 'kind) (write-char #\space) (princ (zl-get (car l) 'kind))))
+    (mterpri)))
 
 
-(defun opt-err () (princ "Illegal command to `options'") (terpri))
+(defun opt-err () (princ "Illegal command to `options'") (mterpri))
 
-(defun nor-err () (princ "Number out of range") (terpri))
+(defun nor-err () (princ "Number out of range") (mterpri))
 
 (defmacro subc (a b &rest l)
   `(subc-internal '(,a ,b ,@l)))
@@ -86,12 +86,12 @@
 (defun printnet () (prnet '$all 0) nil)
 
 (defun prnet (node indent)
-  (terpri)
+  (mterpri)
   (do ((i 1 (1+ i)))
       ((> i indent))
     (write-char #\tab))
   (princ (fullstrip1 node))
-  (cond ((oldget node 'kind) (write-char #\space) (princ (oldget node 'kind))))
+  (cond ((zl-get node 'kind) (write-char #\space) (princ (zl-get node 'kind))))
   (mapc #'(lambda (l) (prnet l (1+ indent))) (downs node)))
 
 ;;Copyright 1980, Massachusetts Institute of Technology

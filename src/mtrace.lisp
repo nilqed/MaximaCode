@@ -153,6 +153,20 @@
 ;; functions).  I think that this has to be fixed somewhere in the
 ;; translation package. -wj
 
+;; Maxima offers no user-level mechanism for manipulating multiple
+;; return values; however, multiple (lisp) return values need to be
+;; handled and returned correctly in traced or timed functions.
+;; For example, if a user traces or times a rule created by defrule
+;; then the second return value must be propagated so apply1 and
+;; friends know when the rule hits (the documentation states that
+;; these rules can be treated as functions, so it seems reasonable
+;; to want to trace or time them).
+;;
+;; We still pretend like there is only one return value when we
+;; print the trace, pass the value to a trace option predicate or
+;; allow the user to set a new return value at a breakpoint.  This
+;; is both for backward-compatibility (particularly in predicates)
+;; and because Maxima doesn't actually support multiple values anyway.
 
 ;;; Structures.
 
@@ -299,10 +313,6 @@
 (defprop mfexpr*s mfexpr* shadow)
 (defprop mfexpr* mfexpr* shadow)
 
-(defprop subr t uuolinks)
-(defprop lsubr t uuolinks)
-(defprop fsubr t uuolinks)		; believe it or not.
-
 (defprop mexpr t mget)
 (defprop mexpr expr shadow)
 
@@ -312,7 +322,44 @@
 
 (defun trace-fshadow (fun type value)
   (let ((shadow (get! type 'shadow)))
-    (cond ((member shadow '(expr subr) :test #'eq)
+    (cond ((and (eq type 'mexpr)
+		(mget fun 'mfexprp))
+	   ; We're tracing an mexpr with special evaluation rules (mfexpr).
+	   ; Let's put a Maxima lambda expression on the plist that calls
+	   ; the trace hook.  Then in the evaluator we can just have mlambda
+	   ; do the work for us.
+	   ;
+	   ; If there is not a rest argument in the mexpr's lambda list
+	   ; then this newly-constructed lambda expression just does a
+	   ; funcall.  If there is a rest argument then it requires a
+	   ; little more work.
+	   (putprop fun
+		    (let* ((lambda-list (cadr (mget fun 'mexpr)))
+			   (params (mparams lambda-list)))
+		      `((lambda) ,lambda-list
+			 ,(if (mget fun 'mlexprp)
+			      (flet ((call-hook (restarg &rest nonrestargs)
+				       (apply value (append nonrestargs
+							    (cdr restarg)))))
+				; This is the mfexpr+mlexpr case (we have at
+				; least one quoted arg and a rest arg).
+				;
+				; The use of call-hook here is basically like
+				;
+				; `(($apply) ,value
+				;            (($append)
+				;              ((mlist) ,@(butlast params))
+				;              ,(car (last params))))
+				;
+				; but faster.  We just have to construct
+				; things so simplifya doesn't barf on any
+				; intermediate expressions.
+				`((funcall) ,#'call-hook
+					    ,(car (last params))
+					    ,@(butlast params)))
+			      `((funcall) ,value ,@params))))
+		    'mfexpr))
+	  ((member shadow '(expr subr) :test #'eq)
 	   (setf (trace-oldfun fun) (and (fboundp fun) (symbol-function fun)))
 	   (setf (symbol-function fun) value))
 	  (t
@@ -320,7 +367,10 @@
 
 (defun trace-unfshadow (fun type)
   ;; At this point, we know that FUN is traced.
-  (cond ((member type '(expr subr) :test #'eq)
+  (cond ((and (eq type 'mexpr)
+	      (safe-get fun 'mfexpr))
+	 (remprop fun 'mfexpr))
+	((member type '(expr subr) :test #'eq)
 	 (let ((oldf (trace-oldfun fun)))
 	   (if (not (null oldf))
 	       (setf (symbol-function  fun)  oldf)
@@ -361,11 +411,11 @@
 ;; (Think about PROGV and SETF and BINDF. If the trace object where
 ;; a closure, then we want to fluid bind instance variables.)
 
-(declare-top (special errcatch lisperrprint bindlist loclist))
+(declare-top (special errcatch bindlist loclist))
 
 (defmacro macsyma-errset (form &aux (ret (gensym)))
   `(let ((errcatch (cons bindlist loclist)) ,ret)
-    (setq ,ret (errset ,form lisperrprint))
+    (setq ,ret (errset ,form))
     (or ,ret (errlfun1 errcatch))
     ,ret))
 
@@ -389,7 +439,7 @@
 	    (level))
 	(setq level (1+ (symbol-value level-sym)))
 	(bind-sym level-sym level
-		  (do ((ret-val)
+		  (do ((ret-vals)
 		       (continuation)
 		       (predicate-arglist))
 		      (nil)
@@ -397,25 +447,24 @@
 		    (setq largs (trace-enter-break fun level largs))
 		    (trace-enter-print fun level largs)
 		    (cond ((trace-option-p fun '$errorcatch)
-			   (setq ret-val (macsyma-errset (trace-apply fun largs)))
-			   (cond ((null ret-val)
-				  (setq ret-val (trace-error-break fun level largs))
-				  (setq continuation (car ret-val)
-					ret-val (cdr ret-val)))
+			   (setq ret-vals (macsyma-errset (trace-apply fun largs)))
+			   (cond ((null ret-vals)
+				  (setq ret-vals (trace-error-break fun level largs))
+				  (setq continuation (car ret-vals)
+					ret-vals (cdr ret-vals)))
 				 (t
-				  (setq continuation 'exit
-					ret-val (car ret-val)))))
+				  (setq continuation 'exit))))
 			  (t
 			   (setq continuation 'exit
-				 ret-val (trace-apply fun largs))))
+				 ret-vals (multiple-value-list (trace-apply fun largs)))))
 		    (case continuation
 		      ((exit)
-		       (setq predicate-arglist `(,level $exit ,fun ,ret-val))
-		       (setq ret-val (trace-exit-break fun level ret-val))
-		       (trace-exit-print fun level ret-val)
-		       (return ret-val))
+		       (setq predicate-arglist `(,level $exit ,fun ,(car ret-vals)))
+		       (setq ret-vals (trace-exit-break fun level ret-vals))
+		       (trace-exit-print fun level (car ret-vals))
+		       (return (values-list ret-vals)))
 		      ((retry)
-		       (setq largs ret-val)
+		       (setq largs ret-vals)
 		       (mtell "TRACE-HANDLER: reapplying the function ~:@M~%" fun))
 		      ((maxima-error)
 		       (merror "~%TRACE-HANDLER: signaling 'maxima-error' for function ~:@M~%" fun))))))))
@@ -449,15 +498,22 @@
 			     "A trace option predicate")))))))
 
 
-(defun trace-enter-print (fun lev largs &aux (mlargs `((mlist) ,@largs)))
-  (if (not (trace-option-p fun '$noprint))
-      (let ((info (trace-option-p fun '$info)))
-	(cond ((trace-option-p fun '$lisp_print)
-	       (trace-print `(,lev enter ,fun ,largs ,@info)))
-	      (t
-	       (trace-mprint lev (intl:gettext " Enter ") (mopstringnam fun) " " mlargs
-			     (if info " -> " "")
-			     (if info info "")))))))
+(defun trace-enter-print (fun lev largs)
+  (let ((args (if (eq (trace-type fun) 'mfexpr*)
+		  (margs (car largs))
+		  largs)))
+    (if (not (trace-option-p fun '$noprint))
+	(let ((info (trace-option-p fun '$info)))
+	  (cond ((trace-option-p fun '$lisp_print)
+		 (trace-print `(,lev enter ,fun ,args ,@info)))
+		(t
+		 (trace-mprint lev
+			       (intl:gettext " Enter ")
+			       (mopstringnam fun)
+			       " "
+			       `((mlist) ,@args)
+			       (if info " -> " "")
+			       (if info info ""))))))))
 
 (defun mopstringnam (x)
   (maknam (mstring (getop x))))
@@ -486,13 +542,26 @@
 	       (mtell "TRACE-ENTER-BREAK: 'trace_break_arg' must be a list.~%"))))
       largs))
 
-(defun trace-exit-break (fun lev ret-val)
+(defun trace-exit-break (fun lev ret-vals)
   (if (trace-option-p fun '$break)
-      (let (($trace_break_arg ret-val)
+      (let (($trace_break_arg (car ret-vals))
 	    (return-to-trace-handle nil))
 	($break "Trace exiting" fun "level" lev)
-	$trace_break_arg)
-      ret-val))
+	; If trace_break_arg is the same (in the sense of eq) now
+	; as when we started the breakpoint, then return all of the
+	; original return values from the function.  This means if
+	; the user sets trace_break_arg but its value is eq to its
+	; original value (which is only the primary return value
+	; from the original function) then we still return the extra
+	; values (if there are any).  I (kjak) don't think this is
+	; strictly correct, but we can try to fix it up later if
+	; anyone ever really cares about this corner case involving
+	; multiple return values, exit breakpoints and setting
+	; trace_break_arg to the same value it started with.
+	(if (eq $trace_break_arg (car ret-vals))
+	    ret-vals
+	    (list $trace_break_arg)))
+      ret-vals))
 
 (defun pred-$read (predicate argl bad-message)
   (do ((ans))(nil)
@@ -530,7 +599,7 @@
     ((1)
      (cons 'retry largs))
     ((2)
-     (cons 'retry (let (($trace_break_arg `((mlist) ,largs)))
+     (cons 'retry (let (($trace_break_arg `((mlist) ,@largs)))
 		    (cdr (pred-$read '$listp
 				     (list
 				      "Enter new argument list for"
@@ -538,7 +607,7 @@
 				     "please enter a list.")))))
 
     ((3)
-     (cons 'exit ($read "Enter value to return")))))
+     (cons 'exit (list ($read "Enter value to return"))))))
 
 ;;; application dispatch, and the consing up of the trace hook.
 
@@ -620,10 +689,9 @@
   (do ((j (min $trace_max_indent trace-indent-level) (1- j)))
       ((not (> j 0)))
     (write-char #\space))
-  (if *prin1*
-      (funcall *prin1* form)
-      (prin1 form))
-  (terpri))
+  (prin1 form)
+  (terpri)
+  (finish-output))
 
 ;; 9:02pm  Monday, 18 May 1981 -GJC
 ;; A function benchmark facility using trace utilities.
@@ -699,7 +767,7 @@
 	(gctime (status gctime))
 	(old-runtime-devalue runtime-devalue)
 	(old-gctime-devalue gctime-devalue))
-    (prog1 (trace-apply fun largs)
+    (multiple-value-prog1 (trace-apply fun largs)
       (setq old-runtime-devalue (- runtime-devalue old-runtime-devalue))
       (setq old-gctime-devalue (- gctime-devalue old-gctime-devalue))
       (setq runtime (- (get-internal-run-time) runtime old-runtime-devalue))

@@ -179,10 +179,6 @@ APPLY means like APPLY.")
 (defmvar $tr_numer nil
   "If `true' numer properties are used for atoms which have them, e.g. %pi")
 
-(defmvar $tr_predicate_brain_damage nil
-  "If TRUE, output possible multiple evaluations in an attempt
-  to interface to the COMPARE package.")
-
 (defvar boolean-object-table
   '(($true . ($boolean . t))
     ($false . ($boolean . nil))
@@ -205,18 +201,17 @@ APPLY means like APPLY.")
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
-(defun barfo (&rest l)
-  (apply #'tr-format
-	 (nconc (list (intl:gettext "translator: internal error. Message: ~:M~%")) l))
+(defun barfo (msg)
+  (tr-format (intl:gettext "translator: internal error. Message: ~:M~%") msg)
   (cond (*transl-debug*
-	 (break "transl barfo ~S" t))
+	 (break "transl barfo"))
 	(t
 	 (setq tr-abort t)
 	 nil)))
 
 (defun specialp (var)
   (cond ((or (optionp var)
-	     (get var 'special))
+	     (tr-get-special var))
 	 (if $transcompile (pushnew var specials :test #'eq))
 	 t)))
 
@@ -249,7 +244,7 @@ APPLY means like APPLY.")
   " if in debug mode `warning's signaled go to lisp break loops ")
 
 (defmacro tr-warnbreak ()
-  `(and *transl-debug* *tr-warn-break* (break "transl ~S" t )))
+  `(and *transl-debug* *tr-warn-break* (break "transl")))
 
 (defun tr-warnp (val)
   (and val
@@ -496,16 +491,12 @@ APPLY means like APPLY.")
 	  (t
 	   (barfo '?)))))
 
-
-(defun lisp-fcn-typep (fcn type)
-  (get fcn type))
-
 (defun translate-function (name)
   (bind-transl-state
    (setq *in-translate* t)
    (let ((lisp-def-form (tr-mfun name))
 	 (delete-subr? (and (get name 'translated)
-			    (not (lisp-fcn-typep name 'expr)))))
+			    (not (get name 'expr)))))
      (cond (tr-abort
 	    (trfail name))
 	   (t
@@ -525,16 +516,13 @@ APPLY means like APPLY.")
   (tr-format (intl:gettext "error: failed to translate ~:@M~%") x)
   nil)
 
-(defmfun translate-and-eval-macsyma-expression (form)
+(defun translate-and-eval-macsyma-expression (form)
   ;; this is the hyper-random entry to the transl package!
-  ;; it is used by MLISP for TRANSLATE:TRUE ":=".
+  ;; it is used by MLISP for TRANSLATE:TRUE "::=".
   (bind-transl-state
    (setq *in-translate* t)
-   ;; Use FUNCALL so that we can be sure we can TRACE this even when
-   ;; JPG sets PURE to NIL. Also, use a function named TRANSLATOR-EVAL
-   ;; so we don't have to lose badly by tracing EVAL!
-   (funcall (progn 'translator-eval)
-	    (funcall (progn 'translate-macexpr-toplevel) form))))
+   ;; Use TRANSLATOR-EVAL so we don't have to lose badly by tracing EVAL
+   (translator-eval (translate-macexpr-toplevel form))))
 
 (defun translator-eval (x)
   (eval x))
@@ -544,7 +532,7 @@ APPLY means like APPLY.")
 ;; specified by ANSI CL.
 (defvar *macexpr-top-level-form-p* nil)
 
-(defmfun translate-macexpr-toplevel (form &aux (*transl-backtrace* nil) tr-abort)
+(defun translate-macexpr-toplevel (form &aux (*transl-backtrace* nil) tr-abort)
   ;; there are very few top-level special cases, I don't
   ;; think it would help the code any to generalize TRANSLATE
   ;; to target levels.
@@ -594,12 +582,8 @@ APPLY means like APPLY.")
 		  `(meval* ',form))
 		 (t trl))))
 	((eq 'mprogn (caar form))
-	 ;; flatten out all PROGN's of course COMPLR needs PROGN 'COMPILE to
-	 ;; tell it to flatten. I don't really see the use of that since one
-	 ;; almost allways wants to. flatten.
 	 ;; note that this ignores the $%% crock.
-	 `(progn 'compile
-		 ,@(mapcar #'translate-macexpr-toplevel (cdr form))))
+	 `(progn ,@(mapcar #'translate-macexpr-toplevel (cdr form))))
 	((eq 'msetq (caar form))
 	 ;; Toplevel msetq's should really be defparameter instead of
 	 ;; setq for Common Lisp.  
@@ -631,10 +615,9 @@ APPLY means like APPLY.")
   ;; Also: think about calling the simplifier here.
   (cond ((atom form)
 	 (cond ((symbolp form)
-        ;; FOLLOWING CODE APPEARS TO BE BROKEN; NOT SURE WHAT WAS THE INTENT.
-        ;; FOLLOWING CODE ALWAYS RETURNS SYMBOL ITSELF EVEN WHEN '$CONSTANTP IS A PROPERTY
-        ;; IS IT SUPPOSED TO FETCH A DECLARED CONSTANT VALUE ??
-        ;; JUST LEAVE IT BE FOR NOW; DO NOT TRY TO REVISE WITH KINDP
+		;; If this symbol has the constant property, then
+		;; use its assigned constant value in place of the
+		;; symbol.
 		(let ((v (getl (mget form '$props) '($constant))))
 		  (if v (cadr v) form)))
 	       (t form)))
@@ -694,12 +677,9 @@ APPLY means like APPLY.")
   (and *transl-debug* (pop *transl-backtrace*))
   (prog2
       (and *transl-debug* (push form *transl-backtrace*))
-      (cond ((atom form)
-	     (translate-atom form))
-	    ((consp form)
-	     (translate-form form))
-	    (t
-	     (barfo "help")))
+      (if (atom form)
+          (translate-atom form)
+          (translate-form form))
     ;; hey boy, reclaim that cons, just don't pop it!
     (and *transl-debug* (pop *transl-backtrace*))))
 
@@ -752,7 +732,7 @@ APPLY means like APPLY.")
 	((setq temp (macsyma-special-op-p (caar form)))
 	 ;; a special form not handled yet! foobar!
 	 (attempt-translate-random-special-op form temp))
-	((getl (caar form) '(noun operators))
+	((or (get (caar form) 'noun) (get (caar form) 'operators))
 	 ;; puntastical case. the weird ones are presumably taken care
 	 ;; of by TRANSLATE properties by now.
 	 (tr-infamous-noun-form form))
@@ -927,11 +907,13 @@ APPLY means like APPLY.")
   (setq tr-abort t)
   '($any . nil))
 
-(def%tr mdefine (form) ;; ((MDEFINE) ((F) ...) ...)
-  `($any . (meval ',form)))
-
 (def%tr mdefmacro (form)
-  (meval form) ;; HMM, THIS HAS A SIDE EFFECT AT THE TIME OF TRANSLATION !!
+  (tr-format (intl:gettext "warning: globally defining macro ~:M now to ensure correct macro expansions.~%") (caaadr form))
+  ; Define the macro now to ensure that it's defined when it's time
+  ; to expand it.  It's a bug that this definition occurs during
+  ; translation without being cleaned it up afterward, but simply
+  ; removing this breaks things.
+  (meval form)
   `($any . (meval ',form)))
 
 (def%tr $local (form)
@@ -972,7 +954,7 @@ APPLY means like APPLY.")
 	      (let* ((var (car l))
 		     (assign (get var 'assign)))
 		(if assign
-		    (cond ((member assign '(assign-mode-check) :test #'eq)
+		    (cond ((eq assign 'assign-mode-check)
 			   (push `(,assign ',var ,(teval var)) easy-assigns))
 			  (t
 			   (return nil)))))))
@@ -991,7 +973,8 @@ APPLY means like APPLY.")
 			     ,@(mapcan #'(lambda (var val)
 					   (let ((assign (get var 'assign)))
 					     (if assign
-						 (list `(,assign ',var ,val)))))
+					       (let ((assign-fn (if (symbolp assign) (symbol-function assign) (coerce assign 'function))))
+						 (list `(funcall ,assign-fn ',var ,val))))))
 				       arglist temps)
 			     ;; [2] do the binding.
 			     ((lambda ,(tunbinds arglist)
@@ -1002,11 +985,12 @@ APPLY means like APPLY.")
 			,@(mapcan #'(lambda (var)
 				      (let ((assign (get var 'assign)))
 					(if assign
-					    (list `(,assign ',var
+					  (let ((assign-fn (if (symbolp assign) (symbol-function assign) (coerce assign 'function))))
+					    (list `(funcall ,assign-fn ',var
 						    ;; use DTRANSLATE to
 						    ;; catch global
 						    ;; scoping if any.
-						    ,(dtranslate var))))))
+						    ,(dtranslate var)))))))
 				  arglist))))))))
 
 
@@ -1018,11 +1002,11 @@ APPLY means like APPLY.")
       
       ;; When a variable is declared special, be sure to declare it
       ;; special here.
-      (when (and localp (get (car l) 'special))
+      (when (and localp (tr-get-special (car l)))
 	(push (car l) specs))
       
       (when (or (not localp)
-		(not (get (car l) 'special)))
+		(not (tr-get-special (car l))))
 	;; don't output local declarations on special variables.
 	(setq var (teval (car l)) mode (value-mode var))
 	(setq specs (cons var specs))
@@ -1070,15 +1054,20 @@ APPLY means like APPLY.")
 			      ;;  X or ((MSETQ) X Y)
 			      (if (atom u) u (cadr u)))
 			  arglist))
-    (setq form
-	  (tr-lambda
-	   ;; [2] call the lambda translator.
-	   `((lambda) ((mlist) ,@arglist) ,@body)
-	   ;; [3] supply our own body translator.
-	   #'tr-mprog-body
-	   val-list
-	   arglist))
-    (cons (car form) `(,(cdr form) ,@val-list))))
+    (let ((dup (find-duplicate arglist :test #'eq)))
+      (when dup
+        (tr-format (intl:gettext "error: ~M occurs more than once in block variable list") dup)
+        (setq tr-abort t)))
+    (unless tr-abort
+      (setq form
+	    (tr-lambda
+	     ;; [2] call the lambda translator.
+	     `((lambda) ((mlist) ,@arglist) ,@body)
+	     ;; [3] supply our own body translator.
+	     #'tr-mprog-body
+	     val-list
+	     arglist))
+      (cons (car form) `(,(cdr form) ,@val-list)))))
 
 (defun tr-mprog-body (body val-list arglist
 		      &aux 
@@ -1218,7 +1207,12 @@ APPLY means like APPLY.")
 					      (atom (cdar l))) nil)
 					(t (list (cdr (car l))))))
 			    form)))))
-     (return (cons mode (cons 'cond form)))))
+     ;; Wrap (LET (($PREDERROR T)) ...) around translation of MCOND.
+     ;; Nested MCOND expressions (e.g. if x > 0 then if y > 0 then ...)
+     ;; will therefore yield nested (LET (($PREDERROR T)) ... (LET (($PREDERROR T)) ...)).
+     ;; I suppose only the topmost one is needed, but there is very little harm
+     ;; in the redundant ones, so I'll let it stand.
+     (return (cons mode (list 'let '(($prederror t)) (cons 'cond form))))))
 
 
 
@@ -1226,13 +1220,13 @@ APPLY means like APPLY.")
 ;; Perhaps a mere expansion into an MPROG would be best.
 
 (def%tr mdo (form)
-  (let (returns assigns return-mode local (inside-mprog t) tem need-prog?)
+  (let (returns assigns return-mode local (inside-mprog t) need-prog?)
     (let (mode var init next test action varmode)
       (setq var (cond ((cadr form)) (t 'mdo)))
       (specialp var)
       (tbind var)
       (setq init (if (caddr form) (translate (caddr form)) '($fixnum . 1)))
-      (cond ((not (setq varmode (get var 'mode)))
+      (cond ((not (setq varmode (tr-get-mode var)))
 	     (declvalue var (car init) t)))
       (setq next (translate (cond ((cadddr form) (list '(mplus) (cadddr form) var))
 				  ((car (cddddr form)))
@@ -1240,7 +1234,6 @@ APPLY means like APPLY.")
       (setq form (copy-list form))
       ;;to make the end test for thru be numberp if the index is numberp
       ;;and to eliminate reevaluation
-      tem
       (cond ((not varmode)
 	     (declvalue var (*union-mode (car init) (car next)) t))
 	    (t
@@ -1306,10 +1299,13 @@ APPLY means like APPLY.")
 	       (setq val (dconv val mode)))
 	   (cons mode
 		 (if (setq assign (get var 'assign))
-		     (let ((tn (tr-gensym)))
-		       (lambda-wrap1 tn val `(progn (,assign ',var ,tn)
+		     (let ((tn (tr-gensym))
+		           (assign-fn (if (symbolp assign) (symbol-function assign) (coerce assign 'function))))
+		       (lambda-wrap1 tn val `(let nil
+					      (declare (special ,var ,(teval var)))
+					      (funcall ,assign-fn ',var ,tn)
 					      (setq ,(teval var) ,tn))))
-                     `(progn
+                     `(let nil (declare (special ,(teval var)))
                         (if (not (boundp ',(teval var)))
                             (add2lnc ',(teval var) $values))
                         (,(if *macexpr-top-level-form-p*
@@ -1369,7 +1365,7 @@ APPLY means like APPLY.")
 	(t '$any)))
 
 (defun value-mode (var)
-  (cond ((get var 'mode))
+  (cond ((tr-get-mode var))
 	(t
 	 (warn-undeclared var)
 	 '$any)))
@@ -1387,15 +1383,20 @@ APPLY means like APPLY.")
   (cond ((get f 'function-mode)) (t '$any)))
 
 (defun function-mode-@ (f)
-  (ass-eq-ref (get f 'val-modes) 'function-mode '$any))
+  (ass-eq-ref (tr-get-val-modes f) 'function-mode '$any))
 
 (defun array-mode-@ (f)
-  (ass-eq-ref (get f 'val-modes) 'array-mode '$any))
+  (ass-eq-ref (tr-get-val-modes f) 'array-mode '$any))
 
 
 (defvar $tr_bind_mode_hook nil
   "A hack to allow users to key the modes of variables
   off of variable spelling, and other things like that.")
+
+;; TBIND, below, copies the MODE, VAL-MODES, and SPECIAL properties
+;; into the a table named TSTACK, and then removes those properties.
+;; So if TBIND has been called, we will need to look for those
+;; properties in TSTACK instead of the symbol property list.
 
 (defstruct (tstack-slot (:conc-name tstack-slot-))
   mode 
@@ -1405,6 +1406,60 @@ APPLY means like APPLY.")
   ;; about APPLY(VAR,[X]), ARRAYAPPLY(F,[X]) etc.
   special)
 
+(defun tr-get-mode (a)
+  (if (get a 'tbind)
+    (let ((my-slot (cdr (assoc a tstack))))
+      (tstack-slot-mode my-slot))
+    (get a 'mode)))
+
+#-gcl (defun (setf tr-get-mode) (b a)
+  (if (get a 'tbind)
+    (let ((my-slot (cdr (assoc a tstack))))
+      (setf (tstack-slot-mode my-slot) b))
+    (setf (get a 'mode) b)))
+
+#+gcl (defsetf tr-get-mode (a) (b)
+ `(if (get ,a 'tbind)
+    (let ((my-slot (cdr (assoc ,a tstack))))
+      (setf (tstack-slot-mode my-slot) ,b))
+    (setf (get ,a 'mode) ,b)))
+
+(defun tr-get-val-modes (a)
+  (if (get a 'tbind)
+    (let ((my-slot (cdr (assoc a tstack))))
+      (tstack-slot-val-modes my-slot))
+    (get a 'val-modes)))
+
+#-gcl (defun (setf tr-get-val-modes) (b a)
+  (if (get a 'tbind)
+    (let ((my-slot (cdr (assoc a tstack))))
+      (setf (tstack-slot-val-modes my-slot) b))
+    (setf (get a 'val-modes) b)))
+
+#+gcl (defsetf tr-get-val-modes (a) (b)
+ `(if (get ,a 'tbind)
+    (let ((my-slot (cdr (assoc ,a tstack))))
+      (setf (tstack-slot-val-modes my-slot) ,b))
+    (setf (get ,a 'val-modes) ,b)))
+
+(defun tr-get-special (a)
+  (if (get a 'tbind)
+    (let ((my-slot (cdr (assoc a tstack))))
+      (tstack-slot-special my-slot))
+    (get a 'special)))
+
+#-gcl (defun (setf tr-get-special) (b a)
+  (if (get a 'tbind)
+    (let ((my-slot (cdr (assoc a tstack))))
+      (setf (tstack-slot-special my-slot) b))
+    (setf (get a 'special) b)))
+
+#+gcl (defsetf tr-get-special (a) (b)
+ `(if (get ,a 'tbind)
+    (let ((my-slot (cdr (assoc ,a tstack))))
+      (setf (tstack-slot-special my-slot) ,b))
+    (setf (get ,a 'special) ,b)))
+;;;
 ;;; should be a macro (TBINDV <var-list> ... forms)
 ;;; so that TUNBIND is assured, and also so that the stupid ASSQ doesn't
 ;;; have to be done on the darn TSTACK. This will have to wait till
@@ -1472,7 +1527,7 @@ APPLY means like APPLY.")
 
 (defun tboundp (var)
   ;; really LEXICAL-VARP.
-  (and (symbolp var) (get var 'tbind) (not (get var 'special))))
+  (and (symbolp var) (get var 'tbind) (not (tr-get-special var))))
 
 (defun teval (var)
   (or (and (symbolp var) (get var 'tbind)) var))

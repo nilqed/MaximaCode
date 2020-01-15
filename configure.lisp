@@ -32,7 +32,7 @@
 (defun read-with-default (prompt default)
   (format t "~a [~a]: " prompt default)
   (terpri)
-  (let ((response (read-line)))
+  (let ((response (string-right-trim '(#\Return) (read-line))))
     (if (string= response "") default response)))
 
 
@@ -61,10 +61,10 @@
          temp)
         ((eq line 'eof)
          (when (string= version "")
-           (format t "WARNING: No version information found.~%~%"))
+           (format t "Warning: No version information found.~%~%"))
          version)
       (when (search "AC_INIT([maxima]," line)
-        #+openmcl (setq line (string-trim '(#\Return) line))
+        (setq line (string-trim '(#\Return) line))
         (setq temp
               (replace-substring line "AC_INIT([maxima], [" ""))
         (setq version
@@ -72,7 +72,7 @@
         (when (or (string= temp line)
                   (string= temp version))
           ; Failed substitution
-          (format t "WARNING: Problem parsing version information. ")
+          (format t "Warning: Problem parsing version information. ")
           (format t "Found: \"~a\"~%~%" version))))))
 
 (defvar *maxima-lispname* #+clisp "clisp"
@@ -155,6 +155,7 @@
 			      (cons "@POSIX_SHELL@" shell)
 			      (cons "@expanded_top_srcdir@" 
 				    (replace-substring prefix "\\" "\\\\"))
+			      (cons "@lisp_only_build@" "t")
 			      (cons "@DEFAULTLISP@" *maxima-lispname*)
 			      (cons "@CLISP_NAME@" clisp)
 			      (cons "@CMUCL_NAME@" cmucl)

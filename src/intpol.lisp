@@ -44,11 +44,13 @@ Perhaps you meant to enter `~a'.~%"
 		            (relerr maxima::$find_root_rel))
   (flet ((convert (s)
 	   ;; Try to convert to a BIGFLOAT type.  If that fails, just
-	   ;; return the argument.  Set the flags errcatch and erromsg
-	   ;; so we can catch the error, but disable printing of any
-	   ;; error messages.
-	   (let ((maxima::errcatch t)
-		 (maxima::$errormsg nil))
+	   ;; return the argument.  Set the flags errset, errcatch,
+	   ;; $errormsg and *mdebug* so we can catch the error, but
+	   ;; disable printing of any error messages.
+	   (let ((maxima::errset nil)
+		 (maxima::errcatch t)
+		 (maxima::$errormsg nil)
+		 (maxima::*mdebug* nil))
 	     (or (car (maxima::errset (to s)))
 		 s))))
     (let (;; Don't want to bind $numer to T here.  This causes things
@@ -80,8 +82,8 @@ Perhaps you meant to enter `~a'.~%"
       (when (plusp (* (float-sign fa) (float-sign fb)))
 	(if (eq maxima::$find_root_error t)
 	    (maxima::merror (intl:gettext "find_root: function has same sign at endpoints: ~M, ~M")
-			    `((maxima::mequal) ((f) ,a) ,fa)
-			    `((maxima::mequal) ((f) ,b) ,fb))
+			    `((maxima::mequal) ((maxima::f) ,a) ,fa)
+			    `((maxima::mequal) ((maxima::f) ,b) ,fb))
 	    (return-from find-root-subr 'maxima::$find_root_error)))
       (when (plusp fa)
 	(psetq fa fb
@@ -180,9 +182,9 @@ Perhaps you meant to enter `~a'.~%"
 	 ;; wrong number of args
 	 (wna-err name))))))
 
-(defun $find_root (fun-or-expr &rest args)
+(defmfun $find_root (fun-or-expr &rest args)
   (%find-root '$find_root fun-or-expr args))
 
 ;; Like find_root but operates on bfloats and returns a bfloat result.
-(defun $bf_find_root (fun-or-expr &rest args)
+(defmfun $bf_find_root (fun-or-expr &rest args)
   (%find-root '$bf_find_root fun-or-expr args))

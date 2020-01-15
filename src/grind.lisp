@@ -120,7 +120,7 @@
 (defun styotbsp (n) (declare (fixnum n)) (setq chrps n)
        (do () ((< n 1)) (setq *grind-charlist* (cons #\space *grind-charlist*) n (1- n))))
 
-(defmfun mstring (x)
+(defun mstring (x)
   (nreverse (string1 (msize x nil nil 'mparen 'mparen) nil)))
 
 (defun string1 (x l)
@@ -191,7 +191,8 @@
 
 (defun msize-array (x l r &aux f)
   (if (eq (caar x) 'mqapply) (setq f (cadr x) x (cdr x)) (setq f (caar x)))
-  (cond ((and (symbolp (caar x)) (get (caar x) 'verb) (get (caar x) 'alias))
+  (cond ((atom (car x)))
+	((and (symbolp (caar x)) (get (caar x) 'verb) (get (caar x) 'alias))
 	 (setq l (revappend '(#\' #\') l)))
 	((and (symbolp (caar x))
 	      (get (caar x) 'noun)
@@ -264,12 +265,13 @@
 (defprop bigfloat msz-bigfloat grind)
 
 (defun msz-bigfloat (x l r)
-  (msz (mapcar #'(lambda (l) (getcharn l 1)) (fpformat x)) l r))
+  (msz (mapcar #'get-first-char (fpformat x)) l r))
 
 (defprop mprogn msize-matchfix grind)
 (defprop mprogn ((#\( ) #\) ) strsym)
 
 (defprop mlist msize-matchfix grind)
+(setf (get '%mlist 'grind) (get 'mlist 'grind))
 
 ;;; ----------------------------------------------------------------------------
 

@@ -26,7 +26,7 @@ The interpolation points are regarded as vertices of a simplex. The
 parameter RHO controls the size of the simplex and it is reduced
 automatically from RHOBEG to RHOEND. For each RHO the subroutine tries
 to achieve a good vector of variables for the current size, and then
-RHO is reduced until the value RHOEND is reached. Therefore RHOBEG and
+RHO is reduced until the value RHOEND is reached. Therefore, RHOBEG and
 RHOEND should be set to reasonable initial changes to and the required   
 accuracy in the variables respectively, but this accuracy should be
 viewed as a subject for experimentation because it is not guaranteed.
@@ -45,7 +45,10 @@ References:
 [3] M. J. D. Powell, "Direct search algorithms for optimization calculations," Acta Numerica 7, 287-336 (1998).  Also available as University of Cambridge, Department of Applied Mathematics and Theoretical Physics,  Numerical Analysis Group, Report NA1998/04 from @url{http://www.damtp.cam.ac.uk/user/na/reports.html}
 
 @opencatbox
-@category{Numerical methods}  @category{Optimization} @category{Share packages} @category{Package cobyla}
+@category{Numerical methods} 
+@category{Optimization}
+@category{Share packages}
+@category{Package cobyla}
 @closecatbox
 
 @node Functions and Variables for cobyla, Examples for cobyla, Introduction to cobyla, cobyla-pkg
@@ -60,7 +63,7 @@ Returns an approximate minimum of the expression @var{F} with respect
 to the variables @var{X}, subject to an optional set of constraints.
 @var{Y} is a list of initial guesses for @var{X}.
 
-@var{F} must be an ordinary expressions, not names of functions or lambda expressions.
+@var{F} must be ordinary expressions, not names of functions or lambda expressions.
 
 @code{optional_args} represents additional arguments,
 specified as @code{@var{symbol} = @var{value}}.
@@ -118,7 +121,7 @@ Return code with the following meanings
  @end enumerate
 @end enumerate
 
-@code{load(fmin_cobyla)} loads this function.
+@code{load("fmin_cobyla")} loads this function.
 
 @end deffn
 
@@ -133,7 +136,7 @@ operations are used, and the default value for @var{rhoend} is
 
 See @mref{fmin_cobyla} for more information.
 
-@code{load(bf_fmin_cobyla)} loads this function.
+@code{load("bf_fmin_cobyla")} loads this function.
 
 @end deffn
 
@@ -144,12 +147,12 @@ Minimize x1*x2 with 1-x1^2-x2^2 >= 0.
 The theoretical solution is x1 = 1/sqrt(2), x2 = -1/sqrt(2).
 
 @c ===beg===
-@c load(fmin_cobyla)$
+@c load("fmin_cobyla")$
 @c fmin_cobyla(x1*x2, [x1, x2], [1,1], 
 @c             constraints = [x1^2+x2^2<=1], iprint=1);
 @c ===end===
 @example
-(%i1) load(fmin_cobyla)$
+(%i1) load("fmin_cobyla")$
 @group
 (%i2) fmin_cobyla(x1*x2, [x1, x2], [1,1], 
                   constraints = [x1^2+x2^2<=1], iprint=1);

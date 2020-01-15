@@ -161,7 +161,7 @@
            (eqtest (list '(%carg) z) expr)))))
 
 ;; The internal cabs, used by other Macsyma programs.
-(defmfun cabs (xx) (car (absarg xx t)))
+(defun cabs (xx) (car (absarg xx t)))
 
 ;; Some objects can only appear at the top level of a legal simplified
 ;; expression: CRE forms and equations in particular.
@@ -337,7 +337,7 @@
 (defun risplit-expt-sqrt-pow (base sp power)
   ;; n = abs(2*power) is a non-negative integer
   (destructuring-bind (real . imag) sp
-    (let* ((abs2 (spabs sp)) (abs (power abs2 (1//2)))
+    (let* ((abs2 (spabs sp)) (abs (power abs2 1//2))
            (n (abs (cadr power)))
            (pos? (> (cadr power) -1))
            (imag-sign ($sign imag)))
@@ -366,9 +366,9 @@
          ;; correct, write out the 2x2 truth table...
          (divcarcdr
           (expanintexpt
-           (cons (power (add abs real) (1//2))
+           (cons (power (add abs real) 1//2)
                  (porm (eq (eq imag-sign '$pos) pos?)
-                       (power (sub abs real) (1//2))))
+                       (power (sub abs real) 1//2)))
            n)
           (if pos?
               (power 2 (div n 2))
@@ -469,8 +469,7 @@
            ;; Case atan2(y,x) and y/x a real expression.
            (cons l 0))
 	  ((or (arcp (caar l)) (eq (caar l) '$atan2))
-	   (let ((ans (risplit (let (($logarc t))
-				 (resimplify l)))))
+	   (let ((ans (risplit (logarc (caar l) (cadr l)))))
 	     (when (eq (caar l) '$atan2)
 	       (setq ans (cons (sratsimp (car ans)) (sratsimp (cdr ans)))))
 	     (if (and (free l '$%i) (=0 (cdr ans)))
@@ -678,6 +677,8 @@
 ;; as often as possible, so that, for instance, Abs(x) can be simplified to
 ;; x or -x if the sign of x must be known for some other reason.  These
 ;; techniques, however, are not perfect.
+
+(defmacro half () ''((rat simp) 1 2))  ;1/2
 
 (defun absarg (l &optional (absflag nil))
 ;; Commenting out the the expansion of the expression l. It seems to be not

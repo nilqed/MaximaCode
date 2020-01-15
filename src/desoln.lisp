@@ -25,7 +25,7 @@
 		     vars)))
     (setq teqns
 	  (let ((errcatch (cons bindlist loclist))
-		(ret (errset (simplify ($solve teqns tvars)) lisperrprint)))
+		(ret (errset (simplify ($solve teqns tvars)))))
 	    (when (null ret)
 	      (errlfun1 errcatch))
 	    (cons '(mlist) ret)))
@@ -44,5 +44,3 @@
     (if (and flag (= ($length tvars) 1))
 	(maref teqns 1)
 	teqns)))
-
-(add2lnc '$desolve $props)

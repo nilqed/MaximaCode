@@ -196,7 +196,8 @@ quote.
 @end example
 
 @opencatbox
-@category{Evaluation} @category{Operators}
+@category{Evaluation}
+@category{Operators}
 @closecatbox
 @end deffn
 
@@ -225,7 +226,7 @@ definitions, lambda expressions, and expressions quoted by single quote
 
 Quote-quote is recognized by @mref{batch} and @mrefdot{load}
 
-See also the single-quote operator @mxref{quote, '} and @mrefdot{nouns}
+See also @mrefcomma{ev} the single-quote operator @mxref{quote, '} and @mrefdot{nouns}
 
 Examples:
 
@@ -285,12 +286,12 @@ Applied to a general expression @var{expr}, quote-quote causes the value of
 Applied to the operator of an expression, quote-quote changes the operator from
 a noun to a verb (if it is not already a verb).
 
-@c ===beg==
+@c ===beg===
 @c declare (foo, noun);
 @c foo (x) := x - 1729;
 @c foo (100);
 @c ''foo (100);
-@c ===end==
+@c ===end===
 @example
 (%i1) declare (foo, noun);
 (%o1)                         done
@@ -390,7 +391,8 @@ quote @code{'}.
 @end example
 
 @opencatbox
-@category{Evaluation} @category{Operators}
+@category{Evaluation}
+@category{Operators}
 @closecatbox
 @end deffn
 
@@ -507,7 +509,7 @@ switches are not both @code{true}.
 During step (1), a list is made of the non-subscripted variables appearing on
 the left side of equations in the arguments or in the value of some arguments
 if the value is an equation.  The variables (subscripted variables which do not
-have associated array functions as well as non-subscripted variables) in the
+have associated @mref{memoizing functions} as well as non-subscripted variables) in the
 expression @var{expr} are replaced by their global values, except for those
 appearing in this list.  Usually, @var{expr} is just a label or @code{%} (as in
 @code{%i2} in the example below), so this step simply retrieves the expression
@@ -526,6 +528,8 @@ evaluated and that @code{ev(F(x))} thus may behave like @code{F(ev(x))}.
 For each instance of @mref{eval} in the arguments, steps (3) and (4) are
 repeated.
 @end enumerate
+
+See also @mxrefcomma{quote-quote, ''} @mref{at} and @mrefdot{subst}
 
 Examples:
 
@@ -711,7 +715,8 @@ Examples:
 @end example
 
 @opencatbox
-@category{Evaluation flags} @category{Simplification flags and variables}
+@category{Evaluation flags}
+@category{Simplification flags and variables}
 @closecatbox
 @end defvr
 
@@ -861,7 +866,8 @@ being @code{ev}'d to "verbs", i.e., evaluates them.  See also
 @mrefcomma{noun} @mrefcomma{nounify} @code{verb}, and @mrefdot{verbify}
 
 @opencatbox
-@category{Evaluation flags} @category{Nouns and verbs}
+@category{Evaluation flags}
+@category{Nouns and verbs}
 @closecatbox
 @end defvr
 

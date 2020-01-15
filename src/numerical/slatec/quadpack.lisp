@@ -2,6 +2,11 @@
 
 (in-package :maxima)
 
+(defvar *debug-quadpack*
+  nil
+  "Set to non-NIL to enable printing of the error object when the
+  Slatec routines throw an error.")
+
 #-(or gcl ecl)
 (defmacro get-integrand (fun var)
   `(compile nil (coerce-float-fun ,fun `((mlist) ,,var))))
@@ -36,6 +41,8 @@
 		 (limit 200)
 		 (epsabs 0.0))
   (quad_argument_check fun var a b) 
+  (unless (and (integerp key) (>= key 1) (<= key 6))
+    (merror (intl:gettext "quad_qag: key must be 1, 2, 3, 4, 5, or 6; found: ~M") key))
   (let* ((lenw (* 4 limit))
 	 (work (make-array lenw :element-type 'flonum))
 	 (iwork (make-array limit :element-type 'f2cl-lib:integer4)))
@@ -52,7 +59,9 @@
 			 limit lenw 0 iwork work)
 	  (declare (ignore junk z-a z-b z-epsabs z-epsrel z-key z-limit z-lenw last))
 	  (list '(mlist) result abserr neval ier))
-      (error ()
+      (error (e)
+	(when *debug-quadpack*
+	  (format t "~S" e))
 	`(($quad_qag) ,fun ,var ,a ,b ,key
 	  ((mequal) $epsrel ,epsrel)
 	  ((mequal) $epsabs ,epsabs)
@@ -78,7 +87,9 @@
 			  limit lenw 0 iwork work)
 	  (declare (ignore junk z-a z-b z-epsabs z-epsrel z-limit z-lenw last))
 	  (list '(mlist) result abserr neval ier))
-      (error ()
+      (error (e)
+	(when *debug-quadpack*
+	  (format t "~S" e))
 	`(($quad_qags) ,fun ,var ,a ,b
 	  ((mequal) $epsrel ,epsrel)
 	  ((mequal) $epsabs ,epsabs)
@@ -137,7 +148,9 @@
 	      (declare (ignore junk z-bound z-inf z-epsabs z-epsrel
 			       z-limit z-lenw last))
 	      (list '(mlist) result abserr neval ier))
-	  (error ()
+	  (error (e)
+	    (when *debug-quadpack*
+	      (format t "~S" e))
 	    `(($quad_qagi) ,fun ,var ,a ,b
 	      ((mequal) $epsrel ,epsrel)
 	      ((mequal) $epsabs ,epsabs)
@@ -164,7 +177,9 @@
 			  limit lenw 0 iwork work)
 	  (declare (ignore junk z-a z-b z-c z-epsabs z-epsrel z-limit z-lenw last))
 	  (list '(mlist) result abserr neval ier))
-      (error ()
+      (error (e)
+	(when *debug-quadpack*
+	  (format t "~S" e))
 	`(($quad_qawc) ,fun ,var ,c ,a ,b
 	  ((mequal) $epsrel ,epsrel)
 	  ((mequal) $epsabs ,epsabs)
@@ -197,7 +212,9 @@
 	  (declare (ignore junk z-a z-omega z-integr epsabs z-limlst z-lst
 			   z-leniw z-maxp1 z-lenw))
 	  (list '(mlist) result abserr neval ier))
-      (error ()
+      (error (e)
+	(when *debug-quadpack*
+	  (format t "~S" e))
 	`(($quad_qawf) ,fun ,var ,a ,omega ,trig
 	  ((mequal) $epsabs ,epsabs)
 	  ((mequal) $limit ,limit)
@@ -233,7 +250,9 @@
 	  (declare (ignore junk z-a z-b z-omega z-integr z-epsabs z-epsrel
 			   z-lst z-leniw z-maxp1 z-lenw))
 	  (list '(mlist) result abserr neval ier))
-      (error ()
+      (error (e)
+	(when *debug-quadpack*
+	  (format t "~S" e))
 	`(($quad_qawo) ,fun ,var ,a ,b ,omega ,trig
 	  ((mequal) $epsrel ,epsrel)
 	  ((mequal) $epsabs ,epsabs)
@@ -265,7 +284,9 @@
 	  (declare (ignore junk z-a z-b z-alfa z-beta z-int z-epsabs z-epsrel
 			   z-limit z-lenw last))
 	  (list '(mlist) result abserr neval ier))
-      (error ()
+      (error (e)
+	(when *debug-quadpack*
+	  (format t "~S" e))
 	`(($quad_qaws) ,fun ,var ,a ,b ,alfa ,beta ,wfun
 	  ((mequal) $epsrel ,epsrel)
 	  ((mequal) $epsabs ,epsabs)
@@ -297,7 +318,9 @@
 	  (declare (ignore junk z-a z-b z-npts z-points z-epsabs z-epsrel
 			   z-leniw z-lenw last))
 	  (list '(mlist) result abserr neval ier))
-      (error ()
+      (error (e)
+	(when *debug-quadpack*
+	  (format t "~S" e))
 	`(($quad_qagp) ,fun ,var ,a ,b ,points
 	  ((mequal) $epsrel ,epsrel)
 	  ((mequal) $epsabs ,epsabs)
@@ -329,7 +352,7 @@
 		  (or new-value 0)
 		  (if new-value t nil))))
 
-(defun $quad_control (parameter &rest new-value)
+(defmfun $quad_control (parameter &rest new-value)
   (quad-control parameter (if new-value (car new-value))))
 
 

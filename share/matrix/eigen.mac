@@ -58,17 +58,17 @@ unitvector(x):=block([listarith],listarith:true,x/sqrt(innerproduct(x,x)))$
 columnvector(x):=transpose(matrix(x))$
 
 
-gramschmidt(x,[myinnerproduct]):=
+gramschmidt(x%,[myinnerproduct]):=
 		block([listarith,dimnsn,listall,intern,count,denom,unit,index1,
 		index2],
                 if myinnerproduct=[] then myinnerproduct:innerproduct
                 else myinnerproduct:first(myinnerproduct),
                 mode_declare([dimnsn,count,index1,index2],fixnum,
                               [listall],list,[intern,denom,unit],any),
-		listarith:true,dimnsn:mi(length(x)),listall:[part(x,1)],
-		count:1,if dimnsn=1 then return(x)
+		listarith:true,dimnsn:mi(length(x%)),listall:[part(x%,1)],
+		count:1,if dimnsn=1 then return(x%)
 		else (for index1:2 thru dimnsn do
-		(unit:part(x,index1),for index2 thru count do
+		(unit:part(x%,index1),for index2 thru count do
 		(intern:part(listall,index2),denom : apply (myinnerproduct, [intern, intern]),
 		unit:factor(ratsimp(unit - apply (myinnerproduct, [intern, unit])*intern/denom
 		))),
@@ -98,6 +98,27 @@ eigenvalues(mat):=
 		listall:endcons(multiplicities,[listall]),
 		return(listall))$
 
+/* EIGENVECTORS - Compute eigenvectors of the matrix mat.
+
+  The return value is a list of two elements. The first is a list of the
+  eigenvalues of mat and a list of the multiplicities of the eigenvalues,
+  found by calling eigenvalues().  The second is a list of lists of
+  eigenvectors. There is one list of eigenvectors for each eigenvalue.
+  There may be one or more eigenvectors in each list.
+
+  The following flags are used:
+
+  nondiagonalizable is set to true when the matrix is nondiagonalizable
+  after eigenvectors returns, or false otherwise.
+
+  hermitianmatrix when true, causes the degenerate eigenvectors of the
+  Hermitian matrix to be orthogonalized using the Gram-Schmidt algorithm.
+
+  knowneigvals when true causes the eigen package to assume the eigenvalues
+  of the matrix are known to the user and stored under the global name
+  listeigvals. listeigvals should be set to a list similar to the output
+  eigenvalues.
+ */
 eigenvectors(mat):=
 		block([eigvecs,equations,unknowns,solution,eigvals,dimnsn,
 		count,vectr,index3,index4,index2,index1,matrx,mmatrx,notknwn,
@@ -108,6 +129,7 @@ eigenvectors(mat):=
                              [vectr,matrx,mmatrx,intern,notknwn],any),
                 unknowns:[],dimnsn:mi(length(mat)),
                 count:mi(dimnsn),notknwn:?gensym(),
+		mat:rationalize(mat),
 		if knowneigvals then eigvals:listeigvals
 		else eigvals:eigenvalues(mat),
 		if eigvals=[] then (nondiagonalizable:true,return(eigvals))
@@ -119,8 +141,7 @@ eigenvectors(mat):=
 		nondiagonalizable:false,
 		eigvecs:[],realonly:false,algebraic:true,
 		for index1 thru count do 
-		(count:mi(count-part(multiplicities,index1)+1),
-		mmatrx:matrx-part(eigvals,1,index1)*vectr,
+		(mmatrx:matrx-part(eigvals,1,index1)*vectr,
 		equations:[],
 		for index2 thru dimnsn do
 		equations:cons(mmatrx[index2,1],equations),%rnum:0,
@@ -187,7 +208,7 @@ uvect(x):=unitvector(x)$
 
 covect(x):=columnvector(x)$
 
-gschmit(x, [f]):= if f = [] then gramschmidt(x) else gramschmidt (x, f[1])$
+gschmit(x%, [f]):= if f = [] then gramschmidt(x%) else gramschmidt (x%, f[1])$
 
 eivals(mat):=eigenvalues(mat)$
 

@@ -417,6 +417,19 @@ todd_coxeter (symet (5));
 (put ("*", 'bar, 'foo), kill (all), string (a*b));
 "a*b";
 
+/* SF bug #3387: kill(all) looses mtime's "nary" property
+ * (tickled by the preceding test)
+ */
+
+xreduce ("*", []);
+1;
+
+(put ("+", 'baz, 'quux), kill (all));
+done;
+
+xreduce ("+", []);
+0;
+
 /* reported to mailing list 2015-01-05: "order of operands is changed due to source information" */
 
 block([simp:false], ?cons(?list('?mplus),?cdr([1,5,3])), string(%%));
@@ -604,5 +617,83 @@ true;
   [1-sqrt(2), (1-sqrt(2))^x, log(2)],
   [1-sqrt(2), (1-sqrt(2))^x, log(log(1-sqrt(2)))],
   [1-sqrt(2), (1-sqrt(2))^x, log(log(2))]],
- map (lambda ([l], apply (exactly_1, listify (permutations (l)))), %%));
+  map (lambda ([l], apply (exactly_1, map (lambda ([triple], apply (in_order, triple)),  
+					   (listify (permutations (l)))))),
+       %%));
 [true, true, true, true, true, true, true, true, true, true, true, true, true, true, true];
+
+/* totalorderp from mailing list 2016-07-18 "Testing for total order (for orderlessp testing)" tnx Stavros */
+
+(totalorderp(func,domain) :=
+   block([ord,i,j,res:[]],
+      ord: sort(domain, func),
+      i:0,
+      for eli in ord do
+        (i:i+1,
+         j:0,
+         for elj in ord do
+          (j:j+1,
+           if (func(eli,elj) # is(i<j)) and not(eli=elj)
+           then push([i,j,eli,elj],res))),
+              res),
+ 0);
+0;
+
+(b10: bfloat(1),fpprec:10,
+ b20: bfloat(1),fpprec:20,
+ totalorderp('orderlessp, [2^-K,b10,2^K,b20,K^(5/2),b10,2^x,K,x,2^-x,K^2]));
+[];
+
+(declare (K, constant),
+ totalorderp('orderlessp, [2^-K,b10,2^K,b20,K^(5/2),b10,2^x,K,x,2^-x,K^2]));
+[];
+
+kill (K);
+done;
+
+/* ensure that GREAT returns only T or NIL, not an integer, when its arguments are strings. */
+
+?great ("foo", "bar");
+true;
+
+?great ("bar", "foo");
+false;
+
+/* check return values for float_approx_equal */
+
+(load (floatproperties),
+ xx: [largest_negative_float, least_negative_normalized_float, least_negative_float,
+      0.0, 1.0, least_positive_float, least_positive_normalized_float, largest_float],
+ xx : unique (xx),
+ if errcatch (x: 1.0/0.0) # [] then push (x, xx),
+ if errcatch (x: -1.0/0.0) # [] then push (x, xx),
+ if errcatch (x: 0.0/0.0) # [] then push (x, xx),
+ genmatrix (lambda ([i, j], errcatch (float_approx_equal (xx[i], xx[j])), if %% = [] then %% else %%[1]),
+            length (xx), length (xx)));
+''(genmatrix (lambda ([i, j], if i = j then true else false), length (xx), length (xx)));
+
+(kill (foo, bar),
+ foo: 1.0,
+ bar: foo - float_eps (),
+ float_approx_equal_tolerance: float_eps (),
+ floatnump (bar));
+true;
+
+block ([foo100: 1e-100*foo, bar100: 1e-100*bar],
+        [is (foo100 = bar100), float_approx_equal (foo100, bar100)]);
+[false, true];
+
+block ([foo10: 1e-10*foo, bar10: 1e-10*bar],
+        [is (foo10 = bar10), float_approx_equal (foo10, bar10)]);
+[false, true];
+
+[is (foo = bar), float_approx_equal (foo, bar)];
+[false, true];
+
+block ([foo10: 1e10*foo, bar10: 1e10*bar],
+        [is (foo10 = bar10), float_approx_equal (foo10, bar10)]);
+[false, true];
+
+block ([foo100: 1e100*foo, bar100: 1e100*bar],
+        [is (foo100 = bar100), float_approx_equal (foo100, bar100)]);
+[false, true];

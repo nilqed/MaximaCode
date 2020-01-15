@@ -63,6 +63,7 @@ define_variable(simplify_sum_depth, 0, fixnum)$
 define_variable(simplify_sum_max_depth, 3, fixnum)$
 
 declare(simplify_sum, evfun)$
+declare(split_sum, evfun)$
 
 /*******************
  *
@@ -97,7 +98,6 @@ simplify_sum(expr) :=
 
   /* Check for sum(expr, var, minf, hi) */
   else if part(expr, 3)=-inf or part(expr, 3)=minf then (
-    [summand, var_, lo, hi],
     simplify_sum(apply('sum, [subst(var_=-var_, summand), var_, -hi, inf])))
 
   /* Trigonometric sums */
@@ -194,7 +194,7 @@ simplify_sum(expr) :=
       if use_gosper and not(atom(sm1)) and not freeof_sum(sm1) then block(
         [hi1 : ?gensym(), lo1 : ?gensym()],
         ss_print_message(1, "Trying with Gosper ..."),
-        sm1 : block([ttyoff:true], nusum(summand, var, lo1, hi1)),
+        sm1 : block([ttyoff:ttyoff], nusum(summand, var, lo1, hi1)),
         if freeof_sum(sm1) then (
           ss_print_message(1, "Gosper returns:", sm1),
           if lo=minf or lo=-inf then
@@ -214,7 +214,7 @@ simplify_sum(expr) :=
       if use_gosper and not(atom(sm1)) and not freeof_sum(sm1) then block(
         [hi1 : ?gensym(), lo1 : ?gensym()],
         ss_print_message(1, "Trying with extended Gosper ..."),
-        sm1 : block([ttyoff:true], extended_nusum(summand, var, lo1, hi1)),
+        sm1 : block([ttyoff:ttyoff], extended_nusum(summand, var, lo1, hi1)),
         if freeof_sum(sm1) then (
           ss_print_message(1, "Extended Gosper returns:", sm1),
           if lo=minf or lo=-inf then
@@ -657,9 +657,15 @@ split_sum(expr) :=
  *******************/
 
 ratfun_to_psi(ratfun, var, lo, hi) := block(
-  [pf, sum: 0, denom_f : factor_with_solve(denom(ratfun), var)],
+  [pf, sum: 0, denom_f : factor_with_solve(denom(ratfun), var), max_root],
 
   pf : partfrac(num(ratfun)/denom_f, var),
+
+  max_root: lmax(sublist(map(rhs, solve(denom_f, var)), numberp)),
+  if (numberp(max_root) and numberp(lo)) then (
+    while (lo < max_root) do (
+      sum: sum+subst(var=lo, ratfun),
+      lo: lo+1)),
 
   if inpart(pf, 0)="+" then pf: args(pf)
   else pf: [pf],
@@ -749,7 +755,7 @@ to_hypergeometric(expr, var, lo, hi) := block(
     [use_simpsum:false, use_harmonic:false, use_integral:false,
      use_ratfun:false, use_gosper:false, use_zeilberger:false,
      use_telescoping:false, min_ni: lmin(ni_coeffs)],
-    apply('sum, [expr, var, lo, -min_ni]) + simplify_sum(apply(sum, [expr, var, -min_ni, hi])))
+    apply('sum, [expr, var, lo, -min_ni - 1]) + simplify_sum(apply(sum, [expr, var, -min_ni, hi])))
   else to_hypergeometric1(expr, var, lo, hi))$
 
 
@@ -805,9 +811,6 @@ simp_harmonic_number(x__):=
   if x__=0 then 0
   else if integerp(x__) and x__<1 then error("Zero to negative power computed.") 
   else if integerp(x__) then num_harmonic_number(1, x__)
-  else if numberp(x__) and x__<-1 then block(
-    [a:-floor(x__), k%],
-    simp_harmonic_number(x__+a)-apply('sum, [1/k%, k%, x__, x__+a-1]))
   else if numberp(x__) or imagpart(x__)#0 then psi[0](x__+1) + %gamma
   else block(
     [a, b, var, k%],
@@ -828,7 +831,6 @@ num_harmonic_number(l, h) :=
         num_harmonic_number(mid+1, h))$
 
 simplifying('harmonic_number,'simp_harmonic_number)$
-
 
 simp_gen_harmonic_number(exp__, x__):=
   if x__=0 then 0

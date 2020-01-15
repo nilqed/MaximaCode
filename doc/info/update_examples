@@ -1,6 +1,6 @@
-#!/usr/bin/perl -w
+#!/usr/bin/env perl
 
-use POSIX qw(tmpnam);
+use File::Temp qw/ :POSIX /;
 
 use Text::Tabs;
 
@@ -47,6 +47,10 @@ sub rem_codes {
 
     $res =~ s/$strip_topdir//g;
 
+    # Escape "@" to "@@", as an unescaped at-sign might be interpreted as the
+    # beginning of a command.
+    $res =~s/\@/\@\@/g;
+
     $res =~ s/\{/\@\{/g;
     $res =~ s/\}/\@\}/g;
 
@@ -72,8 +76,15 @@ while (<>) {
             $in_example_output = 1;
         }
         elsif ($_ =~ /\@c */) {
+            my $fixed;
+            if (/^\@c input:/) {
+                $fixed = substr($_, 9);
+            }
+            else {
+                $fixed = substr($_, 3);
+            }
             print $_;
-            push @example_input_buf, r_trim(substr($_,3)) ;
+            push @example_input_buf, r_trim($fixed);
         }
         else {
             $warning_cnt++;
@@ -143,9 +154,9 @@ while (<>) {
                             shift @example_result_buf;
                         }
 
-                        print "\@group\n" if scalar @group ge 2;
+                        print "\@group\n" if scalar @group >= 2;
                         print @group;
-                        print "\@end group\n" if scalar @group ge 2;
+                        print "\@end group\n" if scalar @group >= 2;
                     }
 
                     print "\@end example\n";

@@ -443,7 +443,7 @@
        (let* ((fx (cadr mexpress))
             (f (and (not (atom fx)) (atom (caar fx)) (caar fx)))
             (bascdr (and f (cdr fx))) (expon (caddr mexpress))
-            (doit (and f (member (char (string f) 0) (list #\% #\$) :test #'eq)
+            (doit (and f (member (char (string f) 0) (list #\% #\$))
                        (not (member f '(%sum %product) :test #'eq)))))
         (cond
            (doit (cond     ;;;; sin^2 x case
@@ -633,11 +633,11 @@
       ((integerp atom) (tprinc "<mn>") (tprinc atom) (tprinc "</mn>"))
       (t (setq r (exploden atom))
          ;; Hmm. What if the exponent marker is something other than 'e' or 'E' ??
-         (setq exponent (or (member #\e r :test #'eq) (member #\E r :test #'eq)))
+         (setq exponent (or (member #\e r) (member #\E r)))
          (cond
            ((null exponent) (tprinc "<mn>") (tprinc atom) (tprinc "</mn>"))
            (t (setq firstpart
-                    (nreverse (cdr (or (member #\e (reverse r) :test #'eq) (member #\E (reverse r) :test #'eq)))))
+                    (nreverse (cdr (or (member #\e (reverse r)) (member #\E (reverse r))))))
               (tprinc "<mn>") 
 	      (mapc #'tpchar firstpart) (tprinc "</mn>") 
 	      (tprinc "<mo>&CenterDot;</mo><msup><mn>10</mn> <mn>")
@@ -958,7 +958,7 @@
 (setf (get '%gamma_incomplete 'chchr) '"&Gamma;")
 (setf (get '%gamma_incomplete_generalized 'chchr) '"&Gamma;")
 (setf (get '%gamma_incomplete_regularized 'chchr) '"Q")
-(setf (get '$gamma_greek 'chchr) '"&gamma;")
+(setf (get '$gamma_incomplete_lower 'chchr) '"&gamma;")
 (setf (get '$delta 'chchr) '"&delta;")
 (setf (get '$epsilon 'chchr) '"&epsilon;")
 (setf (get '$varepsilon 'chchr) '"&varepsilon;")

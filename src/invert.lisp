@@ -26,13 +26,10 @@
       `((mtimes) ((mexpt) ,det -1) ,mat1)
       (div mat1 det))))
   
-(add2lnc '$adjoint $props)
-(add2lnc '$invert_by_adjoint $props)
-
 (defmvar $invert_method nil)
 (defmvar $invert_by_adjoint_size_limit 8)
 
-(defun $invert (&rest args)
+(defmfun $invert (&rest args)
   (case $invert_method
     (($lu) (apply #'invert-via-$invert_by_lu args))
     (($gausselim) (apply #'$invert_by_gausselim args))

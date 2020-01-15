@@ -34,7 +34,7 @@
 
 (declare-top (special $algdelta $ratepsilon $algepsilon $keepfloat
 		     varlist genvar *roots *failures $ratprint $numer $ratfac
-		     $rnum $solvefactors $dispflag $breakup
+		     $solvefactors $dispflag $breakup
 		     *tvarxlist* errorsw $programmode *ivar* errset $polyfactor
 		     bindlist loclist $float $infeval))
 
@@ -63,8 +63,8 @@
   in-core)
 
 (defmacro merrset (l)
-  `(let ((errset 'errbreak1) (unbind (cons bindlist loclist)) val)
-     (setq val (errset ,l nil))
+  `(let ((errset t) (unbind (cons bindlist loclist)) val)
+     (setq val (errset ,l))
      (when (null val) (errlfun1 unbind))
      val))
 
@@ -357,12 +357,12 @@
 ;;; (PFREEOFMAINVARSP POLY)
 ;;;
 ;;; If POLY isn't a polynomial in the variables for which we're solving,
-;;; disrep it and apply $RADCAN.
+;;; disrep it and simplify appropriately.
 (defun pfreeofmainvarsp (poly)
   (if (or (atom poly)
           (member (car poly) *tvarxlist* :test #'eq))
       poly
-      ($radcan (pdis poly))))
+     (simplify-after-subst (pdis poly))))
 
 ;;; (LOFACTORS POLY)
 ;;;
@@ -419,10 +419,15 @@
   (unless (member nil listofl)
     (combiney1 (delete '(0) listofl :test #'equal))))
 
+;;; DB (2016-09-13) Commit a158b1547 introduced a regression (SF bug 3210)
+;;; It: - restructured combiney
+;;;     - used ":test #'alike1" in place of "test #'equal" in combiney1
+;;; Reverting the change to combiney1 restores previous behaviour.
+;;; I don't understand algsys internals and haven't analysed this further.
 (defun combiney1 (listofl)
   (cond ((null listofl) (list nil))
 	(t (mapcan #'(lambda (r)
-		       (if (intersection (car listofl) r :test #'alike1)
+		       (if (intersection (car listofl) r :test #'equal)
 			   (list r)
 			   (mapcar #'(lambda (q) (cons q r)) (car listofl))))
 		   (combiney1 (cdr listofl))))))
@@ -482,7 +487,7 @@
 
 
 (defun presultant (p1 p2 var)
-  (cadr (ratf ($resultant (pdis p1) (pdis p2) (pdis (list var 1 1))))))
+  (cadr (ratf (simplify ($resultant (pdis p1) (pdis p2) (pdis (list var 1 1)))))))
 
 (defun ptimeftrs (l)
   (prog (ll)
@@ -500,10 +505,12 @@
 ;; As well as doing the obvious substitution, EBAKSUBST also simplifies with
 ;; $RADCAN (presumably, E stands for Exponential)
 (defun ebaksubst (solnl lhsl)
-  (mapcar #'(lambda (q) (cadr (ratf (what-the-$ev (pdis q)
-						  (cons '(mlist) solnl)
-						  '$radcan))))
-	  lhsl))
+  (mapcar #'(lambda (q) (ebaksubst1 solnl q)) lhsl))
+
+(defun ebaksubst1 (solnl q)
+  (let ((e ($substitute `((mlist) ,@solnl) (pdis q))))
+    (setq e (simplify-after-subst e))
+    (cadr (ratf e))))
 
 (defun baksubst (solnl lhsl)
   (setq lhsl (delete 't (mapcar #'(lambda (q) (car (merrset (baksubst1 solnl q))))
@@ -529,6 +536,54 @@
   (let ((p (cadr (ratf ($ratsimp p)))))
     (or (numberp p)
 	(eq (pdis (pget (car p))) '$%i))))
+
+;; (SIMPLIFY-AFTER-SUBST EXPR)
+;;
+;; Simplify EXPR after substitution of a partial solution.
+;;
+;; Focus is on constant expressions:
+;; o failure to reduce a constant expression that is equivalent
+;;   to zero causes solutions to be falsely rejected
+;; o some operations, such as the reduction of nested square roots,
+;;   requires known sign and ordering of all terms
+;; o inappropriate simplification by $RADCAN introduced errors
+;;   $radcan(sqrt(-1/(1+%i)))     => exhausts heap
+;;   $radcan(sqrt(6-3^(3/2))) > 0 => sqrt(sqrt(3)-2)*sqrt(3)*%i < 0
+;;
+;; Problems from bug reports showed that further simplification of
+;; non-constant terms, with incomplete information, could lead to
+;; missed roots or unwanted complexity.
+;;
+;; $ratsimp with algebraic:true can transform
+;;     sqrt(2)*sqrt(-1/(sqrt(3)*%i+1)) => (sqrt(3)*%i)/2+1/2
+;; but $rectform is required for
+;;     sqrt(sqrt(3)*%i-1)) => (sqrt(3)*%i)/sqrt(2)+1/sqrt(2)
+;; and $rootscontract is required for
+;;     sqrt(34)-sqrt(2)*sqrt(17) => 0
+(defun simplify-after-subst (expr)
+  "Simplify expression after substitution"
+  (let (($keepfloat t) ($algebraic t) (e expr)
+	e1 e2 tmp (growth-factor 1.2)
+	(genvar nil) (varlist nil)
+	($rootsconmode t) ($radexpand t))
+    ;; Try two approaches
+    ;; 1) ratsimp
+    ;; 2) if $constantp(e) sqrtdenest + rectform + rootscontract + ratsimp
+    ;; take smallest expression
+    (setq e1 (sratsimp e))
+    (if ($constantp e)
+      (progn
+	(setq e (sqrtdenest e))
+	;; Rectform does more than is wanted.  A function that denests and
+	;; rationalizes nested complex radicals would be better.
+	;; Limit expression growth.  The factor is based on trials.
+	(setq tmp ($rectform e))
+	(when (< (conssize tmp) (* growth-factor (conssize e)))
+	  (setq e tmp))
+	(setq e ($rootscontract e))
+	(setq e2 (sratsimp e))
+	(if (< (conssize e1) (conssize e2)) e1 e2))
+      e1)))
 
 ;; (BAKALEVEL SOLNL LHSL VAR)
 ;;
@@ -619,7 +674,13 @@
 ;;
 ;; Otherwise, or if SOLVE fails, we try to find an approximate solution with a
 ;; call to CALLAPPRS.
+;;
+;; SOLVE introduces solutions with nested radicals, which causes problems
+;; in EBAKSUBST1.  Try to clean up the solutions now.
 (defun callsolve (pv)
+  (mapcar  #'callsolve2 (callsolve1 pv)))
+
+(defun callsolve1 (pv)
   (let ((poly (car pv))
 	(var (cdr pv))
 	(varlist varlist)
@@ -648,6 +709,12 @@
                                    (realonly (remove-mult *roots))
                                    (remove-mult *roots))))))
 	  (t (callapprs poly)))))
+
+(defun callsolve2 (l)
+  "Simplify solution returned by callsolve1"
+  ;; l is a single element list '((mequal simp) var expr)
+  (let ((e (first l)))
+    `(((,(mop e)) ,(second e) ,(simplify-after-subst (third e))))))
 
 ;;; (BIQUADRATICP POLY)
 ;;;
@@ -705,7 +772,7 @@
 						  (pderivative p x)))))
 		(listovars p))))
 
-(defmfun mycabs (x)
+(defun mycabs (x)
   (and (complexnump x) (cabs x)))
 
 ;;; (DISTREP LOL)

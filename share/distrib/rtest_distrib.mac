@@ -229,10 +229,7 @@ pdf_laplace(2.5,-5,3);
 0.01368083310398313;
 
 cdf_laplace(2/5,-5,30);
-1-%e^-(9/50)/2;
-
-cdf_laplace(2/5,-5,30);
-1-%e^-(9/50)/2;
+(2-%e^-(9/50))/2;
 
 random_laplace(-12,17,3);
 [12.6464246671848,-28.88305575541671,-25.390527331018];
@@ -273,6 +270,18 @@ random_gumbel(80,1/6,3);
 
 /* binomial distribution */
 
+pdf_binomial(x,n,1);
+kron_delta(n,x);
+
+pdf_binomial(x,n,0);
+kron_delta(0,x);
+
+pdf_binomial(0,0,0);
+1;
+
+pdf_binomial(0,0,1);
+1;
+
 cdf_binomial(3.2,6,1/8);
 130683/131072;
 
@@ -302,7 +311,8 @@ quantile_poisson(1/9,10);
 random_poisson(110,3);
 [105,132,104];
 
-
+random_poisson(0);
+0;
 
 
 /* geometric distribution */
@@ -348,7 +358,7 @@ quantile_negative_binomial(1/8,9,6/17);
 9;
 
 quantile_negative_binomial(7/1000,2,1/17);
-1;
+1.0;
 
 random_negative_binomial(6,3/5,3);
 [5,8,9];

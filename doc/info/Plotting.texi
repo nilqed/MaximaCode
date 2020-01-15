@@ -19,11 +19,11 @@ of commands.  That information can be passed to the external program
 either through a pipe or by calling the program with the name of a file
 where the data has been saved.  The data file is given the name
 @code{maxout_xxx.format}, where @code{xxx} is a number that is unique
-to every concurrently-running instance of maxima and @code{format} is
+to every concurrently-running instance of Maxima and @code{format} is
 the name of the plotting format being used (@code{gnuplot},
-@code{xmaxima}, @code{mgnuplot} or @code{gnuplot_pipes}).
+@code{xmaxima}, @code{mgnuplot}, @code{gnuplot_pipes} or @code{geomview}).
 
-There are to save the plot in a graphic format file. In those cases, the
+There are commands to save the plot in a graphic format file. In those cases, the
 file @code{maxout_xxx.format} created by Maxima includes commands that will
 make the external plotting program save the result in a graphic
 file. The default name for that graphic file is
@@ -33,7 +33,7 @@ normally used for the kind of graphic file selected.
 The @code{maxout_xxx.format} and @code{maxplot.extension} files are created
 in the directory specified by the system variable
 @mrefdot{maxima_tempdir} That location can be changed by assigning to
-that variable (or to the environment variable MAXIMA_TEMPDIR) a string
+that variable (or to the environment variable @env{MAXIMA_TEMPDIR}) a string
 that represents a valid directory where Maxima can create new files. The
 output of the Maxima plotting command will be a list with the names of
 the file(s) created, including their complete path.
@@ -62,8 +62,8 @@ information for either of those two packages.
 @section Plotting Formats
 @c -----------------------------------------------------------------------------
 
-Maxima can use either Gnuplot or Xmaxima as graphics program. Gnuplot is
-an external program that has to be installed separately, while Xmaxima
+Maxima can use either Gnuplot, Xmaxima or Geomview as graphics program. Gnuplot and Geomview are
+external programs which must be installed separately, while Xmaxima
 is distributed with Maxima. There are various different formats for
 those programs, which can be selected with the option @mref{plot_format}
 (see also the @mref{Plotting Options} section).
@@ -111,7 +111,7 @@ Unix systems, the Tcl/Tk system.
 Xmaxima is a Tcl/Tk graphical interface for Maxima that can also be used
 to display plots created when Maxima is run from the console or from
 other graphical interfaces.  To use this format, the xmaxima program,
-which is distributed together with Maxima, should be installed.  If
+which is distributed together with Maxima, must be installed.  If
 Maxima is being run from the Xmaxima console, the data and commands are
 passed to xmaxima through the same socket used for the communication
 between Maxima and the Xmaxima console. When used from a terminal or
@@ -121,6 +121,14 @@ name of that file as argument.
 
 In previous versions this format used to be called @code{openmath}; that
 old name still works as a synonym for @code{xmaxima}.
+
+@item
+@strong{geomview}
+
+Geomview, a Motif based interactive 3D viewing program for Unix, can
+also be used to display plots created by Maxima.  To use this format,
+the geomview program must be installed.
+
 @end itemize
 
 @opencatbox
@@ -187,6 +195,28 @@ number of contours, it is necessary to use a custom
 @end deffn
 
 @c -----------------------------------------------------------------------------
+@anchor{geomview_command}
+@defvr {System variable} geomview_command
+
+This variable stores the name of the command used to run the geomview
+program when the plot format is @code{geomview}. Its default value is
+"geomview".  If the geomview program is not found unless you give
+its complete path or if you want to try a different version of it,
+you may change the value of this variable. For instance,
+
+@c ===beg===
+@c geomview_command: "/usr/local/bin/my_geomview"$
+@c ===end===
+@example
+(%i1) geomview_command: "/usr/local/bin/my_geomview"$
+@end example
+
+@opencatbox
+@category{Plotting}
+@closecatbox
+@end defvr
+
+@c -----------------------------------------------------------------------------
 @anchor{get_plot_option}
 @deffn {Function} get_plot_option (@var{keyword}, @var{index})
 
@@ -205,10 +235,9 @@ section on Plotting Options.
 
 This variable stores the name of the command used to run the gnuplot
 program when the plot format is @code{gnuplot}. Its default value is
-"wgnuplot" in Windows and "gnuplot" in other systems. If the gnuplot
-program is not found unless you give its complete path or if you want
-to try a different version of it, you may change the value of this
-variable. For instance,
+"gnuplot". If the gnuplot program is not found unless you give its
+complete path or if you want to try a different version of it, you
+may change the value of this variable. For instance,
 
 @c ===beg===
 @c gnuplot_command: "/usr/local/bin/my_gnuplot"$
@@ -311,7 +340,9 @@ Example:
 @end ifnotinfo
 
 @opencatbox
-@category{Plotting} @category{Share packages} @category{Package implicit_plot}
+@category{Plotting}
+@category{Share packages}
+@category{Package implicit_plot}
 @closecatbox
 @end deffn
 
@@ -363,7 +394,8 @@ corresponding the maximum 36 iterations would not be black.
 
 
 @opencatbox
-@category{Package dynamics} @category{Plotting}
+@category{Package dynamics}
+@category{Plotting}
 @closecatbox
 
 @end deffn
@@ -431,7 +463,8 @@ Example:
 @end ifnotinfo
 
 @opencatbox
-@category{Package dynamics} @category{Plotting}
+@category{Package dynamics}
+@category{Plotting}
 @closecatbox
 
 @end deffn
@@ -468,7 +501,7 @@ Displays a plot of one or more expressions as a function of one
 variable or parameter.
 
 @code{plot2d} displays one or several plots in two dimensions.  When
-expressions or function name are used to define the plots,
+expressions or function names are used to define the plots,
 they should all depend on only one variable @var{var} and the use of
 @var{x_range} will be mandatory, to provide the name of the variable and
 its minimum and maximum values; the syntax for @var{x_range} is:
@@ -669,6 +702,7 @@ In the next example a table with three columns is saved in a file
 plotted on the two axes:
 
 @c ===beg===
+@c display2d:false$
 @c with_stdout ("data.txt", for x:0 thru 10 do
 @c                              print (x, x^2, x^3))$
 @c data: read_matrix ("data.txt")$
@@ -677,12 +711,15 @@ plotted on the two axes:
 @c ===end===
 @example
 @group
-(%i1) with_stdout ("data.txt", for x:0 thru 10 do
+(%i1) display2d:false$
+@end group
+@group
+(%i2) with_stdout ("data.txt", for x:0 thru 10 do
                              print (x, x^2, x^3))$
 @end group
-(%i2) data: read_matrix ("data.txt")$
+(%i3) data: read_matrix ("data.txt")$
 @group
-(%i3) plot2d ([discrete, transpose(data)[2], transpose(data)[3]],
+(%i4) plot2d ([discrete, transpose(data)[2], transpose(data)[3]],
   [style,points], [point_type,diamond], [color,red])$
 @end group
 @end example
@@ -802,7 +839,7 @@ include a color bar that relates colors to values of the z variable:
 
 Two surfaces in the same plot. Ranges specific to one of the surfaces can
 be given by placing each expression and its ranges in a separate list;
-global ranges for the complete plot are also given after the functions
+global ranges for the complete plot are also given after the function
 definitions.
 
 @c ===beg===
@@ -1180,7 +1217,7 @@ horizontal and vertical axis, as in plot2d, and the z axis coming out of
 the screen.  The z axis is then rotated around the x axis through an
 angle equal to @mref{elevation} and then the new xy plane is rotated
 around the new z axis through an angle @mrefdot{azimuth} This option sets
-the value for the azimuth, in degrees.
+the value for the elevation, in degrees.
 
 See also @mrefdot{azimuth}
 
@@ -1198,6 +1235,8 @@ Sets the number of grid points to use in the x- and y-directions for
 three-dimensional plotting or for the @mref{julia} and @mref{mandelbrot}
 programs.
 
+For a way to actually draw a grid See @mrefdot{grid2d}
+
 @opencatbox
 @category{Plotting}
 @closecatbox
@@ -1212,6 +1251,8 @@ Shows a grid of lines on the xy plane. The points where the grid lines
 are placed are the same points where tics are marked in the x and y
 axes, which can be controlled with the @mref{xtics} and @mref{ytics}
 options.
+
+See also @mrefdot{grid}
 
 @opencatbox
 @category{Plotting}
@@ -1354,8 +1395,8 @@ determined by the option @mrefdot{color}
 Default value: @code{gnuplot}, in Windows systems, or @code{gnuplot_pipes} in
 other systems.
 
-Where @var{format} is one of the following: gnuplot, xmaxima, mgnuplot or
-gnuplot_pipes.
+Where @var{format} is one of the following: gnuplot, xmaxima, mgnuplot,
+gnuplot_pipes or geomview.
 
 It sets the format to be used for plotting.
 
@@ -1672,7 +1713,12 @@ automatically.
 
 In a 2d plot, it defines the ratio of the total size of the Window to
 the size that will be used for the plot. The two numbers given as
-arguments are the scale factors for the x and y axes. 
+arguments are the scale factors for the x and y axes.
+
+This option does not change the size of the graphic window or the placement
+of the graph in the window. If you want to change the aspect ratio of the
+plot, it is better to use option @mrefdot{yx_ratio} For instance,
+@code{[yx_ratio, 10]} instead of @code{[xy_scale, 0.1, 1]}.
 
 @opencatbox
 @category{Plotting}
@@ -1972,6 +2018,23 @@ more information.
 @end defvr
 
 @c -----------------------------------------------------------------------------
+@anchor{gnuplot_strings}
+@defvr {Plot option} gnuplot_strings [gnuplot_strings, @var{value}]
+
+With a value of @code{true}, all strings used in labels and titles will
+be interpreted by gnuplot as ``enhanced'' text, if the terminal being used
+supports it. In enhanced mode, some characters such as ^ and _ are not
+printed, but interpreted as formatting characters. For a list of the
+formatting characters and their meaning, see the documentation for enhanced
+in Gnuplot. The default value for this option is @code{false}, which will
+not treat any characters as formatting characters.
+
+@opencatbox
+@category{Plotting}
+@closecatbox
+@end defvr
+
+@c -----------------------------------------------------------------------------
 @anchor{gnuplot_svg_term_command}
 @defvr {Plot option} gnuplot_svg_term_command [gnuplot_svg_term_command, @var{command}]
 
@@ -1989,7 +2052,7 @@ more information.
 @anchor{gnuplot_curve_titles}
 @defvr {Plot option} gnuplot_curve_titles
 
-This is an obsolete option that has been replaced @mref{legend} described
+This is an obsolete option that has been replaced by @mref{legend} described
 above.
 
 @opencatbox

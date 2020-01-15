@@ -15,7 +15,13 @@
 (defvar $show_openplot t)
 (defvar *socket-connection*)
 (defvar $old_stdout)
-(defvar $old_stdin)
+(defvar $old_stderr)
+
+#+ecl (defvar *old-stdin*)
+#+ecl (defvar *old-stdout*)
+#+ecl (defvar *old-sterr*)
+#+ecl (defvar *old-term-io*)
+#+ecl (defvar *old-debug-io*)
 
 (defun setup-client (port &optional (host "localhost"))
   ;; The following command has to be executed on windows before
@@ -29,14 +35,19 @@
       (mtell (intl:gettext "~%Unable to connect Maxima to port ~:M.~%") port)
       (mtell (intl:gettext "Error: ~A~%") condition)
       ($quit))
+    ;; Some lisps if the front-end dies by default don't quit but output an
+    ;; error message to the front-end that (as the front-end doesn't exist
+    ;; any more) causes an error message that...
     #+gcl (setq si::*sigpipe-action* 'si::bye)
+    #+ecl (ext:set-signal-handler EXT:+SIGPIPE+ 'ext:quit)
+    
     (setq *socket-connection* sock)
     (setq $old_stderr *error-output*
 	  $old_stdout *standard-output*)
-    #+ecl (setq *old-stdin* *standard-input*
-		*old-stdout* *standard-output*
-		*old-stderr* *error-output*
-		*old-term-io* *terminal-io*
+    #+ecl (setq *old-stdin*    *standard-input*
+		*old-stdout*   *standard-output*
+		*old-sterr*    *error-output*
+		*old-term-io*  *terminal-io*
 		*old-debug-io* *debug-io*)
     (setq *standard-input* sock)
     (setq *standard-output* sock)
@@ -44,16 +55,16 @@
     (setq *terminal-io* sock)
     (setq *trace-output* sock)
     (format t "pid=~a~%" (getpid))
-    (force-output sock)
+    (finish-output sock)
     (setq *debug-io* sock))
   (values))
 
 (defun close-client ()
-  #+ecl (setq *standard-input* *old-stdin*
+  #+ecl (setq *standard-input*  *old-stdin*
 	      *standard-output* *old-stdout*
-	      *error-output* *old-stderr*
-	      *terminal-io* *old-term-io*
-	      *debug-io* *old-debug-io*)
+	      *error-output*    *old-sterr*
+	      *terminal-io*     *old-term-io*
+	      *debug-io*        *old-debug-io*)
   #+ecl (close *socket-connection*))
 
 ;;; from CLOCC: <http://clocc.sourceforge.net>
@@ -80,7 +91,8 @@
     #+cmu (sys:make-fd-stream (ext:connect-to-inet-socket host port)
 			      :input t :output t :element-type
 			      (if bin '(unsigned-byte 8) 'character)
-			      #+unicode :external-format #+unicode :utf-8)
+			      #+unicode :external-format #+unicode :utf-8
+			      :buffering :line)
     #+(or ecl sbcl) (let ((socket (make-instance 'sb-bsd-sockets:inet-socket
 					:type :stream :protocol :tcp)))
 	     (sb-bsd-sockets:socket-connect

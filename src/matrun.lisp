@@ -69,9 +69,9 @@
 		   (setq othrule #'(lambda (a bb c) (declare (ignore bb)) (simpargs a c))))
 		  (t (setq othrulename (car oldrules))
 		     (setq othrule (cadr (getl (car oldrules) '(expr subr))))))
-	    (putprop rule othrule 'expr)
+	    (putprop-or-remprop rule othrule 'expr)
 	    (setq old (cdr (member rule (reverse (mget op 'oldrules)) :test #'equal)))
-	    (if old (putprop (car old)
+	    (if old (putprop-or-remprop (car old)
 			     (subst othrulename rule (get (car old) 'expr))
 			     'expr))
 	    (if (boundp rule) (makunbound rule))
@@ -80,19 +80,26 @@
 	    (mremprop rule 'ruleof)
 	    (remprop rule 'expr)
 	    (setq $rules (delete rule $rules :count 1 :test #'eq))
-	    (putprop rule othrulename 'expr)
+	    (putprop-or-remprop rule othrulename 'expr)
 	    (if (eq (get op 'operators) rule)
-		(putprop op othrulename 'operators))
-	    (return (mputprop op (delete rule (mget op 'oldrules) :test #'eq) 'oldrules))))))
+		(putprop-or-remprop op othrulename 'operators))
+	    (let ((l (delete rule (mget op 'oldrules) :test #'eq)))
+		  (if (equal l '(nil)) (mremprop op 'oldrules) (mputprop op l 'oldrules))
+		  (return l))))))
 
-(defmfun findbe (e)
+(defun putprop-or-remprop (x y z)
+  (if y
+    (putprop x y z)
+    (remprop x z)))
+
+(defun findbe (e)
   (cond ((equal e 1) '(1 . 0))
 	((equal e 0) '(0 . 1))
 	((atom e) (cons e 1))
 	((eq (caar e) 'mexpt) (cons (cadr e) (caddr e)))
 	(t (cons e 1))))
 
-(defmfun findfun (e p c)
+(defun findfun (e p c)
   (prog ()
      (cond ((and (null (atom e)) (eq (caar e) p)) (return e))
 	   ((or (atom e) (not (eq (caar e) c))) (matcherr))
@@ -103,7 +110,7 @@
 		((and (not (atom (car e))) (eq (caaar e) p)) (return (car e))))
      (go a)))
 
-(defmfun findexpon (e1 base* c)
+(defun findexpon (e1 base* c)
   (prog (e)
      (setq e e1)
      (cond ((and (mexptp e) (alike1 base* (cadr e)))
@@ -124,7 +131,7 @@
 		((eq c 'mexpt) (matcherr))
 		(t (return 0)))))
 
-(defmfun findbase (e expon c)
+(defun findbase (e expon c)
   (prog ()
      (cond ((equal expon 0)
 	    (if (and (eq c 'mexpt) (not (equal 1 e))) (matcherr))
@@ -144,7 +151,15 @@
 		 (return (cadar e))))
      (go a)))
 
-(defmfun part+ (e p preds) 
+(defun part+ (e p preds) 
+  (if (and (consp e) (eq (caar e) 'mplus))
+    (part+-mplus e p preds)
+    (part+-not-mplus e p preds)))
+
+(defun part+-not-mplus (e p preds) 
+  (part+-mplus (list '(mplus) 0 e) p preds))
+
+(defun part+-mplus (e p preds) 
   (prog (flag saved val) 
      (if (not (mplusp e)) (matcherr))
      (cond ((> (length p) (length preds))
@@ -182,7 +197,15 @@
      b (setq preds (cdr preds) p (cdr p))
      (go a)))
 
-(defmfun part* (e p preds) 
+(defun part* (e p preds) 
+  (if (and (consp e) (eq (caar e) 'mtimes))
+    (part*-mtimes e p preds)
+    (part*-not-mtimes e p preds)))
+
+(defun part*-not-mtimes (e p preds) 
+  (part*-mtimes (list '(mtimes) 1 e) p preds))
+
+(defun part*-mtimes (e p preds) 
   (prog (flag saved val) 
      (if (not (mtimesp e)) (matcherr))
      (cond ((> (length p) (length preds))
@@ -227,7 +250,7 @@
 	    (mapc #'(lambda (z) (setq expr (apply1 expr z 0))) (cdr l))
 	    expr))
 
-(defmfun apply1 (expr *rule depth) 
+(defun apply1 (expr *rule depth) 
   (cond
     ((> depth $maxapplydepth) expr)
     (t
@@ -252,7 +275,7 @@
 	    (mapc #'(lambda (z) (setq expr (car (apply1hack expr z)))) (cdr l))
 	    expr))
 
-(defmfun apply1hack (expr *rule) 
+(defun apply1hack (expr *rule) 
   (prog (pairs max) 
      (*rulechk *rule)
      (setq max 0)
@@ -284,7 +307,7 @@
 (defmspec $apply2 (l) (setq l (cdr l))
 	  (let ((rulelist (cdr l))) (apply2 rulelist (meval (car l)) 0)))
 
-(defmfun apply2 (rulelist expr depth) 
+(defun apply2 (rulelist expr depth) 
   (cond
     ((> depth $maxapplydepth) expr)
     (t
@@ -312,7 +335,7 @@
 (defmspec $applyb2 (l) (setq l (cdr l))
 	  (let ((rulelist (cdr l))) (car (apply2hack rulelist (meval (car l))))))
 
-(defmfun apply2hack (rulelist e) 
+(defun apply2hack (rulelist e) 
   (prog (pairs max) 
      (setq max 0)
      (cond ((atom e) (return (cons (apply2 rulelist e -1) 0)))

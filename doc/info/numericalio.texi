@@ -4,7 +4,7 @@
 * Functions and Variables for binary input and output::
 @end menu
 
-@node Introduction to numericalio, Functions and Variables for plain-text input and output, numericalio-pkg, numericalio-pkg
+@node Introduction to numericalio, Functions and Variables for plain-text input and output, mnewton-pkg, numericalio-pkg
 @section Introduction to numericalio
 
 @code{numericalio} is a collection of functions to read and write files and streams.
@@ -19,7 +19,10 @@ Otherwise, @code{numericalio} can guess, to some degree, the structure of an obj
 to store the data, and return that object.
 
 @opencatbox
-@category{File input} @category{File output} @category{Share packages} @category{Package numericalio}
+@category{File input}
+@category{File output}
+@category{Share packages}
+@category{Package numericalio}
 @closecatbox
 
 @subsection Plain-text input and output
@@ -112,7 +115,7 @@ first line often contains the description of the columns):
 @example
 s : openr("data.txt");
 readline(s);  /* skip the first line */
-M : read_matrix(s, comma);  /* read the following (comma-separated) lines into matrix M */
+M : read_matrix(s, 'comma);  /* read the following (comma-separated) lines into matrix M */
 close(s);
 @end example
 
@@ -121,7 +124,8 @@ The recognized values of @var{separator_flag} are
 If @var{separator_flag} is not specified, the file is assumed space-delimited.
 
 @opencatbox
-@category{Package numericalio} @category{File input}
+@category{Package numericalio}
+@category{File input}
 @closecatbox
 
 @end deffn
@@ -142,19 +146,21 @@ The recognized values of @var{separator_flag} are
 If @var{separator_flag} is not specified, the file is assumed space-delimited.
 
 @opencatbox
-@category{Package numericalio} @category{File input}
+@category{Package numericalio}
+@category{File input}
 @closecatbox
 
 @end deffn
 
-@deffn {Function} read_hashed_array @
-@fname{read_hashed_array} (@var{S}, @var{A}) @
-@fname{read_hashed_array} (@var{S}, @var{A}, @var{separator_flag})
+@anchor{read_hash_table}
+@deffn {Function} read_hash_table @
+@fname{read_hash_table} (@var{S}, @var{A}) @
+@fname{read_hash_table} (@var{S}, @var{A}, @var{separator_flag})
 
-Reads the source @var{S} and returns its entire content as a hashed array.
+Reads the source @var{S} and returns its entire content as a @mrefdot{hashed array}
 The source @var{S} may be a file name or a stream.
 
-@code{read_hashed_array} treats the first item on each line as a hash key,
+@code{read_hash_table} treats the first item on each line as a hash key,
 and associates the remainder of the line (as a list) with the key.
 For example,
 the line @code{567 12 17 32 55} is equivalent to @code{A[567]: [12, 17, 32, 55]$}.
@@ -165,7 +171,8 @@ The recognized values of @var{separator_flag} are
 If @var{separator_flag} is not specified, the file is assumed space-delimited.
 
 @opencatbox
-@category{Package numericalio} @category{File input}
+@category{Package numericalio}
+@category{File input}
 @closecatbox
 
 @end deffn
@@ -186,7 +193,8 @@ The recognized values of @var{separator_flag} are
 If @var{separator_flag} is not specified, the file is assumed space-delimited.
 
 @opencatbox
-@category{Package numericalio} @category{File input}
+@category{Package numericalio}
+@category{File input}
 @closecatbox
 
 @end deffn
@@ -209,7 +217,8 @@ The recognized values of @var{separator_flag} are
 If @var{separator_flag} is not specified, the file is assumed space-delimited.
 
 @opencatbox
-@category{Package numericalio} @category{File input}
+@category{Package numericalio}
+@category{File input}
 @closecatbox
 
 @end deffn
@@ -247,7 +256,8 @@ The recognized values of @var{separator_flag} are
 If @var{separator_flag} is not specified, the file is assumed space-delimited.
 
 @opencatbox
-@category{Package numericalio} @category{File output}
+@category{Package numericalio}
+@category{File output}
 @closecatbox
 
 @end deffn
@@ -272,7 +282,8 @@ If not specified, @code{numericalio} assumes the external byte order is most-sig
 Returns an input stream of 8-bit unsigned bytes to read the file named by @var{file_name}.
 
 @opencatbox
-@category{Package numericalio} @category{File input}
+@category{Package numericalio}
+@category{File input}
 @closecatbox
 @end deffn
 
@@ -280,7 +291,8 @@ Returns an input stream of 8-bit unsigned bytes to read the file named by @var{f
 Returns an output stream of 8-bit unsigned bytes to write the file named by @var{file_name}.
 
 @opencatbox
-@category{Package numericalio} @category{File output}
+@category{Package numericalio}
+@category{File output}
 @closecatbox
 @end deffn
 
@@ -288,7 +300,8 @@ Returns an output stream of 8-bit unsigned bytes to write the file named by @var
 Returns an output stream of 8-bit unsigned bytes to append the file named by @var{file_name}.
 
 @opencatbox
-@category{Package numericalio} @category{File output}
+@category{Package numericalio}
+@category{File output}
 @closecatbox
 @end deffn
 
@@ -302,7 +315,8 @@ The source @var{S} may be a file name or a stream.
 The byte order in elements of the source is specified by @code{assume_external_byte_order}.
 
 @opencatbox
-@category{Package numericalio} @category{File input}
+@category{Package numericalio}
+@category{File input}
 @closecatbox
 @end deffn
 
@@ -317,7 +331,8 @@ The source @var{S} may be a file name or a stream.
 The byte order in elements of the source is specified by @code{assume_external_byte_order}.
 
 @opencatbox
-@category{Package numericalio} @category{File input}
+@category{Package numericalio}
+@category{File input}
 @closecatbox
 @end deffn
 
@@ -335,7 +350,8 @@ from the source @var{S} until the list @var{L} is full, or the source is exhaust
 The byte order in elements of the source is specified by @code{assume_external_byte_order}.
 
 @opencatbox
-@category{Package numericalio} @category{File input}
+@category{Package numericalio}
+@category{File input}
 @closecatbox
 @end deffn
 
@@ -348,7 +364,7 @@ Other kinds of numbers are coerced to 8-byte floats.
 
 The object @var{X} may be a list, a nested list, a matrix,
 or an array created by @code{array} or @code{make_array};
-@var{X} cannot be an undeclared array or any other type of object.
+@var{X} cannot be a hashed array or any other type of object.
 @code{write_binary_data} writes nested lists, matrices, and arrays in row-major order.
 
 The destination @var{D} may be a file name or a stream.
@@ -363,6 +379,7 @@ The byte order in elements of the destination
 is specified by @code{assume_external_byte_order}.
 
 @opencatbox
-@category{Package numericalio} @category{File output}
+@category{Package numericalio}
+@category{File output}
 @closecatbox
 @end deffn

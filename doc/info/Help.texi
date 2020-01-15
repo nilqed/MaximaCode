@@ -73,7 +73,7 @@ Show all Maxima symbols which have @code{"gamma"} in the name:
 @example
 @group
 (%i1) apropos("gamma");
-(%o1) [%gamma, gamma, gammalim, gamma_expand, gamma_greek, 
+(%o1) [%gamma, gamma, gammalim, gamma_expand, gamma_incomplete_lower, 
 gamma_incomplete, gamma_incomplete_generalized, 
 gamma_incomplete_regularized, Gamma, log_gamma, makegamma, 
 prefer_gamma_incomplete, gamma-incomplete, 
@@ -109,7 +109,7 @@ Example:
 
 batching /home/wfs/maxima/share/simplification/disol.dem
  At the _ prompt, type ';' followed by enter to get next demo
-(%i2)                      load(disol)
+(%i2)                      load("disol")
 
 _
 (%i3)           exp1 : a (e (g + f) + b (d + c))
@@ -127,7 +127,9 @@ _
 @end example
 
 @opencatbox
-@category{Help} @category{Console interaction} @category{File input}
+@category{Help}
+@category{Console interaction}
+@category{File input}
 @closecatbox
 @end deffn
 
@@ -203,7 +205,8 @@ by @code{[...]}).  All or none of the items could have been selected by entering
 respectively.
 
 @opencatbox
-@category{Help} @category{Console interaction}
+@category{Help}
+@category{Console interaction}
 @closecatbox
 @end deffn
 
@@ -253,7 +256,8 @@ Examples:
 @end example
 
 @opencatbox
-@category{Help} @category{Console interaction}
+@category{Help}
+@category{Console interaction}
 @closecatbox
 @end deffn
 
@@ -266,7 +270,8 @@ Default value: @code{"manual.demo"}
 the function @code{example}.  See @mrefdot{example}
 
 @opencatbox
-@category{Help} @category{Global variables}
+@category{Help}
+@category{Global variables}
 @closecatbox
 @end defvr
 

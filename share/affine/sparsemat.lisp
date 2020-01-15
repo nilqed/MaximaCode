@@ -1109,7 +1109,7 @@ something is wrong" (length (sp-list-of-all-columns-occurring sp-mat)) number-of
 		  (cond ((not ($zerop  (aref (sp-constants-column sp-mat) i)))
 			 (format t "~%~%  ******************************~%")
 			 (format	  t "~%Row ~D has no pivot but the (sp-constants-column sp-mat) has entry ~D.
-		   ~%WARNING.  The equations were INCONSISTENT.
+		   ~%Warning: The equations were INCONSISTENT.
 		   ~%The special-solution is NOT VALID.
 		   ~%  ******************************" i (aref  (sp-constants-column sp-mat) i)))))
 	   (show (sp-type-of-entries sp-mat))
@@ -1133,8 +1133,7 @@ something is wrong" (length (sp-list-of-all-columns-occurring sp-mat)) number-of
 			   (vector-push
 			    (aref (sp-column-used-in-row sp-mat) nn) a-special-solution)
 			   (vector-push  a-new-entry a-special-solution)))))))
-    (cond ((and  (sp-solutions sp-mat)(ml-typep
-				       (sp-solutions sp-mat) 'sparse-matrix)))
+    (cond ((and  (sp-solutions sp-mat) (eq (type-of (sp-solutions sp-mat)) 'sparse-matrix)))
 	  (t (setf (sp-solutions sp-mat) (make-sparse-matrix ))))
     (sp-set-rows (sp-solutions sp-mat) solution-rows)
     (sp-set-type-of-entries (sp-solutions sp-mat)

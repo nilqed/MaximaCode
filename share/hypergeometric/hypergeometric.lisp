@@ -83,7 +83,7 @@
 		(or (and (not ah) bh) (and ah bh (>= bh ah)))) 'undefined)
 
 	  ((or ah (zerop1 ($ratdisrep x))
-	       (and ($taylorp x) (eq 0 ($second ($first ($taylorinfo x))))
+	       (and ($taylorp x) (eql 0 ($second ($first ($taylorinfo x))))
 		    (integerp ($third ($first ($taylorinfo x))))))
 	   'polynomial)
 
@@ -121,7 +121,7 @@
 (defun lenient-complex-p (e)
   (and ($freeof '$infinity '$und '$ind '$inf '$minf '$false '$true t nil e) ;; what else?
        (not (mbagp e))
-       (not ($featurep e '$nonscalarp))
+       (not ($featurep e '$nonscalar))
        (not (mrelationp e))
        (not ($member e $arrays))))
 
@@ -305,9 +305,6 @@
 (defun 1f0-numeric (a x)
   (/ 1 (expt (- 1 x) a)))
    	  
-(defun gamma (x)
-  (bigfloat (maxima::$bfloat (maxima::take '(maxima::%gamma) (maxima::to x)))))
-
 ;; This is DLMF: http://dlmf.nist.gov/15.15#E1 with zo = 1/2. Also here is Maxima code that
 ;; sums the first n+1 terms of the sum. The CL function 2f1-numeric-alt uses a running
 ;; error and it sums until three consecutive partial sums have a modified relative difference
@@ -493,13 +490,13 @@ ff(a,b,c,x,n) := block([f, f0 : 1, f1 : 1- 2 * b / c,s : 1,k : 1, cf : a / (1-2/
     ;; In the general case, sum the hypergeometric series using a running error, recursing
     ;; on local-fpprec; bailout when local-fpprec exceeds 1000.
 
-    (cond ((and (eq a-len 0) (eq b-len 0)) ;; special case 0f0
+    (cond ((and (eql a-len 0) (eql b-len 0)) ;; special case 0f0
 	   (values (0f0-numeric x) digits))
 
-	  ((and (eq a-len 1) (eq b-len 0)) ;; special case 1f0
+	  ((and (eql a-len 1) (eql b-len 0)) ;; special case 1f0
 	   (values (1f0-numeric (first a) x) digits))
 
-	  ((and (eq a-len 1) (integerp (first a)) (< (first a) 0) (eq b-len 1)) ;; special case 1f1
+	  ((and (eql a-len 1) (integerp (first a)) (< (first a) 0) (eql b-len 1)) ;; special case 1f1
 	   (maxima::bind-fpprec local-fpprec
 	  			(multiple-value-setq (f d) (1f1-downward-recursion (first a) (first b) x)))
 	   (values f d))
@@ -513,8 +510,8 @@ ff(a,b,c,x,n) := block([f, f0 : 1, f1 : 1- 2 * b / c,s : 1,k : 1, cf : a / (1-2/
 
  
 	  ((and adjust-params 
-		(eq a-len 1) 
-		(eq b-len 1)
+		(eql a-len 1) 
+		(eql b-len 1)
 		(< (realpart x) 0))
 	   (let ((f) (d))
 	     (multiple-value-setq (f d) (hypergeometric-float-eval 
@@ -523,7 +520,7 @@ ff(a,b,c,x,n) := block([f, f0 : 1, f1 : 1- 2 * b / c,s : 1,k : 1, cf : a / (1-2/
 	     (values (* (exp x) f) d)))
 	  	  
 	  ;; analytic continuation for 2f1;
-	  ((and (eq a-len 2) (eq b-len 1) adjust-params)
+	  ((and (eql a-len 2) (eql b-len 1) adjust-params)
 	   (2f1-numeric (car ma) (cadr ma) (car mb) mx digits))
 	  
 	  ((or (< a-len (+ b-len 1)) (in-unit-circle-p x) (eq 'maxima::polynomial 
@@ -563,8 +560,8 @@ ff(a,b,c,x,n) := block([f, f0 : 1, f1 : 1- 2 * b / c,s : 1,k : 1, cf : a / (1-2/
   (let ((fo 1) (fm1 (- 1 (/ x b))) (f) (k -1) (efo 0) (efm1 0) (ef 0))
     (declare (type fixnum k))
     (setq k -1)
-    (cond ((eq a 0) (values fo 0))
-	  ((eq a -1) (values fm1 0))
+    (cond ((eql a 0) (values fo 0))
+	  ((eql a -1) (values fm1 0))
 	  (t
 	   (setq x (- x b))
 	   (while (>= k a)
@@ -588,9 +585,6 @@ ff(a,b,c,x,n) := block([f, f0 : 1, f1 : 1- 2 * b / c,s : 1,k : 1, cf : a / (1-2/
 
 (defun float-or-bigfloat-p (x)
   (or (floatp x) ($bfloatp x)))
-
-(defun float-or-rational-p (x)
-  (or (floatp x) ($ratnump x)))
 
 ;; Return true iff it is possible to evaluate hypergeometric(a,b,x) using (exact)
 ;; rational arithmetic. Thus (1) x and every member of a and b (Common Lisp lists) must be
@@ -680,7 +674,7 @@ ff(a,b,c,x,n) := block([f, f0 : 1, f1 : 1- 2 * b / c,s : 1,k : 1, cf : a / (1-2/
   (let ((n nil) (z 1) (s 1) (p) (q) (cf 1))
     
     ;; Determine how many terms to sum
-    (cond ((and ($taylorp x) (eq 0 ($second ($first ($taylorinfo x))))
+    (cond ((and ($taylorp x) (eql 0 ($second ($first ($taylorinfo x))))
 		(integerp ($third ($first ($taylorinfo x)))))
 	   (setq n ($third ($first ($taylorinfo x)))))
 	  
@@ -766,7 +760,7 @@ ff(a,b,c,x,n) := block([f, f0 : 1, f1 : 1- 2 * b / c,s : 1,k : 1, cf : a / (1-2/
          (b-1 (add b -1))
          (prod_b-1 (reduce #'mul (margs b-1)))
          (prod_a-1 (reduce #'mul (margs a-1))))
-    (if (eq prod_a-1 0)
+    (if (eql prod_a-1 0)
       (mul z (take '($hypergeometric) (append a '(1)) (append b '(2)) z))
       (mul prod_b-1 (inv prod_a-1) (take '($hypergeometric) a-1 b-1 z)))))
 

@@ -16,7 +16,7 @@
 @c -----------------------------------------------------------------------------
 
 Lists are the basic building block for Maxima and Lisp.  All data types
-other than arrays, hash tables, numbers are represented as Lisp lists,
+other than arrays, @mref{hashed arrays} and numbers are represented as Lisp lists,
 These Lisp lists have the form
 
 @example
@@ -65,11 +65,14 @@ itself, since after it has been through the simplifier the list would become
 @code{[} and @code{]} mark the beginning and end, respectively, of a list.
 
 @code{[} and @code{]} also enclose the subscripts of
-a list, array, hash array, or array function. Note that
+a list, array, @mrefcomma{hashed array} or @mrefdot{memoizing function} Note that
 other than for arrays accessing the @code{n}th element of a list
-needs an amount of time that is roughly proportional to  @code{n},
+may need an amount of time that is roughly proportional to  @code{n},
 @xref{Performance considerations for Lists}.
 
+Note that if an element of a subscripted variable is written to before
+a list or an array of this name is declared a @mref{hashed array}
+(@pxref{Arrays}) is created, not a list.
 
 Examples:
 
@@ -129,7 +132,8 @@ Examples:
 @end example
 
 @opencatbox
-@category{Lists} @category{Operators}
+@category{Lists}
+@category{Operators}
 @closecatbox
 @end defvr
 
@@ -145,12 +149,13 @@ by the elements of @var{list_2}, @dots{}  @code{append} also works on
 general expressions, e.g. @code{append (f(a,b), f(c,d,e));} yields
 @code{f(a,b,c,d,e)}.
 
-See also @mrefdot{join}
+See also @mrefcomma{addrow} @mref{addcol} and @mrefdot{join}
 
 Do @code{example(append);} for an example.
 
 @opencatbox
-@category{Lists} @category{Expressions}
+@category{Lists}
+@category{Expressions}
 @closecatbox
 @end deffn
 
@@ -203,7 +208,8 @@ so @code{assoc} returns @code{false}.
 @end example
 
 @opencatbox
-@category{Lists} @category{Expressions}
+@category{Lists}
+@category{Expressions}
 @closecatbox
 @end deffn
 
@@ -222,6 +228,7 @@ The Maxima function @code{cons} can also be used where the second argument is ot
 than a list and this might be useful. In this case, @code{cons (@var{expr_1}, @var{expr_2})}
 returns an expression with same operator as @var{expr_2} but with argument @code{cons(expr_1, args(expr_2))}.
 Examples:
+
 @c ===beg===
 @c cons(a,[b,c,d]);
 @c cons(a,f(b,c,d));
@@ -243,6 +250,7 @@ results in an illegal expression, since '^' cannot take three arguments.
 When @code{inflag} is true, @code{cons} operates on the internal structure of an expression, otherwise
 @code{cons} operates on the displayed form. Especially when @code{inflag} is true, @code{cons} applied 
 to a nonlist sometimes gives a surprising result; for example
+
 @c ===beg===
 @c cons(a,-a), inflag : true;
 @c cons(a,-a), inflag : false;
@@ -260,7 +268,8 @@ to a nonlist sometimes gives a surprising result; for example
 @end example
 
 @opencatbox
-@category{Lists} @category{Expressions}
+@category{Lists}
+@category{Expressions}
 @closecatbox
 @end deffn
 
@@ -459,7 +468,8 @@ Arguments which are @code{equal} but not "=" are not removed.
 @end example
 
 @opencatbox
-@category{Lists} @category{Expressions}
+@category{Lists}
+@category{Expressions}
 @closecatbox
 @end deffn
 
@@ -467,11 +477,12 @@ Arguments which are @code{equal} but not "=" are not removed.
 @anchor{eighth}
 @deffn {Function} eighth (@var{expr})
 
-Returns the 8'th item of expression or list @var{expr}.
+Returns the 8th item of expression or list @var{expr}.
 See @mref{first} for more details.
 
 @opencatbox
-@category{Lists} @category{Expressions}
+@category{Lists}
+@category{Expressions}
 @closecatbox
 @end deffn
 
@@ -487,6 +498,7 @@ See @mref{first} for more details.
 the second argument is other than a list and this might be useful. In this case,
 @code{endcons (@var{expr_1}, @var{expr_2})} returns an expression with same operator as 
 @var{expr_2} but with argument @code{endcons(expr_1, args(expr_2))}. Examples:
+
 @c ===beg===
 @c endcons(a,[b,c,d]);
 @c endcons(a,f(b,c,d));
@@ -508,6 +520,7 @@ results in an illegal expression, since '^' cannot take three arguments.
 When @code{inflag} is true, @code{endcons} operates on the internal structure of an expression, otherwise
 @code{endcons} operates on the displayed form. Especially when @code{inflag} is true, @code{endcons} applied 
 to a nonlist sometimes gives a surprising result; for example
+
 @c ===beg===
 @c endcons(a,-a), inflag : true;
 @c endcons(a,-a), inflag : false;
@@ -525,7 +538,8 @@ to a nonlist sometimes gives a surprising result; for example
 @end example
 
 @opencatbox
-@category{Lists} @category{Expressions}
+@category{Lists}
+@category{Expressions}
 @closecatbox
 @end deffn
 
@@ -534,11 +548,12 @@ to a nonlist sometimes gives a surprising result; for example
 @anchor{fifth}
 @deffn {Function} fifth (@var{expr})
 
-Returns the 5'th item of expression or list @var{expr}.
+Returns the 5th item of expression or list @var{expr}.
 See @mref{first} for more details.
 
 @opencatbox
-@category{Lists} @category{Expressions}
+@category{Lists}
+@category{Expressions}
 @closecatbox
 @end deffn
 
@@ -548,6 +563,7 @@ See @mref{first} for more details.
 
 Returns the first part of @var{expr} which may result in the first element of a
 list, the first row of a matrix, the first term of a sum, etc.:
+
 @example
 @group
 (%i1) matrix([1,2],[3,4]);
@@ -566,12 +582,14 @@ list, the first row of a matrix, the first term of a sum, etc.:
 (%o5)                              a
 @end group
 @end example
+
 Note that
 @code{first} and its related functions, @code{rest} and @code{last}, work
 on the form of @var{expr} which is displayed not the form which is typed on
 input.  If the variable @mref{inflag} is set to @code{true} however, these
 functions will look at the internal form of @var{expr}. One reason why this may
 make a difference is that the simplifier re-orders expressions:
+
 @example
 @group
 (%i1) x+y;
@@ -586,10 +604,170 @@ make a difference is that the simplifier re-orders expressions:
 The functions @code{second} @dots{}
 @code{tenth} yield the second through the tenth part of their input argument.
 
-See also @mrefdot{part}
+See also @mref{firstn} and @mrefdot{part}
 
 @opencatbox
-@category{Lists} @category{Expressions}
+@category{Lists}
+@category{Expressions}
+@closecatbox
+@end deffn
+
+@c -----------------------------------------------------------------------------
+@anchor{firstn}
+@deffn {Function} firstn (@var{expr}, @var{count})
+
+Returns the first @var{count} arguments of @var{expr}, if @var{expr} has at least @var{count} arguments.
+Returns @var{expr} if @var{expr} has less than @var{count} arguments.
+
+@var{expr} may be any nonatomic expression. 
+When @var{expr} is something other than a list,
+@code{firstn} returns an expression which has the same operator as @var{expr}.
+@var{count} must be a nonnegative integer.
+
+@code{firstn} honors the global flag @code{inflag},
+which governs whether the internal form of an expression is processed (when @code{inflag} is true)
+or the displayed form (when @code{inflag} is false).
+
+Note that @code{firstn(@var{expr}, 1)},
+which returns a nonatomic expression containing the first argument,
+is not the same as @code{first(@var{expr})},
+which returns the first argument by itself.
+
+See also @mref{lastn} and @mrefdot{rest}
+
+Examples:
+
+@code{firstn} returns the first @var{count} elements of @var{expr}, if @var{expr} has at least @var{count} elements.
+
+@c ===beg===
+@c mylist : [1, a, 2, b, 3, x, 4 - y, 2*z + sin(u)];
+@c firstn (mylist, 0);
+@c firstn (mylist, 1);
+@c firstn (mylist, 2);
+@c firstn (mylist, 7);
+@c ===end===
+@example
+@group
+(%i1) mylist : [1, a, 2, b, 3, x, 4 - y, 2*z + sin(u)];
+(%o1)        [1, a, 2, b, 3, x, 4 - y, 2 z + sin(u)]
+@end group
+@group
+(%i2) firstn (mylist, 0);
+(%o2)                          []
+@end group
+@group
+(%i3) firstn (mylist, 1);
+(%o3)                          [1]
+@end group
+@group
+(%i4) firstn (mylist, 2);
+(%o4)                        [1, a]
+@end group
+@group
+(%i5) firstn (mylist, 7);
+(%o5)               [1, a, 2, b, 3, x, 4 - y]
+@end group
+@end example
+
+@code{firstn} returns @var{expr} if @var{expr} has less than @var{count} elements.
+
+@c ===beg===
+@c mylist : [1, a, 2, b, 3, x, 4 - y, 2*z + sin(u)];
+@c firstn (mylist, 100);
+@c ===end===
+@example
+@group
+(%i1) mylist : [1, a, 2, b, 3, x, 4 - y, 2*z + sin(u)];
+(%o1)        [1, a, 2, b, 3, x, 4 - y, 2 z + sin(u)]
+@end group
+@group
+(%i2) firstn (mylist, 100);
+(%o2)        [1, a, 2, b, 3, x, 4 - y, 2 z + sin(u)]
+@end group
+@end example
+
+@var{expr} may be any nonatomic expression. 
+
+@c ===beg===
+@c myfoo : foo(1, a, 2, b, 3, x, 4 - y, 2*z + sin(u));
+@c firstn (myfoo, 4);
+@c mybar : bar[m, n](1, a, 2, b, 3, x, 4 - y, 2*z + sin(u));
+@c firstn (mybar, 4);
+@c mymatrix : genmatrix (lambda ([i, j], 10*i + j), 10, 4) $
+@c firstn (mymatrix, 3);
+@c ===end===
+@example
+@group
+(%i1) myfoo : foo(1, a, 2, b, 3, x, 4 - y, 2*z + sin(u));
+(%o1)      foo(1, a, 2, b, 3, x, 4 - y, 2 z + sin(u))
+@end group
+@group
+(%i2) firstn (myfoo, 4);
+(%o2)                    foo(1, a, 2, b)
+@end group
+@group
+(%i3) mybar : bar[m, n](1, a, 2, b, 3, x, 4 - y, 2*z + sin(u));
+(%o3)    bar    (1, a, 2, b, 3, x, 4 - y, 2 z + sin(u))
+            m, n
+@end group
+@group
+(%i4) firstn (mybar, 4);
+(%o4)                  bar    (1, a, 2, b)
+                          m, n
+@end group
+(%i5) mymatrix : genmatrix (lambda ([i, j], 10*i + j), 10, 4) $
+@group
+(%i6) firstn (mymatrix, 3);
+                       [ 11  12  13  14 ]
+                       [                ]
+(%o6)                  [ 21  22  23  24 ]
+                       [                ]
+                       [ 31  32  33  34 ]
+@end group
+@end example
+
+@code{firstn} honors the global flag @code{inflag}.
+
+@c ===beg===
+@c myexpr : a + b + c + d + e;
+@c firstn (myexpr, 3), inflag=true;
+@c firstn (myexpr, 3), inflag=false;
+@c ===end===
+@example
+@group
+(%i1) myexpr : a + b + c + d + e;
+(%o1)                   e + d + c + b + a
+@end group
+@group
+(%i2) firstn (myexpr, 3), inflag=true;
+(%o2)                       c + b + a
+@end group
+@group
+(%i3) firstn (myexpr, 3), inflag=false;
+(%o3)                       e + d + c
+@end group
+@end example
+
+Note that @code{firstn(@var{expr}, 1)} is not the same as @code{first(@var{expr})}.
+
+@c ===beg===
+@c firstn ([w, x, y, z], 1);
+@c first ([w, x, y, z]);
+@c ===end===
+@example
+@group
+(%i1) firstn ([w, x, y, z], 1);
+(%o1)                          [w]
+@end group
+@group
+(%i2) first ([w, x, y, z]);
+(%o2)                           w
+@end group
+@end example
+
+@opencatbox
+@category{Lists}
+@category{Expressions}
 @closecatbox
 @end deffn
 
@@ -597,11 +775,12 @@ See also @mrefdot{part}
 @anchor{fourth}
 @deffn {Function} fourth (@var{expr})
 
-Returns the 4'th item of expression or list @var{expr}.
+Returns the 4th item of expression or list @var{expr}.
 See @mref{first} for more details.
 
 @opencatbox
-@category{Lists} @category{Expressions}
+@category{Lists}
+@category{Expressions}
 @closecatbox
 @end deffn
 
@@ -657,12 +836,174 @@ Examples:
 
 Returns the last part (term, row, element, etc.) of the @var{expr}.
 
+See also @mrefdot{lastn}
+
 @opencatbox
-@category{Lists} @category{Expressions}
+@category{Lists}
+@category{Expressions}
 @closecatbox
 @end deffn
 
 @c NEEDS CLARIFICATION AND EXAMPLES
+
+@c -----------------------------------------------------------------------------
+@anchor{lastn}
+@deffn {Function} lastn (@var{expr}, @var{count})
+
+Returns the last @var{count} arguments of @var{expr}, if @var{expr} has at least @var{count} arguments.
+Returns @var{expr} if @var{expr} has less than @var{count} arguments.
+
+@var{expr} may be any nonatomic expression. 
+When @var{expr} is something other than a list,
+@code{lastn} returns an expression which has the same operator as @var{expr}.
+@var{count} must be a nonnegative integer.
+
+@code{lastn} honors the global flag @code{inflag},
+which governs whether the internal form of an expression is processed (when @code{inflag} is true)
+or the displayed form (when @code{inflag} is false).
+
+Note that @code{lastn(@var{expr}, 1)},
+which returns a nonatomic expression containing the last argument,
+is not the same as @code{last(@var{expr})},
+which returns the last argument by itself.
+
+See also @mref{firstn} and @mrefdot{rest}
+
+Examples:
+
+@code{lastn} returns the last @var{count} elements of @var{expr}, if @var{expr} has at least @var{count} elements.
+
+@c ===beg===
+@c mylist : [1, a, 2, b, 3, x, 4 - y, 2*z + sin(u)];
+@c lastn (mylist, 0);
+@c lastn (mylist, 1);
+@c lastn (mylist, 2);
+@c lastn (mylist, 7);
+@c ===end===
+@example
+@group
+(%i1) mylist : [1, a, 2, b, 3, x, 4 - y, 2*z + sin(u)];
+(%o1)        [1, a, 2, b, 3, x, 4 - y, 2 z + sin(u)]
+@end group
+@group
+(%i2) lastn (mylist, 0);
+(%o2)                          []
+@end group
+@group
+(%i3) lastn (mylist, 1);
+(%o3)                    [2 z + sin(u)]
+@end group
+@group
+(%i4) lastn (mylist, 2);
+(%o4)                 [4 - y, 2 z + sin(u)]
+@end group
+@group
+(%i5) lastn (mylist, 7);
+(%o5)         [a, 2, b, 3, x, 4 - y, 2 z + sin(u)]
+@end group
+@end example
+
+@code{lastn} returns @var{expr} if @var{expr} has less than @var{count} elements.
+
+@c ===beg===
+@c mylist : [1, a, 2, b, 3, x, 4 - y, 2*z + sin(u)];
+@c lastn (mylist, 100);
+@c ===end===
+@example
+@group
+(%i1) mylist : [1, a, 2, b, 3, x, 4 - y, 2*z + sin(u)];
+(%o1)        [1, a, 2, b, 3, x, 4 - y, 2 z + sin(u)]
+@end group
+@group
+(%i2) lastn (mylist, 100);
+(%o2)        [1, a, 2, b, 3, x, 4 - y, 2 z + sin(u)]
+@end group
+@end example
+
+@var{expr} may be any nonatomic expression. 
+
+@c ===beg===
+@c myfoo : foo(1, a, 2, b, 3, x, 4 - y, 2*z + sin(u));
+@c lastn (myfoo, 4);
+@c mybar : bar[m, n](1, a, 2, b, 3, x, 4 - y, 2*z + sin(u));
+@c lastn (mybar, 4);
+@c mymatrix : genmatrix (lambda ([i, j], 10*i + j), 10, 4) $
+@c lastn (mymatrix, 3);
+@c ===end===
+@example
+@group
+(%i1) myfoo : foo(1, a, 2, b, 3, x, 4 - y, 2*z + sin(u));
+(%o1)      foo(1, a, 2, b, 3, x, 4 - y, 2 z + sin(u))
+@end group
+@group
+(%i2) lastn (myfoo, 4);
+(%o2)            foo(3, x, 4 - y, 2 z + sin(u))
+@end group
+@group
+(%i3) mybar : bar[m, n](1, a, 2, b, 3, x, 4 - y, 2*z + sin(u));
+(%o3)    bar    (1, a, 2, b, 3, x, 4 - y, 2 z + sin(u))
+            m, n
+@end group
+@group
+(%i4) lastn (mybar, 4);
+(%o4)          bar    (3, x, 4 - y, 2 z + sin(u))
+                  m, n
+@end group
+(%i5) mymatrix : genmatrix (lambda ([i, j], 10*i + j), 10, 4) $
+@group
+(%i6) lastn (mymatrix, 3);
+                     [ 81   82   83   84  ]
+                     [                    ]
+(%o6)                [ 91   92   93   94  ]
+                     [                    ]
+                     [ 101  102  103  104 ]
+@end group
+@end example
+
+@code{lastn} honors the global flag @code{inflag}.
+
+@c ===beg===
+@c myexpr : a + b + c + d + e;
+@c lastn (myexpr, 3), inflag=true;
+@c lastn (myexpr, 3), inflag=false;
+@c ===end===
+@example
+@group
+(%i1) myexpr : a + b + c + d + e;
+(%o1)                   e + d + c + b + a
+@end group
+@group
+(%i2) lastn (myexpr, 3), inflag=true;
+(%o2)                       e + d + c
+@end group
+@group
+(%i3) lastn (myexpr, 3), inflag=false;
+(%o3)                       c + b + a
+@end group
+@end example
+
+Note that @code{lastn(@var{expr}, 1)} is not the same as @code{last(@var{expr})}.
+
+@c ===beg===
+@c lastn ([w, x, y, z], 1);
+@c last ([w, x, y, z]);
+@c ===end===
+@example
+@group
+(%i1) lastn ([w, x, y, z], 1);
+(%o1)                          [z]
+@end group
+@group
+(%i2) last ([w, x, y, z]);
+(%o2)                           z
+@end group
+@end example
+
+@opencatbox
+@category{Lists}
+@category{Expressions}
+@closecatbox
+@end deffn
 
 @c -----------------------------------------------------------------------------
 @anchor{length}
@@ -684,7 +1025,8 @@ a loop it therefore might drastically increase the performance if the length
 is calculated outside the loop instead.
 
 @opencatbox
-@category{Lists} @category{Expressions}
+@category{Lists}
+@category{Expressions}
 @closecatbox
 @end deffn
 
@@ -699,7 +1041,8 @@ converted to matrices yielding a result which is always a matrix.  However,
 list-list operations should return lists.
 
 @opencatbox
-@category{Lists} @category{Global flags}
+@category{Lists}
+@category{Global flags}
 @closecatbox
 @end defvr
 
@@ -709,8 +1052,85 @@ list-list operations should return lists.
 Returns @code{true} if @var{expr} is a list else @code{false}.
 
 @opencatbox
-@category{Lists} @category{Predicate functions}
+@category{Lists}
+@category{Predicate functions}
 @closecatbox
+@end deffn
+
+@c -----------------------------------------------------------------------------
+@anchor{lreduce}
+@deffn {Function} lreduce @
+@fname{lreduce} (@var{F}, @var{s}) @
+@fname{lreduce} (@var{F}, @var{s}, @var{s_0})
+
+Extends the binary function @var{F} to an n-ary function by composition,
+where @var{s} is a list.
+
+@code{lreduce(@var{F}, @var{s})} returns @code{F(... F(F(s_1, s_2), s_3), ... s_n)}.
+When the optional argument @var{s_0} is present,
+the result is equivalent to @code{lreduce(@var{F}, cons(@var{s_0}, @var{s}))}.
+
+The function @var{F} is first applied to the
+@i{leftmost} list elements, thus the name "lreduce".
+
+See also @mref{rreduce}, @mref{xreduce}, and @mref{tree_reduce}.
+
+Examples:
+
+@code{lreduce} without the optional argument.
+
+@c ===beg===
+@c lreduce (f, [1, 2, 3]);
+@c lreduce (f, [1, 2, 3, 4]);
+@c ===end===
+@example
+@group
+(%i1) lreduce (f, [1, 2, 3]);
+(%o1)                     f(f(1, 2), 3)
+@end group
+@group
+(%i2) lreduce (f, [1, 2, 3, 4]);
+(%o2)                  f(f(f(1, 2), 3), 4)
+@end group
+@end example
+
+@code{lreduce} with the optional argument.
+
+@c ===beg===
+@c lreduce (f, [1, 2, 3], 4);
+@c ===end===
+@example
+@group
+(%i1) lreduce (f, [1, 2, 3], 4);
+(%o1)                  f(f(f(4, 1), 2), 3)
+@end group
+@end example
+
+@code{lreduce} applied to built-in binary operators.
+@code{/} is the division operator.
+
+@c ===beg===
+@c lreduce ("^", args ({a, b, c, d}));
+@c lreduce ("/", args ({a, b, c, d}));
+@c ===end===
+@example
+@group
+(%i1) lreduce ("^", args (@{a, b, c, d@}));
+                               b c d
+(%o1)                       ((a ) )
+@end group
+@group
+(%i2) lreduce ("/", args (@{a, b, c, d@}));
+                                a
+(%o2)                         -----
+                              b c d
+@end group
+@end example
+
+@opencatbox
+@category{Lists}
+@closecatbox
+
 @end deffn
 
 @c -----------------------------------------------------------------------------
@@ -740,7 +1160,7 @@ expression. If it is omitted, the default value 1 will be used. If both
 value of 1.
 
 @code{makelist (@var{expr}, @var{x}, @var{list})} returns a list, the
-@code{j}'th element of which is equal to
+@code{j}th element of which is equal to
 @code{ev (@var{expr}, @var{x}=@var{list}[j])} for @code{j} equal to 1 through
 @code{length (@var{list})}.
 
@@ -854,7 +1274,9 @@ Examples:
 @end example
 
 @opencatbox
-@category{Lists} @category{Expressions} @category{Predicate functions}
+@category{Lists}
+@category{Expressions}
+@category{Predicate functions}
 @closecatbox
 @end deffn
 
@@ -862,11 +1284,12 @@ Examples:
 @anchor{ninth}
 @deffn {Function} ninth (@var{expr})
 
-Returns the 9'th item of expression or list @var{expr}.
+Returns the 9th item of expression or list @var{expr}.
 See @mref{first} for more details.
 
 @opencatbox
-@category{Lists} @category{Expressions}
+@category{Lists}
+@category{Expressions}
 @closecatbox
 @end deffn
 
@@ -874,12 +1297,13 @@ See @mref{first} for more details.
 @anchor{pop}
 @deffn {Function} pop (@var{list})
 
-@code{pop} removes and returns the first element from the list @var{list}. The second argument 
+@code{pop} removes and returns the first element from the list @var{list}. The argument
 @var{list} must be a mapatom that is bound to a nonempty list. If the argument @var{list} is 
 not bound to a nonempty list, Maxima signals an error. For examples, see @mrefdot{push}
 
 @opencatbox
-@category{Lists} @category{Expressions}
+@category{Lists}
+@category{Expressions}
 @closecatbox
 @end deffn
 
@@ -953,7 +1377,8 @@ Examples:
 @end example
 
 @opencatbox
-@category{Lists} @category{Expressions}
+@category{Lists}
+@category{Expressions}
 @closecatbox
 @end deffn
 
@@ -967,17 +1392,19 @@ Returns @var{expr} with its first @var{n} elements removed if @var{n}
 is positive and its last @code{- @var{n}} elements removed if @var{n}
 is negative. If @var{n} is 1 it may be omitted. The first argument
 @var{expr} may be a list, matrix, or other expression. When @var{expr}
-is a mapatom, @code{rest} signals an error; when @var{expr} is an empty
+is an atom, @code{rest} signals an error; when @var{expr} is an empty
 list and @code{partswitch} is false, @code{rest} signals an error. When 
 @var{expr} is an empty list and @code{partswitch} is true, @code{rest} 
 returns @code{end}.
 
 Applying @code{rest} to expression such as @code{f(a,b,c)} returns
-@code{f(b,c)}. In general, applying @code{rest} to an nonlist doesn't
+@code{f(b,c)}. In general, applying @code{rest} to a nonlist doesn't
 make sense. For example, because '^' requires two arguments,
 @code{rest(a^b)} results in an error message. The functions
 @code{args} and @code{op} may be useful as well, since @code{args(a^b)}
 returns @code{[a,b]} and @code{op(a^b)} returns ^.
+
+See also @mref{firstn} and @mrefdot{lastn}
 
 @example
 @group
@@ -991,7 +1418,8 @@ returns @code{[a,b]} and @code{op(a^b)} returns ^.
 @end example
 
 @opencatbox
-@category{Lists} @category{Expressions}
+@category{Lists}
+@category{Expressions}
 @closecatbox
 @end deffn
 
@@ -1007,19 +1435,99 @@ the members themselves).  @code{reverse} also works on general expressions,
 e.g.  @code{reverse(a=b);} gives @code{b=a}.
 
 @opencatbox
-@category{Lists} @category{Expressions}
+@category{Lists}
+@category{Expressions}
 @closecatbox
+@end deffn
+
+@c -----------------------------------------------------------------------------
+@anchor{rreduce}
+@deffn {Function} rreduce @
+@fname{rreduce} (@var{F}, @var{s}) @
+@fname{rreduce} (@var{F}, @var{s}, @var{s_@{n + 1@}})
+
+Extends the binary function @var{F} to an n-ary function by composition,
+where @var{s} is a list.
+
+@code{rreduce(@var{F}, @var{s})} returns @code{F(s_1, ... F(s_@{n - 2@}, F(s_@{n - 1@}, s_n)))}.
+When the optional argument @var{s_@{n + 1@}} is present,
+the result is equivalent to @code{rreduce(@var{F}, endcons(@var{s_@{n + 1@}}, @var{s}))}.
+
+The function @var{F} is first applied to the
+@i{rightmost} list elements, thus the name "rreduce".
+
+See also @mref{lreduce}, @mref{tree_reduce}, and @mref{xreduce}.
+
+Examples:
+
+@code{rreduce} without the optional argument.
+
+@c ===beg===
+@c rreduce (f, [1, 2, 3]);
+@c rreduce (f, [1, 2, 3, 4]);
+@c ===end===
+@example
+@group
+(%i1) rreduce (f, [1, 2, 3]);
+(%o1)                     f(1, f(2, 3))
+@end group
+@group
+(%i2) rreduce (f, [1, 2, 3, 4]);
+(%o2)                  f(1, f(2, f(3, 4)))
+@end group
+@end example
+
+@code{rreduce} with the optional argument.
+
+@c ===beg===
+@c rreduce (f, [1, 2, 3], 4);
+@c ===end===
+@example
+@group
+(%i1) rreduce (f, [1, 2, 3], 4);
+(%o1)                  f(1, f(2, f(3, 4)))
+@end group
+@end example
+
+@code{rreduce} applied to built-in binary operators.
+@code{/} is the division operator.
+
+@c ===beg===
+@c rreduce ("^", args ({a, b, c, d}));
+@c rreduce ("/", args ({a, b, c, d}));
+@c ===end===
+@example
+@group
+(%i1) rreduce ("^", args (@{a, b, c, d@}));
+                                 d
+                                c
+                               b
+(%o1)                         a
+@end group
+@group
+(%i2) rreduce ("/", args (@{a, b, c, d@}));
+                               a c
+(%o2)                          ---
+                               b d
+@end group
+@end example
+
+@opencatbox
+@category{Lists}
+@closecatbox
+
 @end deffn
 
 @c -----------------------------------------------------------------------------
 @anchor{second}
 @deffn {Function} second (@var{expr})
 
-Returns the 2'nd item of expression or list @var{expr}.
+Returns the 2nd item of expression or list @var{expr}.
 See @mref{first} for more details.
 
 @opencatbox
-@category{Lists} @category{Expressions}
+@category{Lists}
+@category{Expressions}
 @closecatbox
 @end deffn
 
@@ -1027,11 +1535,12 @@ See @mref{first} for more details.
 @anchor{seventh}
 @deffn {Function} seventh (@var{expr})
 
-Returns the 7'th item of expression or list @var{expr}.
+Returns the 7th item of expression or list @var{expr}.
 See @mref{first} for more details.
 
 @opencatbox
-@category{Lists} @category{Expressions}
+@category{Lists}
+@category{Expressions}
 @closecatbox
 @end deffn
 
@@ -1039,11 +1548,12 @@ See @mref{first} for more details.
 @anchor{sixth}
 @deffn {Function} sixth (@var{expr})
 
-Returns the 6'th item of expression or list @var{expr}.
+Returns the 6th item of expression or list @var{expr}.
 See @mref{first} for more details.
 
 @opencatbox
-@category{Lists} @category{Expressions}
+@category{Lists}
+@category{Expressions}
 @closecatbox
 @end deffn
 
@@ -1360,6 +1870,91 @@ Examples:
 @end deffn
 
 @c -----------------------------------------------------------------------------
+@anchor{tenth}
+@deffn {Function} tenth (@var{expr})
+
+Returns the 10th item of expression or list @var{expr}.
+See @mref{first} for more details.
+
+@opencatbox
+@category{Lists}
+@category{Expressions}
+@closecatbox
+@end deffn
+
+@c -----------------------------------------------------------------------------
+@anchor{third}
+@deffn {Function} third (@var{expr})
+
+Returns the 3rd item of expression or list @var{expr}.
+See @mref{first} for more details.
+
+@opencatbox
+@category{Lists}
+@category{Expressions}
+@closecatbox
+@end deffn
+
+@c -----------------------------------------------------------------------------
+@c TREE_REDUCE ACCEPTS A SET OR LIST AS AN ARGUMENT, BUT RREDUCE AND LREDUCE WANT ONLY LISTS; STRANGE
+@anchor{tree_reduce}
+@deffn {Function} tree_reduce @
+@fname{tree_reduce} (@var{F}, @var{s}) @
+@fname{tree_reduce} (@var{F}, @var{s}, @var{s_0})
+
+Extends the binary function @var{F} to an n-ary function by composition,
+where @var{s} is a set or list.
+
+@code{tree_reduce} is equivalent to the following:
+Apply @var{F} to successive pairs of elements
+to form a new list @code{[@var{F}(@var{s_1}, @var{s_2}), @var{F}(@var{s_3}, @var{s_4}), ...]},
+carrying the final element unchanged if there are an odd number of elements.
+Then repeat until the list is reduced to a single element, which is the return value.
+
+When the optional argument @var{s_0} is present,
+the result is equivalent @code{tree_reduce(@var{F}, cons(@var{s_0}, @var{s}))}.
+
+For addition of floating point numbers,
+@code{tree_reduce} may return a sum that has a smaller rounding error
+than either @code{rreduce} or @code{lreduce}.
+
+The elements of @var{s} and the partial results may be arranged in a minimum-depth binary tree,
+thus the name "tree_reduce".
+
+Examples:
+
+@code{tree_reduce} applied to a list with an even number of elements.
+
+@c ===beg===
+@c tree_reduce (f, [a, b, c, d]);
+@c ===end===
+@example
+@group
+(%i1) tree_reduce (f, [a, b, c, d]);
+(%o1)                  f(f(a, b), f(c, d))
+@end group
+@end example
+
+@code{tree_reduce} applied to a list with an odd number of elements.
+
+@c ===beg===
+@c tree_reduce (f, [a, b, c, d, e]);
+@c ===end===
+@example
+@group
+(%i1) tree_reduce (f, [a, b, c, d, e]);
+(%o1)               f(f(f(a, b), f(c, d)), e)
+@end group
+@end example
+
+@opencatbox
+@category{Sets}
+@category{Lists}
+@closecatbox
+
+@end deffn
+
+@c -----------------------------------------------------------------------------
 @anchor{unique}
 @deffn {Function} unique (@var{L})
 
@@ -1385,27 +1980,85 @@ Example:
 @end deffn
 
 @c -----------------------------------------------------------------------------
-@anchor{tenth}
-@deffn {Function} tenth (@var{expr})
+@c XREDUCE ACCEPTS A SET OR LIST AS AN ARGUMENT, BUT RREDUCE AND LREDUCE WANT ONLY LISTS; STRANGE
+@anchor{xreduce}
+@deffn {Function} xreduce @
+@fname{xreduce} (@var{F}, @var{s}) @
+@fname{xreduce} (@var{F}, @var{s}, @var{s_0})
 
-Returns the 10'th item of expression or list @var{expr}.
-See @mref{first} for more details.
+Extends the function @var{F} to an n-ary function by composition,
+or, if @var{F} is already n-ary, applies @var{F} to @var{s}.
+When @var{F} is not n-ary, @code{xreduce} is the same as @code{lreduce}.
+The argument @var{s} is a list.
+
+Functions known to be n-ary include
+addition @code{+}, multiplication @code{*}, @code{and}, @code{or}, @code{max},
+@code{min}, and @code{append}.
+Functions may also be declared n-ary by @code{declare(@var{F}, nary)}.
+For these functions,
+@code{xreduce} is expected to be faster than either @code{rreduce} or @code{lreduce}.
+
+When the optional argument @var{s_0} is present,
+the result is equivalent to @code{xreduce(@var{s}, cons(@var{s_0}, @var{s}))}.
+
+@c NOT SURE WHAT IS THE RELEVANCE OF THE FOLLOWING COMMENT
+@c MAXIMA IS NEVER SO CAREFUL ABOUT FLOATING POINT ASSOCIATIVITY SO FAR AS I KNOW
+Floating point addition is not exactly associative; be that as it may,
+@code{xreduce} applies Maxima's n-ary addition when @var{s} contains floating point numbers.
+
+Examples:
+
+@code{xreduce} applied to a function known to be n-ary.
+@code{F} is called once, with all arguments.
+
+@c ===beg===
+@c declare (F, nary);
+@c F ([L]) := L;
+@c xreduce (F, [a, b, c, d, e]);
+@c ===end===
+@example
+@group
+(%i1) declare (F, nary);
+(%o1)                         done
+@end group
+@group
+(%i2) F ([L]) := L;
+(%o2)                      F([L]) := L
+@end group
+@group
+(%i3) xreduce (F, [a, b, c, d, e]);
+(%o3)                    [a, b, c, d, e]
+@end group
+@end example
+
+@code{xreduce} applied to a function not known to be n-ary.
+@code{G} is called several times, with two arguments each time.
+
+@c ===beg===
+@c G ([L]) := L;
+@c xreduce (G, [a, b, c, d, e]);
+@c lreduce (G, [a, b, c, d, e]);
+@c ===end===
+@example
+@group
+(%i1) G ([L]) := L;
+(%o1)                      G([L]) := L
+@end group
+@group
+(%i2) xreduce (G, [a, b, c, d, e]);
+(%o2)                 [[[[a, b], c], d], e]
+@end group
+@group
+(%i3) lreduce (G, [a, b, c, d, e]);
+(%o3)                 [[[[a, b], c], d], e]
+@end group
+@end example
 
 @opencatbox
-@category{Lists} @category{Expressions}
+@category{Sets}
+@category{Lists}
 @closecatbox
-@end deffn
 
-@c -----------------------------------------------------------------------------
-@anchor{third}
-@deffn {Function} third (@var{expr})
-
-Returns the 3'rd item of expression or list @var{expr}.
-See @mref{first} for more details.
-
-@opencatbox
-@category{Lists} @category{Expressions}
-@closecatbox
 @end deffn
 
 @c h-----------------------------------------------------------------------------
@@ -1418,7 +2071,7 @@ They can be created without knowing their final dimensions.
 Lisp provides efficient means of copying and handling lists.
 Also nested lists do not need to be strictly rectangular.
 These advantages over declared arrays come with the drawback that the amount of time
-needed for accessing a random element within a list is roughly
+needed for accessing a random element within a list may be roughly
 proportional to the element's distance from its beginning.
 Efficient traversal of lists is still possible, though, by using the list as a
 stack or a fifo:
@@ -1479,7 +2132,7 @@ If the elements of a long list need to be processed in a different
 order performance might be increased by converting the list into a
 declared array first.
 
-It is also to note that the ending condition of @code{for} loops
+Note also that the ending condition of @code{for} loops
 is tested for every iteration which means that the result of a
 @code{length} should be cached if it is used in the ending
 condition:

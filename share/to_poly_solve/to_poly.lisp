@@ -594,33 +594,35 @@ to eliminate.
   (new-gentemp type))
 
 (defun new-gentemp (type)
-  (let ((g))
-    (cond 
-     ((eq type '$integer) 
-      (setq g (gentemp *integer-gentemp-prefix*))
-      (setf (get g 'integer-gentemp) t)
-      (mfuncall '$declare g '$integer))
-     
-     ((eq type '$natural_number)
-      (setq g (gentemp *natural-gentemp-prefix*))
-      (setf (get g 'natural-gentemp) t)
-      (mfuncall '$declare g '$integer)
-      (mfuncall '$assume (take '(mgeqp) g 0)))
-	  
-     ((eq type '$real) 
-      (setq g (gentemp *real-gentemp-prefix*))
-      (setf (get g 'real-gentemp) t))
-     
-     ((eq type '$complex)
-      (setq g (gentemp *complex-gentemp-prefix*))
-      (setf (get g 'complex-gentemp) t)
-      (mfuncall '$declare g '$complex))
+  (flet ((%gentemp (prefix)
+           (intern (symbol-name (gensym prefix)) :maxima)))
+    (let ((g))
+      (cond
+       ((eq type '$integer)
+        (setq g (%gentemp *integer-gentemp-prefix*))
+        (setf (get g 'integer-gentemp) t)
+        (mfuncall '$declare g '$integer))
 
-     (t 
-      (setq g (gentemp *general-gentemp-prefix*))
-      (setf (get g 'general-gentemp) t)))
-    
-    g))
+       ((eq type '$natural_number)
+        (setq g (%gentemp *natural-gentemp-prefix*))
+        (setf (get g 'natural-gentemp) t)
+        (mfuncall '$declare g '$integer)
+        (mfuncall '$assume (take '(mgeqp) g 0)))
+
+       ((eq type '$real)
+        (setq g (%gentemp *real-gentemp-prefix*))
+        (setf (get g 'real-gentemp) t))
+
+       ((eq type '$complex)
+        (setq g (%gentemp *complex-gentemp-prefix*))
+        (setf (get g 'complex-gentemp) t)
+        (mfuncall '$declare g '$complex))
+
+       (t
+        (setq g (%gentemp *general-gentemp-prefix*))
+        (setf (get g 'general-gentemp) t)))
+
+      g)))
 
 ;; Find all the new-gentemp variables in an expression e and re-index them starting from 0.
 
@@ -635,31 +637,31 @@ to eliminate.
     (mapcar #'(lambda (s) (let ((a))
 			    (cond (($subvarp s))
 				  ((get s 'integer-gentemp)
-				   (setq a (concat *integer-gentemp-prefix* z-k))
+				   (setq a (symbolconc *integer-gentemp-prefix* z-k))
 				   (mfuncall '$declare a '$integer)
 				   (incf z-k)
 				   (push `((mequal) ,s ,a) z-vars))
 
 				  ((get s 'natural-gentemp)
-				   (setq a (concat *natural-gentemp-prefix* n-k))
+				   (setq a (symbolconc *natural-gentemp-prefix* n-k))
 				   (mfuncall '$declare a '$integer)
 				   (mfuncall '$assume (take '(mgeqp) a 0))
 				   (incf n-k)
 				   (push `((mequal) ,s ,a) n-vars))
 		      
 				  ((get s 'real-gentemp)
-				   (setq a (concat *real-gentemp-prefix* r-k))
+				   (setq a (symbolconc *real-gentemp-prefix* r-k))
 				   (incf r-k)
 				   (push `((mequal) ,s ,a) r-vars))
 		      
 				  ((get s 'complex-gentemp)
-				   (setq a (concat *complex-gentemp-prefix* c-k))
+				   (setq a (symbolconc *complex-gentemp-prefix* c-k))
 				   (mfuncall '$declare a '$complex)
 				   (incf c-k)
 				   (push `((mequal) ,s ,a) c-vars))
 
 				  ((get s 'general-gentemp)
-				   (setq a (concat *general-gentemp-prefix* g-k))
+				   (setq a (symbolconc *general-gentemp-prefix* g-k))
 				   (incf g-k)
 				   (push `((mequal) ,s ,a) g-vars)))))
 	    (margs ($sort ($listofvars e))))

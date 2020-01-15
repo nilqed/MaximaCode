@@ -272,7 +272,8 @@
 				(poiscdecode (cadr m))
 				(list '(%sin) (poisdecodec (car m))))
 			  t))
-       (terpri))
+       (terpri)
+       (finish-output))
 
      ;; DO COSINES
      (do ((m
@@ -284,7 +285,8 @@
 				(cond ((equal (car m) poishift) 1.)
 				      (t (list '(%cos) (poisdecodec (car m))))))
 			  t))
-       (terpri))
+       (terpri)
+       (finish-output))
      (return '$done)))
 
 
@@ -320,7 +322,7 @@
 (defun poisxcoef (h m)
   (- (rem (quotient h
 		    (expt poists
-			  (cadr (member m '($u 0 $v 1 $w 2 $x 3 $y 4 $z 5) :test #'eq))))
+			  (cadr (member m '($u 0 $v 1 $w 2 $x 3 $y 4 $z 5)))))
 	  poists)
      poistsm))
 

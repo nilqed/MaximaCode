@@ -16,8 +16,6 @@
 
 (declare-top (special $rules $props boundlist reflist topreflist program))
 
-(defvar *afterflag nil)
-
 (defmvar $announce_rules_firing nil)
 
 (defmspec $matchdeclare (form)
@@ -81,7 +79,7 @@
 	    (merror (intl:gettext "defmatch: failed to compile match for pattern ~M") pt))
 	   (t
          ;; NOTE TO TRANSLATORS: MEANING OF FOLLOWING TEXT IS UNKNOWN
-         (mtell "defmatch: ~M will be matched uniquely since sub-parts would otherwise be ambigious.~%" pt)
+         (mtell "defmatch: ~M will be matched uniquely since sub-parts would otherwise be ambiguous.~%" pt)
 	      (return (list 'lambda
 			    (list e)
 			    `(declare (special ,e))
@@ -113,8 +111,9 @@
 		      (go a1))
 		     (t
 		      ;; Almost nobody knows what this means. Just suppress the noise.
-		      ;; (mtell "COMPILEPLUS: ~M partitions '+' expression.~%" (cons '(mplus) leftover))
-		      (setq boundlist (append boundlist (atomson leftover)))
+                      ;; (mtell "COMPILEPLUS: ~M partitions '+'
+                      ;; expression.~%" (cons '(mplus) leftover))
+		      (setq boundlist (append boundlist (remove-if-not #'atom leftover)))
 		      (return (emit (list 'cond
 					  (list (list 'part+
 						      e
@@ -138,20 +137,20 @@
 	       (cond ((null (cdr p)) (return nil)) (t (go a))))
 	      ((eq (caaar p) 'mtimes)
 	       (cond ((and (not (or (numberp (cadar p))
-				    (and (not (atom (cadar p)))
-					 (eq (caar (cadar p)) 'rat))))
-			   (fixedmatchp (cadar p)))
+                               (and (not (atom (cadar p)))
+                                  (eq (caar (cadar p)) 'rat))))
+                         (fixedmatchp (cadar p)))
 		      (setq flag nil)
 		      (emit `(setq ,(genref)
-			      (ratdisrep
-			       (ratcoef ,e ,(memqargs (cadar p))))))
+                                   (ratdisrep
+                                    (ratcoef ,e ,(memqargs (cadar p))))))
 		      (compiletimes (car reflist) (cons '(mtimes) (cddar p)))
 		      (emit `(setq ,e (meval
 				       (quote
 					(($ratsimp)
 					 ((mplus) ,e
-					  ((mtimes) -1 ,(car reflist)
-					   ,(cadar p)))))))))
+                                                  ((mtimes) -1 ,(car reflist)
+                                                            ,(cadar p)))))))))
 		     ((null flag)
 		      (setq flag t) (rplacd (car p) (reverse (cdar p))) (go a1))
 		     (t (setq leftover (cons (car p) leftover)) (go a))))
@@ -188,29 +187,29 @@
 		      (setq leftover (cons (car p) leftover))
 		      (setq p (cdr p))
 		      (go a1))
-                      (leftover (setq leftover (cons (car p) leftover)) (setq p nil) (go a1)))
+                     (leftover (setq leftover (cons (car p) leftover)) (setq p nil) (go a1)))
 	       (setq boundlist (cons (caaar p) boundlist))
 	       (emit (list 'msetq
 			   (caaar p)
 			   (list 'kaar e)))
 	       (go functionmatch))
 	      (t (go functionmatch)))
-   (go a)
+     (go a)
    functionmatch
-   (emit (list 'setq
-	       (genref)
-	       (list 'findfun e (memqargs (caaar p)) ''mplus)))
-   (cond ((eq (caaar p) 'mplus)
-	  (mtell (intl:gettext "COMPILEPLUS: warning: '+' within '+' in: ~M~%") (car p))
-	  (compileplus (car reflist) (car p)))
-	 (t (emit (list 'setq (genref) (list 'kdr (cadr reflist))))
-	    (compileeach (car reflist) (cdar p))))
-   (emit (list 'setq
-	       e
-	       (list 'meval
-		     (list 'quote
-			   (list '(mplus) e (list '(mminus) (car p)))))))
-   (go a)))
+     (emit (list 'setq
+                 (genref)
+                 (list 'findfun e (memqargs (caaar p)) ''mplus)))
+     (cond ((eq (caaar p) 'mplus)
+            (mtell (intl:gettext "COMPILEPLUS: warning: '+' within '+' in: ~M~%") (car p))
+            (compileplus (car reflist) (car p)))
+           (t (emit (list 'setq (genref) (list 'kdr (cadr reflist))))
+              (compileeach (car reflist) (cdar p))))
+     (emit (list 'setq
+                 e
+                 (list 'meval
+                       (list 'quote
+                             (list '(mplus) e (list '(mminus) (car p)))))))
+     (go a)))
 
 (defun compiletimes (e p) 
   (prog (reflist f g h leftover) 
@@ -232,7 +231,7 @@
 		     (t
 		      ;; Almost nobody knows what this means. Just suppress the noise.
 		      ;; (mtell "COMPILETIMES: ~M partitions '*' expression.~%" (cons '(mtimes) leftover))
-		      (setq boundlist (append boundlist (atomson leftover)))
+		      (setq boundlist (append boundlist (remove-if-not #'atom leftover)))
 		      (return (emit (list 'cond
 					  (list (list 'part*
 						      e
@@ -292,21 +291,21 @@
 			   (list 'kaar e)))
 	       (go functionmatch))
 	      (t (go functionmatch)))
-   (go a)
+     (go a)
    functionmatch
-   (emit (list 'setq
-	       (genref)
-	       (list 'findfun e (memqargs (caaar p)) ''mtimes)))
-   (cond ((eq (caaar p) 'mtimes)
-	  (mtell (intl:gettext "COMPILETIMES: warning: '*' within '*' in: ~M~%") (car p))
-	  (compiletimes (car reflist) (car p)))
-	 (t (emit (list 'setq (genref) (list 'kdr (cadr reflist))))
-	    (compileeach (car reflist) (cdar p))))
-   (emit (list 'setq
-	       e
-	       (list 'meval
-		     (list 'quote (list '(mquotient) e (car p))))))
-   (go a)))
+     (emit (list 'setq
+                 (genref)
+                 (list 'findfun e (memqargs (caaar p)) ''mtimes)))
+     (cond ((eq (caaar p) 'mtimes)
+            (mtell (intl:gettext "COMPILETIMES: warning: '*' within '*' in: ~M~%") (car p))
+            (compiletimes (car reflist) (car p)))
+           (t (emit (list 'setq (genref) (list 'kdr (cadr reflist))))
+              (compileeach (car reflist) (cdar p))))
+     (emit (list 'setq
+                 e
+                 (list 'meval
+                       (list 'quote (list '(mquotient) e (car p))))))
+     (go a)))
 
 
 (defmspec $defmatch (form)
@@ -330,7 +329,7 @@
 	   (t (meta-fset name
 			 (list 'lambda
 			       (cons a args)
-			       `(declare (special ,a ,@ args))
+			       `(declare (special ,a ,@ boundlist))
 			       (list 'catch ''match
 				     (nconc (list 'prog)
 					    (list (setq tem  (cdr (reverse topreflist))))
@@ -344,18 +343,11 @@
 	      (meta-mputprop name (list '(mlist) pt* (cons '(mlist) args)) '$rule)
 	      (return name)))))
 
-
-(defun atomson (l) 
-  (cond ((null l) nil)
-	((atom (car l)) (cons (car l) (atomson (cdr l))))
-	(t (atomson (cdr l)))))
-
-
 (defmspec $tellsimp (form)
   (let ((meta-prop-p nil))
     (proc-$tellsimp (cdr form))))
 
-(defun $clear_rules ()
+(defmfun $clear_rules ()
   (mapc 'kill1 (cdr $rules))
   (loop for v in '(mexpt mplus mtimes)
 	 do (setf (mget v 'rulenum) nil)))
@@ -457,7 +449,7 @@
 
 (defun proc-$tellsimpafter (l) 
   (prog (pt rhs boundlist reflist topreflist a program name oldstuff plustimes pgname oname tem
-	 rulenum) 
+	 rulenum my*afterflag) 
      (setq pt (copy-tree (simplifya (car l) nil)))
      (setq name pt)
      (setq rhs (copy-tree (simplifya (cadr l) nil)))
@@ -476,6 +468,9 @@
      (setq oname (getop name))
      (setq pgname (implode (append (%to$ (explodec oname))
 				   '(|r| |u| |l| |e|) (mexploden rulenum))))
+     (setq my*afterflag (gensym "*AFTERFLAG-"))
+     (proclaim `(special ,my*afterflag))
+     (setf (symbol-value my*afterflag) nil)
      (meta-mputprop pgname name 'ruleof)
      (meta-add2lnc pgname '$rules)
      (meta-mputprop name (f1+ rulenum) 'rulenum)
@@ -489,12 +484,12 @@
          (list 'setq 'x (list 'simpargs1 'x 'ans 'a3)))
        (list
 	'cond
-	'(*afterflag x)
+	`(,my*afterflag x)
 	(list 't
 	      (nconc (list 'prog)
-		     (list (cons a '(*afterflag rule-hit)))
-		     `((declare (special ,a *afterflag)))
-		     (list '(setq *afterflag t))
+		     (list (cons a `(,my*afterflag rule-hit)))
+		     `((declare (special ,a ,my*afterflag)))
+		     (list `(setq ,my*afterflag t))
 		     (cond (oldstuff (subst (list 'quote name)
 					    'name
 					    '((cond ((or (atom x) (not (eq (caar x) name)))
@@ -581,7 +576,7 @@
 ; tellsimpafter (fc(cc), gc(cc));
 ;  getdec => (COND ((IS '(($MY_P) TR-GENSYM~5)) (MSETQ $CC TR-GENSYM~5)) ((MATCHERR)))
 
-; :lisp (defun $my_p2 (y x) (is `((mgeqp) ,x ,y)))
+; :lisp (defmfun $my_p2 (y x) (is `((mgeqp) ,x ,y)))
 ; matchdeclare (dd, my_p2 (200));
 ;  :lisp (symbol-plist '$dd) => (MPROPS (NIL MATCHDECLARE ((($MY_P2) 200))))
 ; tellsimpafter (fd(dd), gd(dd));

@@ -1,6 +1,6 @@
 /*               COPYRIGHT NOTICE
 
-Copyright (C) 2005-2012 Mario Rodriguez Riotorto
+Copyright (C) 2005-2017 Mario Rodriguez Riotorto
 
 This program is free software; you can redistribute
 it and/or modify it under the terms of the
@@ -84,6 +84,8 @@ Univariate descriptive statistics:
    median_deviation: median deviation
    pearson_skewness: Pearson's skewness coefficient
    quartile_skewness: quartilic skewness coefficient
+   km: Kaplan-Meier estimator of the survival function
+   cdf_empirical: empirical cumulative distribution function
 
 Multivariate descriptive statistics:
    cov: covariance matrix (divided by n)
@@ -121,8 +123,9 @@ Thanks to Robert Dodier and Barton Willis for their help.
 For questions, suggestions, bugs and the like, feel free
 to contact me at
 
-mario AT edu DOT xunta DOT es
-http://riotorto.users.sourceforge.net/
+riotorto AT yahoo DOT com
+http://tecnostats.net
+
 */
 
 
@@ -130,6 +133,7 @@ put('descriptive, 1, 'version) $
 
 if not get('draw,'version) then load("draw") $
 
+load("descriptive_util.lisp");
 
 
 /*            AUXILIARY FUCTIONS                   */
@@ -207,7 +211,7 @@ transform_sample(m, varnames, expressions) :=
     block([tm],
         if matrixp(m)
             then (tm: args(transpose(m)),
-                     transpose(apply('matrix, psubst(map("=",varnames,tm), expressions))))
+                  transpose(apply('matrix, map('ev, psubst(map("=",varnames,tm), expressions)))))
             else error("transform_sample: argument must be a matrix")) $
 
 
@@ -244,51 +248,113 @@ build_sample(tbl) :=
 /* classes we want, OR a list containing only the limits.      */
 /* If sample values are all equal, this function returns only  */
 /* one class of amplitude 2                                    */
-continuous_freq(lis,[opt]):=block([nc,mini,maxi,lim,amp,fr,ult,n,k,index],
-   if length(opt) = 1 and listofnumbersp(opt[1])
-      then ( mini: opt[1][1],
-	     maxi: opt[1][2],
-             if length(opt[1]) = 3   /* min, max, and number of classes given */
-               then nc: opt[1][3]
-             elseif length(opt[1]) = 2  /* min and max */
-               then nc:10
-               else error("continuous_freq: incorrect number of elements in optional argument."))
-      else ( mini: lmin(lis),
-             maxi: lmax(lis),
-             if length(opt)=1
-                then nc:opt[1]  /* only number of classes given */
-                else nc:10 ),   /* default number of classes */
-   lim:[mini],
-   amp:(maxi-mini)/nc,
-   if amp=0
-     then [[lis[1]-1,lis[1]+1],[length(lis)]]
-     else ( for i:1 thru nc do lim:endcons(mini+amp*i,lim),
-            fr:makelist(0,i,1,nc),
-            for i:1 thru length(lis) do (
-               if lis[i]=mini
-                 then index: 1
-                 elseif lis[i] = maxi then index : nc
-                 else index: ceiling((lis[i]-mini)/amp),
-               fr[index]:fr[index]+1 ),
-            [lim,fr])   )$
+continuous_freq (lis, [opt]) := 
+  if listp(lis)
+    then apply (continuous_freq_array, cons (fillarray (make_array (any, length (lis)), lis), opt))
+    elseif ?arrayp(lis)
+      then apply (continuous_freq_array, cons (lis, opt))
+      else error ("continuous_freq: argument must be a list or Lisp array; found: ", lis);
 
+continuous_freq_array (lis,[opt]):=block([nc,mini,maxi,lim,amp,fr,ult,n,k,index,bins],
+   if ?length(lis) = 0
+     then [[minf, inf], [0]]
+   elseif length(opt) > 0 and setp(opt[1])
+     then /* arbitrary bins */
+       ( lim:  sort(listify(opt[1])),
+         mini: first(lim),
+         maxi: last(lim),
+         if mini = maxi
+           then error("continuous_freq: at least two bin numbers are needed.")
+           else ( bins: makelist([lim[i], lim[i + 1]], i, 1, length(lim) - 1),
+                  fr: count_array_by_bins (lis, bins),
+                  [lim,fr]))
+     else /* bins of equal amplitude */
+       (if length(opt) = 1 and listofnumbersp(opt[1])
+           then ( mini: opt[1][1],
+     	     maxi: opt[1][2],
+                  if length(opt[1]) = 3   /* min, max, and number of classes given */
+                    then nc: opt[1][3]
+                  elseif length(opt[1]) = 2  /* min and max */
+                    then nc:10
+                    else error("continuous_freq: incorrect number of elements in optional argument."))
+           else ( [mini, maxi] : vector_min_max (lis),
+                  if length(opt)=1
+                     then nc:opt[1]  /* only number of classes given */
+                     else nc:10 ),   /* default number of classes */
+        lim:[mini],
+        amp:(maxi-mini)/nc,
+        if amp=0
+          then [[mini-1,maxi+1],[?length(lis)]]
+          else ( for i:1 thru nc do lim:endcons(mini+amp*i,lim),
+                 bins : makelist ([lim[i], lim[i + 1]], i, 1, length(lim) - 1),
+                 fr : count_array_by_bins (lis, bins),
+                 [lim,fr]))  )$
+
+count_by_bins (xx, bins) := 
+  if listp(xx)
+    then count_array_by_bins (fillarray (make_array (any, length (xx)), xx), bins)
+    elseif ?arrayp(xx)
+      then count_array_by_bins (xx, bins);
+
+count_array_by_bins (xx, bins) := block ([counts : makelist (0, length (bins))],
+  xx : ?sort (?copy\-seq (xx), 'orderlessp),
+  for k thru length (bins)
+    do block ([i_first : find_index_first (xx, bins[k][1],
+                                           if k > 1 and bins[k][1] = bins[k - 1][2] then ">" else ">="),
+               i_last : find_index_last (xx, bins[k][2], "<=")],
+              counts[k] : if i_last = false or i_first = false then 0 else i_last - i_first + 1),
+  counts);
+
+/* assume xx is a sorted Lisp array; find least i s.t. xx[i] > x or xx[i] >= x */
+
+find_index_first (xx, x, comparison) := block ([n : ?length (xx)],
+  if comparison(xx[n - 1], x)
+    then if comparison(xx[0], x)
+           then 0
+           else find_index_first_1 (xx, x, 0, n - 1, comparison));
+
+find_index_first_1 (xx, x, i0, i1, comparison) :=
+  if i1 - i0 <= 1 then i1
+  else
+    block ([i : floor (i0 + (i1 - i0) / 2)],
+           if comparison(xx[i], x)
+             then find_index_first_1 (xx, x, i0, i, comparison)
+             else find_index_first_1 (xx, x, i, i1, comparison));
+
+/* assume xx is a sorted Lisp array; find greatest i s.t. xx[i] < x or xx[i] <= x */
+
+find_index_last (xx, x, comparison) := block ([n : ?length (xx)],
+  if comparison(xx[0], x)
+    then if comparison(xx[n - 1], x)
+           then n - 1
+           else find_index_last_1 (xx, x, 0, n - 1, comparison));
+
+find_index_last_1 (xx, x, i0, i1, comparison) :=
+  if i1 - i0 <= 1 then i0
+  else
+    block ([i : floor (i0 + (i1 - i0) / 2)],
+           if comparison(xx[i], x)
+             then find_index_last_1 (xx, x, i, i1, comparison)
+             else find_index_last_1 (xx, x, i0, i, comparison));
 
 
 /* Counts the frequency of each element in 'lis', its elements */
 /* can be numbers, Maxima expressions or strings.              */
-discrete_freq(lis):=block([n:length(lis),fr:[],sum,val,set:[],c],
-   lis: sort(lis),
-   c:1,
-   while c<=n do(
-      sum: 0,
-      val: lis[c],
-      set: endcons(val,set),
-      while c<=n and lis[c]=val do(
-         sum: sum+1,
-         c: c+1),
-      fr: endcons(sum,fr) ),
-   [set,fr]  )$
 
+discrete_freq (l) :=
+  if listp(l)
+    then discrete_freq_array (fillarray (make_array (any, length (l)), l))
+    elseif ?arrayp(l)
+      then discrete_freq_array (l)
+      else error ("discrete_freq: argument must be a list or Lisp array; found: ", l);
+
+discrete_freq_array (a) := block ([u],
+  a : ?sort (?copy\-seq (a), 'orderlessp),
+  u : unique_in_sorted_array (a),
+  [u, map (lambda ([u1],   find_index_last (a, u1, lambda ([x,y], not ordergreatp(x, y)))
+                         - find_index_first (a, u1, lambda([x,y], not orderlessp(x, y)))
+                         + 1),
+           u)]);
 
 /*       UNIVARIATE DESCRIPTIVE STATISTICS         */
 
@@ -477,6 +543,76 @@ quartile_skewness(x):=block([q1,q2,q3,t],
                  q3:quantile(x,3/4),
                  (q3-2*q2+q1)/(q3-q1))
            else error("Input to 'quartile_skewness' must be a list of expressions or a matrix"))$
+
+
+/* Kaplan-Meier estimator of the survival function S(x) = 1-F(x).           */
+/* First argument x is a list of pairs or a two column matrix. The first    */
+/* component is the observed time, and the second component a censoring     */
+/* index (1=non censored, 0=right censored).                                */
+/* The second optional argument of function km is the name of the variable, */
+/* which is x by default. Example calls are:                                */
+/*    km([[2,1], [3,1], [5,0], [8,1]]);                                     */
+/*    km(matrix([2,1], [3,1], [5,0], [8,1]), 't);                           */
+km(x,[var]):=
+  block([s,ss,t,st,n,d,c,i:2,idx:1,hatS,vn],
+    if length(var) > 0 and atom(var[1])
+        then vn: var[1]
+        else vn: 'x,
+    if matrixp(x)
+        then x: args(x),
+    s: sort(x),
+    ss: length(x),
+    t: subsample(s,lambda([z], second(z)=1),1),
+    if length(t) = 0
+      then /* only censored data */
+           return(1),
+    t: append([0],listify(setify(first(transpose(t))))),
+    st: length(t),
+    n: makelist(0,k,st),
+    d: makelist(0,k,st),
+    c: makelist(0,k,st),
+    n[1]: ss,
+    while i <= st do
+        (n[i]: n[i-1] - d[i-1] - c[i-1],
+         while  idx <= ss and s[idx][1] <= t[i] do
+           (if s[idx][2] = 1
+              then d[i]: d[i] + 1
+            elseif s[idx][1] < t[i]
+              then n[i]: n[i] - 1
+              else c[i]: c[i] + 1,
+            idx: idx + 1),
+         i: i + 1 ),
+    hatS: 1- d / n,
+    for k:2 thru st do
+      hatS[k]: hatS[k-1] * hatS[k],
+    charfun(vn < 0) +
+      sum(charfun(t[i-1] <= vn and vn < t[i]) * hatS[i-1], i, 2, st)  + 
+      charfun(t[st] <= vn) * hatS[st] ) $
+
+
+/* Empirical distribution function F(x).                                   */
+/* First argument x is a list of numbers or a one column matrix.           */
+/* The second optional argument is the name of the variable, x by default. */
+/* Example calls are:                                                      */
+/*    cdf_empirical([1,3,3,5,7,7,7,8,9]);                                  */
+/*    cdf_empirical(transpose(matrix([1,3,3,5,7,7,7,8,9])), 'u);           */
+cdf_empirical(x,[var]):=
+  block([vn,tb,hatF:0,actual,i:1],
+    if length(var) > 0 and atom(var[1])
+        then vn: var[1]
+        else vn: 'x,
+    if matrixp(x)
+      then if length(x[1])=1
+             then x: sort(args(transpose(x)))
+             else error("cdf_empirical: input matrix must have only one column")
+      else x: sort(x),
+    tb: discrete_freq(x),
+    apply("+", map(lambda([z1,z2], z2*charfun(vn >= z1)),first(tb),second(tb)))/length(x)) $
+
+
+
+
+
 
 
 /*       MULTIVARIATE DESCRIPTIVE STATISTICS         */
@@ -711,7 +847,10 @@ wxscatterplot([desc]) := wxdraw(apply('scatterplot_description, desc)) $
 /* one row matrix.                                                   */
 /*                                                                   */
 /* Specific options (defaults in parentheses):                       */
-/*     - nclasses (10): number of classes, a positive integer.       */
+/*     - nclasses (10): number of classes, a positive integer, or    */
+/*                      a set of bin numbers. Also, it can be given  */
+/*                      the name of one of the three optimal algo-   */
+/*                      rithms available: 'fd, 'scott, or 'sturges.  */
 /*     - frequency (absolute): 'absolute', 'relative', 'density' or  */
 /*                               'percent'                           */
 /*     - htics (auto): 'auto, 'endpoints, 'intervals, list of labels */
@@ -727,7 +866,7 @@ wxscatterplot([desc]) := wxdraw(apply('scatterplot_description, desc)) $
 /*     - yrange                                                      */
 /*     - xtics                                                       */
 histogram_description(m,[select]):=
-   block([fr,amp,scen,before,localopts,num_classes,len_option,lbels,
+   block([fr,amp,scen,before,localopts,num_classes,v,lbels,
           /* specific options */
           my_nclasses:10, my_frequency:'absolute, my_htics:'auto],
       [before, localopts]: extract_options(select,'nclasses,'frequency,'htics),
@@ -739,17 +878,25 @@ histogram_description(m,[select]):=
           then my_frequency: rhs(k)
         elseif lhs(k) = 'htics
           then my_htics: rhs(k),
-
+    
       if listp(my_nclasses)
-        then ( len_option: length(my_nclasses),
-               if len_option = 2
+        then ( v: length(my_nclasses),
+               if v = 2
                  then num_classes: 10
-               elseif len_option = 3
+               elseif v = 3
                  then num_classes: third(my_nclasses)
                  else error("histogram: the second argument is not a list of two or three elements") )
-        elseif not integerp(my_nclasses) or my_nclasses < 3
+        elseif setp(my_nclasses)
+          then ( num_classes: length(my_nclasses)-1,
+                 if num_classes < 1
+                   then error("histogram: at least two bin numbers are needed"))
+        elseif integerp(my_nclasses) and my_nclasses < 1
           then error("histogram: number of classes must be an integer greater than two")
-          else num_classes: my_nclasses,
+        elseif integerp(my_nclasses) and my_nclasses > 0
+          then num_classes: my_nclasses
+        elseif not member(my_nclasses, ['fd, 'scott, 'sturges])
+               /* for optimal cases, computation of num_classes is delayed */
+          then error("histogram: incorrect format for option nclasses"),
       if not member(my_frequency, ['absolute, 'relative, 'percent, 'density])
         then error("histogram: frenquency must be either absolute, relative, density or percent"),
       if not member(my_htics, ['auto, 'endpoints, 'intervals]) and
@@ -766,37 +913,55 @@ histogram_description(m,[select]):=
                        else m: transpose(m)[1],
 
                /* frequency table */
+               /* first, calculate num_clases for the optimal cases */
+               if my_nclasses = 'fd  /* Robust Freedman - Diaconis method */
+                 then ( h: qrange(m),
+                        if h = 0
+                          then h: 2 * median(abs(m-median(m))), /* twice median absolute deviation */
+                        if h > 0
+                          then my_nclasses: num_classes: ceiling(range(m) / (2 * h * length(m)^(-1/3)))
+                          else my_nclasses: num_classes: 1 ),        
+               if my_nclasses = 'scott /* Scott's method to be applied under Gaussian assumptions */
+                 then ( if length(m) = 1
+                          then error("histogram: with Scott's method, sample size must be greater than 1"),
+                        h: 3.5 * std1(m) * length(m)^(-1/3),
+                        if h > 0
+                          then my_nclasses: num_classes: ceiling(range(m) / h)
+                          else my_nclasses: num_classes: 1 ),
+               if my_nclasses = 'sturges /* Sturges' method to be applied under Gaussian assumptions and n < 200 */
+                 then my_nclasses: num_classes:
+                        ceiling(1 + log(length(m)) / 0.6931471805599453), /* <-- log(2) */
                fr: float(continuous_freq(m,my_nclasses)),
                if member(my_frequency, ['relative, 'percent])
                  then fr: [first(fr), second(fr) / apply("+", second(fr))],
                if my_frequency = 'percent
                  then fr[2]: fr[2] * 100.0,
-               amp: fr[1][2]-fr[1][1],
+               amp: makelist(fr[1][i+1]-fr[1][i], i, 1, length(fr[1])-1),
                if my_frequency = 'density
-                 then fr: [first(fr), second(fr) / (apply("+", second(fr)) * amp)],
+                 then fr: [first(fr), second(fr) / apply("+", second(fr) * amp)],
 
                /* histogram tics */
                if my_htics = 'auto
                  then my_htics: []
                elseif my_htics = 'endpoints
-                 then my_htics: xtics = [fr[1][1],amp,fr[1][num_classes+1]]
+                 then my_htics: xtics = setify(fr[1])
                elseif my_htics = 'intervals
                  then ( lbels: [concat("[",fr[1][1],",",fr[1][2],"]")],
 			lbels: append(lbels, makelist(concat("(",fr[1][k],",",fr[1][k+1],"]"),k,2,num_classes)),
-			lbels: makelist([lbels[k],fr[1][k]+amp/2],k,1,num_classes),
+			lbels: makelist([lbels[k],fr[1][k]+amp[k]/2],k,1,num_classes),
 			my_htics: xtics = makeset([a,b],[a,b],lbels) )
                elseif listp(my_htics)
                  then ( if length(my_htics) < num_classes
 		          then my_htics: append(my_htics, makelist("",k,length(my_htics)+1,num_classes)),
-		        lbels: makelist([my_htics[k],fr[1][k]+amp/2],k,1,num_classes),
+		        lbels: makelist([my_htics[k],fr[1][k]+amp[k]/2],k,1,num_classes),
 		        my_htics: xtics = makeset([a,b],[a,b],lbels) ),
 
                scen: [before,
-                      'xrange = [fr[1][1]-amp/2, fr[1][num_classes+1]+amp/2],
+                      'xrange = [first(fr[1]), last(fr[1])] + [-1,+1] * mean(amp)/2,
                       'yrange = lmax(fr[2])*[-0.05, 1.05],
                       my_htics,
                       apply('bars,
-                            makelist([(fr[1][k]+fr[1][k+1])/2, fr[2][k], amp],k,1,num_classes))])
+                            makelist([(fr[1][k]+fr[1][k+1])/2, fr[2][k], amp[k]],k,1,length(fr[1])-1))])
         else error("histogram: can't plot the histogram for these data") )$
 histogram([desc]) := draw2d(apply(histogram_description, desc)) $
 wxhistogram([desc]) := wxdraw2d(apply(histogram_description, desc)) $
@@ -1050,6 +1215,8 @@ wxpiechart([desc]) := wxdraw2d(apply(piechart_description, desc)) $
 /* Specific options:                                                               */
 /*     - box_width (3/4): widths for boxes                                         */
 /*     - box_orientation (vertical): 'vertical' or 'horizontal'                    */
+/*     - range (inf): sets outliers boundaries                                     */
+/*     - outliers_size (1): outliers size                                          */
 /*                                                                                 */
 /* Draw options affecting this object:                                             */
 /*     - key                                                                       */
@@ -1064,21 +1231,29 @@ wxpiechart([desc]) := wxdraw2d(apply(piechart_description, desc)) $
 /*     - xrange                                                                    */
 /*     - yrange                                                                    */
 boxplot_description(m,[select]):=
-   block([fr,tot,top:0,bot:inf,before,localopts,p,
+   block([fr,tot,top:0,bot:inf,before,localopts,p,out:[],
           /* specific options*/
-          my_box_width:3/4, my_box_orientation:'vertical],
-      [before, localopts]: extract_options(select,'box_width,'box_orientation),
+          my_box_width:3/4, my_box_orientation:'vertical, my_range:'inf, my_outliers_size:1],
+      [before, localopts]: extract_options(select,'box_width,'box_orientation,'range,'outliers_size),
 
       for k in localopts do
         if lhs(k) = 'box_width
           then my_box_width: float(rhs(k))
         elseif lhs(k) = 'box_orientation
-          then my_box_orientation: rhs(k),
+          then my_box_orientation: rhs(k)
+        elseif lhs(k) = 'range
+          then my_range: float(rhs(k))
+        elseif lhs(k) = 'outliers_size
+          then my_outliers_size: float(rhs(k)),
 
       if not floatp(my_box_width) or my_box_width < 0 or my_box_width > 1
-        then error("boxplot: illegal value for box_width"),
+        then error("boxplot: illegal value for option box_width"),
       if not member(my_box_orientation, ['vertical, 'horizontal])
-	 then error("boxplot: illegal value for box_orientation"),
+	 then error("boxplot: illegal value for option box_orientation"),
+      if my_range # 'inf and (not floatp(my_range) or my_range < 0)
+	 then error("boxplot: illegal value for option range"),
+      if not floatp(my_outliers_size) or my_outliers_size < 0
+	 then error("boxplot: illegal outliers point size"),
 
       /* if m is not a row matrix, transpose it */
       if matrixp(m) and length(m)>1
@@ -1091,45 +1266,73 @@ boxplot_description(m,[select]):=
       if listoflistsp(m) or matrixp(m)
         then(
           tot: length(m),
-          append(before,
-                 ['points_joined = true,
-                  'point_size = 0,
-                  'point_type = 'dot],
-                 flatten(
-                   makelist(map('points,
-                                block([mi: float(smin(m[x])),
-                                       ma: float(smax(m[x])),
-                                       q1: float(quantile(m[x],0.25)),
-                                       q2: float(quantile(m[x],0.5)),
-                                       q3: float(quantile(m[x],0.75)),
-                                       w:  float(boxplot_width),
-                                       w2: my_box_width/2,
-                                       w4: my_box_width/4,
-                                       A,B,C,D,E,F,G,H,I,J,K,L,M,N],
-                                  top: max(top,ma),
-                                  bot: min(bot,mi),
-                                  A: [x-w2,q1],     B: [x-w2,q3],     C: [x+w2,q3],
-                                  D: [x+w2,q1],     E: [x-w2,q2],     F: [x+w2,q2],
-                                  G: [x,q3],        H: [x,ma],        I: [x-w4,ma],
-                                  J: [x+w4,ma],     K: [x,q1],        L: [x,mi],
-                                  M: [x-w4,mi],     N: [x+w4,mi],
-                                  p: [A,B,C,D,E,F,G,H,I,J,K,L,M,N],
-                                  if my_box_orientation = 'horizontal then p: map(reverse,p),
-                                  [ [p[1],p[2],p[3],p[4],p[1]],
-                                    [p[5],p[6]],
-                                    [p[7],p[8]],
-                                    [p[9],p[10]],
-                                    [p[11],p[12]],[p[13],p[14]] ] )),
-                          x,1,tot)),
-                 
-                  if my_box_orientation = 'vertical
-                    then [ 'xtics  = setify(makelist(k,k,1,tot)),
-                           'xrange = (tot-1)*0.05*[-1,+1.5]+[0.5,tot+0.5],
-                           'yrange = (top-bot)*0.05*[-1,+1]+[bot,top] ]
-                    else [ 'ytics  = setify(makelist(k,k,1,tot)),
-                           'yrange = (tot-1)*0.05*[-1,+1.5]+[0.5,tot+0.5],
-                           'xrange = (top-bot)*0.05*[-1,+1]+[bot,top] ]    ) )
-        else error("sorry, can't plot the box-whisker plot for these data") )$
+          [ before,
+            ['points_joined = true,
+             'point_size    = 0,
+             'point_type    = 'dot],
+
+            makelist(
+              block([mi, ma,
+                     mini: smin(m[x]),
+                     maxi: smax(m[x]),
+                     q1: float(quantile(m[x],0.25)),
+                     q2: float(quantile(m[x],0.5)),
+                     q3: float(quantile(m[x],0.75)),
+                     w:  float(boxplot_width),
+                     w2: my_box_width/2,
+                     w4: my_box_width/4,
+                     A,B,C,D,E,F,G,H,I,J,K,L,M,N],
+                top: max(top, maxi),
+                bot: min(bot, mini),
+                if my_range = 'inf
+                  then /* ignore possible outliers */
+                       [mi, ma]: float([mini, maxi])
+                  else /* calculate whisker positions */
+                       block([in:[],
+                              lowlim: q1-my_range*(q3-q1),
+                              upplim: q3+my_range*(q3-q1)],
+                         for k in m[x] do
+                           if k < lowlim or k > upplim
+                             then /* accumulate new outliers to global variable out */
+                                  out: cons([x,k], out)
+                             else in: cons(k, in),
+                         mi: lmin(in),
+                         ma: lmax(in)),
+                A: [x-w2,q1],  B: [x-w2,q3],  C: [x+w2,q3],
+                D: [x+w2,q1],  E: [x-w2,q2],  F: [x+w2,q2],
+                G: [x,q3],     H: [x,ma],     I: [x-w4,ma],
+                J: [x+w4,ma],  K: [x,q1],     L: [x,mi],
+                M: [x-w4,mi],  N: [x+w4,mi],
+                p: [A,B,C,D,E,F,G,H,I,J,K,L,M,N],
+                if my_box_orientation = 'horizontal
+                  then p: map(reverse,p),
+                [ points([p[1],p[2],p[3],p[4],p[1]]),
+                  points([p[5],p[6]]),
+                  points([p[7],p[8]]),
+                  points([p[9],p[10]]),
+                  points([p[11],p[12]]),
+                  points([p[13],p[14]]) ]),
+              x,1,tot),
+
+            /* plot all outliers as isolated points */
+            if length(out) > 0
+              then (if my_box_orientation = 'horizontal
+                      then out: map(reverse,out),
+                    ['points_joined = false,
+                     'point_size    = my_outliers_size,
+                     'point_type    = 'circle,
+                     points(out)])
+              else [],
+
+            if my_box_orientation = 'vertical
+              then [ 'xtics  = setify(makelist(k,k,1,tot)),
+                     'xrange = (tot-1)*0.05*[-1,+1.5]+[0.5,tot+0.5],
+                     'yrange = (top-bot)*0.05*[-1,+1]+[bot,top] ]
+              else [ 'ytics  = setify(makelist(k,k,1,tot)),
+                     'yrange = (tot-1)*0.05*[-1,+1.5]+[0.5,tot+0.5],
+                     'xrange = (top-bot)*0.05*[-1,+1]+[bot,top] ] ])
+        else error("sorry, can't plot the box-whisker plot for these data"))$
+
 boxplot([desc]) := draw2d(apply(boxplot_description, desc)) $
 wxboxplot([desc]) := wxdraw2d(apply(boxplot_description, desc)) $
 
@@ -1317,3 +1520,20 @@ starplot_description([args]):=
 starplot([desc]) := draw2d(apply(starplot_description, desc)) $
 wxstarplot([desc]) := wxdraw2d(apply(starplot_description, desc)) $
 
+/* find_runs -- find consecutive identical values in an array or list.
+ * Returns a structure runs(...) with fields lengths and values.
+ */
+
+defstruct (runs (lengths, values));
+
+find_runs (x) :=
+  if x = [] then runs ([], [])
+    else block ([dx : map (lambda ([a, b], is(a # b)), rest(x), rest(x, -1)), ii0, ii],
+                ii0 : sublist_indices (dx, identity),
+                ii : append ([0], ii0, [length (x)]),
+                dii : rest(ii) - rest(ii, -1),
+                runs (dii, makelist (x[i], i, rest (ii))));
+
+find_runs_inverse (r) :=
+  block ([v: r@values, n: r@lengths],
+         apply (append, makelist (makelist (v[i], n[i]), i, 1, length(v))));

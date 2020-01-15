@@ -8,9 +8,6 @@
 
 (in-package :maxima)
 
-(defun memq (x lis)
-  (member x lis :test #'eq))
-
 ;;this will make operators which declare the type and result of numerical operations
 (eval-when (:compile-toplevel :load-toplevel :execute)
 
@@ -170,15 +167,36 @@
     (setq ar (symbol-array ar)))
   (cons (array-element-type ar) (array-dimensions ar)))
 
-(defun firstn (n lis)
-  (subseq lis 0 n))
-
-(declaim (inline fixnump))
+(declaim (inline fixnump bignump posint negint memq firstn))
 (defun fixnump (n)
+  (declare (optimize (speed 3)))
   (typep n 'fixnum))
 
 (defun  bignump (x)
+  (declare (optimize (speed 3)))
   (typep x 'bignum))
+
+(defun posint (x)
+  (declare (optimize (speed 3)))
+  (and (integerp x) (> x 0)))
+
+(defun negint (x)
+  (declare (optimize (speed 3)))
+  (and (integerp x) (< x 0)))
+
+;; if x is in the list, return the sublist with element, else nil.
+;;
+;; At least at the time memq was designed it was (at least in many cases) faster
+;; than the lisp's built-in function "member", see:
+;; https://people.eecs.berkeley.edu/~fateman/papers/lispoptim.pdf
+(defun memq (x lis)
+  (declare (optimize (speed 3)))
+  (member x lis :test #'eq))
+
+(defun firstn (n lis)
+  (declare (type (integer 0 (#.most-positive-fixnum)) n)
+           (optimize (speed 3)))
+  (subseq lis 0 n))
 
 ;;actually this was for lists too.
 
@@ -218,20 +236,9 @@
 (defun fset (sym val)
   (setf (symbol-function sym) val))
 
-(defun oldget (plist indic)
-  (cond ((symbolp plist)
-	 (setq plist (symbol-plist plist)))
-	((consp plist) (setq plist (cdr plist)))
-	(t (return-from oldget nil)))
-  (loop for tail on plist by #'cddr
-	 when (eq (car tail) indic)
-	 do (return (second tail))))
-
-(defun safe-get (sym prop)
-  (and (symbolp sym) (get sym prop)))
-
-(defmacro safe-getl (sym prop)
-  `(and (symbolp ,sym) (getl ,sym ,prop)))
+(defun zl-get (sym tag)
+  (cond ((symbolp sym) (get sym tag))
+	((consp sym) (getf (cdr sym) tag))))
 
 (defun getl (plist indicator-list )
   (cond ((symbolp plist)
@@ -241,6 +248,13 @@
   (loop for tail on plist by #'cddr
 	 when (member (car tail) indicator-list :test #'eq)
 	 do (return tail)))
+
+(declaim (inline safe-get safe-getl))
+(defun safe-get (sym prop)
+  (and (symbolp sym) (get sym prop)))
+
+(defun safe-getl (sym prop)
+  (and (symbolp sym) (getl sym prop)))
 
 (defmacro ncons (x)
   `(cons ,x nil)) ;;can one optimize this??
@@ -397,7 +411,7 @@
 #-(or flonum-long flonum-double-double)
 (progn
 ;; Tell Lisp the float type for a 'flonum.
-#-clisp
+#-(or clisp abcl)
 (deftype flonum (&optional low high)
   (cond (high
 	 `(double-float ,low ,high))
@@ -406,11 +420,11 @@
 	(t
 	 'double-float)))
 
-;; Some versions of clisp appear to be buggy: (coerce 1 'flonum)
+;; Some versions of clisp and ABCL appear to be buggy: (coerce 1 'flonum)
 ;; signals an error.  So does (coerce 1 '(double-float 0d0)).  But
 ;; (coerce 1 'double-float) returns 1d0 as expected.  So for now, make
 ;; flonum be exactly the same as double-float, without bounds.
-#+clisp
+#+(or clisp abcl)
 (deftype flonum (&optional low high)
   (declare (ignorable low high))
   'double-float)
@@ -421,6 +435,7 @@
 (defconstant least-negative-flonum least-negative-double-float)
 (defconstant flonum-epsilon double-float-epsilon)
 (defconstant least-positive-normalized-flonum least-positive-normalized-double-float)
+(defconstant least-negative-normalized-flonum least-negative-normalized-double-float)
 
 (defconstant flonum-exponent-marker #\D)
 )

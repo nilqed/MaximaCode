@@ -104,7 +104,7 @@
 	      (mapc #'kill1 (cdr $infolists))
 	      (setq $ratvars '((mlist simp)) varlist nil genvar nil
 		    checkfactors nil greatorder nil lessorder nil $gensumnum 0
-		    $weightlevels '((mlist)) *ratweights nil $ratweights 
+		    *ratweights nil $ratweights 
 		    '((mlist simp))
 		    tellratlist nil $dontfactor '((mlist)) $setcheck nil)
 	      (killallcontexts))
@@ -112,13 +112,12 @@
 				($linelabels . $linechar)) :test #'eq))
 	      (mapc #'(lambda (y) (remvalue y '$kill))
 		    (getlabels* (eval (cdr z)) nil)))
-	     ((and (eq (ml-typep x) 'fixnum) (not (< x 0))) (remlabels x))
+	     ((and (fixnump x) (not (< x 0))) (remlabels x))
 	     ((atom x) (kill1-atom x))
-	     ((and (eq (caar x) 'mlist) (eq (ml-typep (cadr x)) 'fixnum)
+	     ((and (eq (caar x) 'mlist) (fixnump (cadr x))
 		   (or (and (null (cddr x)) 
 			    (setq x (append x (ncons (cadr x)))))
-		       (and (eq (ml-typep (caddr x)) 'fixnum) 
-			    (not (> (cadr x) (caddr x))))))
+		       (and (fixnump (caddr x)) (not (> (cadr x) (caddr x))))))
 	      (let (($linenum (caddr x))) (remlabels (f- (caddr x) (cadr x)))))
 	     ((setq z (mgetl (caar x) '(hashar array))) (remarrelem z x))
 	     ((and ($subvarp x)

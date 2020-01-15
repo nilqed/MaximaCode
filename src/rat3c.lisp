@@ -27,7 +27,7 @@
 	((and $keepfloat (or (floatp a) (floatp b))) 1)
 	(t (gcd a b))))
 
-(defmfun pquotientchk (a b)
+(defun pquotientchk (a b)
   (if (equal b 1) a (pquotient a b)))
 
 ;; divides polynomial x by polynomial y
@@ -50,13 +50,13 @@
 	(cdr x))
   nil)
 
-(defmfun pgcd (x y)
+(defun pgcd (x y)
   (setq x (car (pgcda x y nil)))
   (cond ((pminusp x) (pminus x))
 	(modulus (monize x))
 	(t x)))
 
-(defmfun plcm (x y)
+(defun plcm (x y)
   (setq x (pgcdcofacts x y))
   (ptimes (car x) (ptimes (cadr x) (caddr x))))
 
@@ -102,7 +102,7 @@
 	((pcoefp y) (cond ((zerop y) (list x 1 y))
 			  (t (list (pcontent1 (cdr x) y)))))
 	((equal x y) (list x 1 1))
-	($ratfac (fpgcdco x y))
+	($ratfac (multiple-value-list (fpgcdco x y)))
 	((not (eq (p-var x) (p-var y)))
 	 (list (if (pointergp (p-var x) (p-var y))
 		   (oldcontent1 (p-terms x) y)
@@ -292,7 +292,7 @@
 	((pcoefp q) (pzero))
 	(t (psimp (p-var p) (pgcd1 (p-terms p) (p-terms q))))))
 
-(defmfun pgcd1 (u v) (caddr (psquorem1 u v nil)))
+(defun pgcd1 (u v) (caddr (psquorem1 u v nil)))
 
 (defun pgcd2 (u v k &aux (i 0))
   (declare (special lcu lcv) (fixnum k i))
@@ -319,7 +319,7 @@
 	(t (setq x (contsort (cdr x)))
 	   (oldcontent2 (cdr x) (car x)))))
 
-(defmfun oldcontent (x)
+(defun oldcontent (x)
   (cond ((pcoefp x) (list x 1))
 	((null (p-red x))
 	 (list (p-lc x) (make-poly (p-var x) (p-le x) 1)))
@@ -378,14 +378,14 @@
 (defun ucontent (p)			;CONTENT OF UNIV. POLY
   (cond ((pcoefp p) (abs p))
 	(t (setq p (mapcar #'abs (coefl (cdr p))))
-	   (let ((m (apply #'min p)))
+	   (let ((m (reduce #'min p)))
 	     (oldcontent2 (delete m p :test #'equal) m)))))
 
 ;;***	PGCDU CORRESPONDS TO BROWN'S ALGORITHM U
 
 ;;;PGCDU IS NOT NOW IN RAT;UFACT >
 
-(defmfun pgcdu (p q)
+(defun pgcdu (p q)
   (do () ((pzerop q) (monize p))
     (psetq p q q (pmodrem p q))))
 
@@ -421,35 +421,6 @@
                                   (pt-red u) (pt-red v) q* k)))
 	   return (ptzero)
 	   finally (return u))))
-
-(defun rtzerl2 (n)
-  (cond ((zerop n) 0)
-	(t (do ((n n (ash n -2)))
-	       ((not (zerop (haipart n -2))) n)))))
-
-(defmfun $jacobi (p q)
-  (cond ((null (and (integerp p) (integerp q)))
-	 (list '($jacobi) p q))
-	((zerop q) (merror (intl:gettext "jacobi: zero denominator.")))
-	((minusp q) ($jacobi p (- q)))
-	((and (evenp (setq q (rtzerl2 q)))
-	      (setq q (ash q -1))
-	      (evenp p)) 0)
-	((equal q 1) 1)
-	((minusp (setq p (rem p q)))
-	 (jacobi (rtzerl2 (+ p q)) q))
-	(t (jacobi (rtzerl2 p) q))))
-
-(defun jacobi (p q)
-  (do ((r1 p (rtzerl2 (rem r2 r1)))
-       (r2 q r1)
-       (bit2 (haipart q -2))
-       (odd 0 (boole boole-xor odd (boole boole-and bit2 (setq bit2 (haipart r1 -2))))))
-      ((zerop r1) 0)
-    (cond ((evenp r1)
-	   (setq r1 (ash r1 -1))
-	   (setq odd (boole boole-xor odd (ash (expt (haipart r2 -4) 2) -2)))))
-    (and (equal r1 1) (return (expt -1 (boole  boole-and 1 (ash odd -1)))))))
 
 ;; it is convenient to have the *bigprimes* be actually less than
 ;; half the size of the most positive fixnum, so that arithmetic is easier
@@ -489,7 +460,7 @@
 (defun norm1 (poly)
   (if (null poly) 0 (+ (norm (cadr poly)) (norm1 (cddr poly)) )) )
 
-(defmfun pdegree (p var)
+(defun pdegree (p var)
   (cond ((pcoefp p) 0)
 	((eq var (p-var p)) (p-le p))
 	((pointergp var (p-var p)) 0)

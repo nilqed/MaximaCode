@@ -27,7 +27,7 @@
         ((hash-table-p x) 'hash-table)
         ((eq (type-of x) 'mgenarray) (mgenarray-type x))))
 
-(defun $make_array (type &rest diml)
+(defmfun $make_array (type &rest diml)
   (let ((ltype (assoc type '(($float . flonum)
                              ($flonum . flonum)
                              ($fixnum . fixnum)))))
@@ -91,9 +91,9 @@
         (msize-atom (format nil "{Lisp Array: ~A}" x) l r))))
 
 (defun marray-check (a)
-  (if (eq (ml-typep a) 'array)
+  (if (arrayp a)
       (case (marray-type a)
-	(($fixnum $float art-q) a)
+	(($fixnum $float) a)
 	(($any) (mgenarray-content a))
 	(($hashed $functional)
 	 ;; BUG: It does have a number of dimensions! Gosh. -GJC
@@ -117,7 +117,10 @@
     ;; speed and simplicity we want anyway. Ah me. Also, passing the single
     ;; unconsed index IND1 around is a dubious optimization, which causes
     ;; extra consing in the case of hashed arrays.
-    ((array) (apply #'aref aarray ind1 inds))
+    ((array)
+     (unless (and (integerp ind1) (every #'integerp inds))
+       (bad-index-error (cons ind1 inds)))
+     (apply #'aref aarray ind1 inds))
     ((hash-table) (gethash (if inds (cons ind1 inds) ind1) aarray))
     (($functional)
      (let ((value (let ((evarrp t))
@@ -139,9 +142,23 @@
     (t
      (marray-type-unknown aarray))))
 
+;; INDICES is a Lisp list, not a Maxima list.
+(defun bad-index-error (indices)
+  (let ((m-indices (cons '(mlist) indices)))
+    (cond
+      ((every #'(lambda (x) (or ($ratp x) (integerp x))) indices)
+       (merror (intl::gettext "array: indices cannot be special expressions (CRE or Taylor); found: ~M") m-indices))
+      ((every #'(lambda (x) (or ($mapatom x) (integerp x))) indices)
+       (merror (intl::gettext "array: indices cannot be plain or subscripted symbols; found: ~M") m-indices))
+      (t
+        (merror (intl::gettext "array: indices must be literal integers; found: ~M") m-indices)))))
+
 (defun marrayset-gensub (val aarray ind1 inds)
   (case (marray-type aarray)
-    ((array) (setf (apply #'aref aarray ind1 inds) val))
+    ((array)
+     (unless (and (integerp ind1) (every #'integerp inds))
+       (bad-index-error (cons ind1 inds)))
+     (setf (apply #'aref aarray ind1 inds) val))
     ((hash-table) (setf (gethash (if inds (cons ind1 inds) ind1) aarray) val))
     (($functional)
      (marrayset-gensub val (mgenarray-content aarray) ind1 inds))
@@ -150,9 +167,9 @@
 
 ;; Extensions to MEVAL.
 
-(defmfun meval1-extend (form)
+(defun meval1-extend (form)
   (let ((l (mevalargs (cdr form))))
     (marrayref-gensub (caar form) (car l) (cdr l))))
 
-(defmfun arrstore-extend (a l r)
+(defun arrstore-extend (a l r)
   (marrayset-gensub r a (car l) (cdr l)))

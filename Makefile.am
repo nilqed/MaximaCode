@@ -1,23 +1,30 @@
+# On debian-based systems this makes us use the right gcl version out-of-the box.
+# On other systems it doesn't hurt.
+export GCL_ANSI=t
+
 if ENABLE_GETTEXT
    LOCALE_DIR = locale
 endif
 
-SUBDIRS = admin crosscompile-windows src lisp-utils tests doc interfaces share demo plotting $(LOCALE_DIR)
+SUBDIRS = admin crosscompile-windows src lisp-utils tests doc interfaces share demo plotting desktopintegration $(LOCALE_DIR)
 
 EXTRA_DIST = \
-  common.mk maxima.iss.in x-mac.xml\
-  README.lisps README.rpms README.i18n README.external \
-  INSTALL.win32 INSTALL.lisp \
+  common.mk maxima.iss.in \
+  README.lisps README.rpms README.i18n README.external README.developers-howto \
+  INSTALL.win32 INSTALL.lisp INSTALL.git INSTALL.win32nogcl \
   configure.lisp  maxima-local.in xmaxima-local.in \
-  macosx/Makefile macosx/Readme.txt macosx/maxima.sh macosx/script \
-  macosx/xmaxima.sh macosx/appIcon.icns \
+  macosx/Makefile macosx/Readme.md macosx/maxima.sh macosx/script \
+  macosx/xmaxima.sh macosx/appIcon.icns macosx/How_to_install.rtf \
   ChangeLog-5.9.2 ChangeLog-5.9.3 ChangeLog-5.10.0 ChangeLog-5.11.0 \
   ChangeLog-5.12.0 ChangeLog-5.13.0 ChangeLog-5.14.0 ChangeLog-5.15.0 \
   ChangeLog-5.16 ChangeLog-5.17 ChangeLog-5.17-special-functions \
   ChangeLog-5.18 ChangeLog-5.19 ChangeLog-5.20 ChangeLog-5.21 ChangeLog-5.22 \
   ChangeLog-5.23 ChangeLog-5.24 ChangeLog-5.25 ChangeLog-5.26 ChangeLog-5.27 \
   ChangeLog-5.28 ChangeLog-5.29 ChangeLog-5.30 ChangeLog-5.31 ChangeLog-5.32 \
-  ChangeLog-5.33 ChangeLog-5.34 ChangeLog-5.35 ChangeLog-5.36.md
+  ChangeLog-5.33 ChangeLog-5.34 ChangeLog-5.35 ChangeLog-5.36.md ChangeLog-5.37.md \
+  ChangeLog-5.38.md ChangeLog-5.39.md ChangeLog-5.40.md ChangeLog-5.41.md \
+  ChangeLog-5.42.md LICENSES/getopt-license.txt\
+  snap/snapcraft.yaml
 
 include common.mk
 
@@ -159,5 +166,12 @@ iss: win32-lisp-runtime wxmaxima gnuplot extradocinstall
 
 endif # WIN32
 
-mimedatadir = $(datarootdir)/mime/packages
-dist_mimedata_DATA = x-mac.xml
+rpm: maxima.spec dist-gzip
+	rpmbuild -ba $(top_srcdir)/maxima.spec --define "_sourcedir $(abs_top_builddir)" --define "_rpmdir $(abs_top_builddir)"
+	rpmbuild -bb $(top_srcdir)/maxima.spec --define "_sourcedir $(abs_top_builddir)" --define "_rpmdir $(abs_top_builddir)"
+
+clean-local:
+	rm -rf bin
+	rm -rf binary
+
+check-local: all

@@ -18,12 +18,12 @@
 ;;; This is a maxima-gnuplot interface.
 
 ;;; Visit
-;;; http://riotorto.users.sf.net/gnuplot
+;;; http://tecnostats.net/Maxima/gnuplot
 ;;; for examples
 
 ;;; For questions, suggestions, bugs and the like, feel free
 ;;; to contact me at
-;;; mario @@@ edu DOT xunta DOT es
+;;; riotorto @@@ yahoo DOT com
 
 
 ;; use $draw_version to save package version
@@ -32,42 +32,46 @@
 (defvar $draw_version 2)
 
 
+(defun write-font-type ()
+   (if (and (string= (get-option '$font) "") (not (eql (get-option '$font_size) 10)))
+     (mwarning "Cannot set the gnuplot font size without a font name."))
 
-(defvar *windows-OS* (string= *autoconf-windows* "true") )
-
-(defmacro write-font-type ()
-   '(if (string= (get-option '$font) "")
-      ""
-      (format nil "font '~a,~a'" (get-option '$font) (get-option '$font_size))))
+   (if (or (eq (get-option '$font) nil) (string= (get-option '$font) ""))
+     ""
+     (format nil "font '~a,~a'" (get-option '$font) (get-option '$font_size))))
 
 
 ;; one-window multiplot: consecutive calls
 ;; to draw allways plot on the same window
 (defvar *multiplot-is-active* nil)
 (defun $multiplot_mode (term)
-  (when (not *windows-OS*)
-    (case term
-      ($screen
-        ($multiplot_mode '$none)
-        (send-gnuplot-command
-          (format nil "set terminal x11 dashed ~a~%set multiplot~%" (write-font-type)))
-        (setf *multiplot-is-active* t))
-      ($wxt
-        ($multiplot_mode '$none)
-        (send-gnuplot-command
-          (format nil "set terminal wxt dashed ~a~%set multiplot~%" (write-font-type)))
-        (setf *multiplot-is-active* t))
-      ($qt
-        ($multiplot_mode '$none)
-       (send-gnuplot-command
-         (format nil "set terminal qt dashed ~a~%set multiplot~%" (write-font-type)))
-       (setf *multiplot-is-active* t))
-      ($none
-        (send-gnuplot-command
-          (format nil "unset multiplot~%"))
-        (setf *multiplot-is-active* nil))
-      (otherwise
-        (merror "draw: ~M is not recognized as a multiplot mode" term)))))
+  (case term
+    ($screen
+      ($multiplot_mode '$none)
+      (send-gnuplot-command
+        (format nil "if(GPVAL_VERSION >= 5.0){set terminal x11 dashed ~a replotonresize~%set multiplot~%} else {set terminal x11 dashed ~a~%set multiplot~%}" (write-font-type) (write-font-type)))
+      (setf *multiplot-is-active* t))
+    ($wxt
+      ($multiplot_mode '$none)
+      (send-gnuplot-command
+        (format nil "set terminal wxt dashed ~a~%set multiplot~%" (write-font-type)))
+      (setf *multiplot-is-active* t))
+    ($qt
+      ($multiplot_mode '$none)
+     (send-gnuplot-command
+       (format nil "set terminal qt dashed ~a~%set multiplot~%" (write-font-type)))
+     (setf *multiplot-is-active* t))
+    ($windows
+      ($multiplot_mode '$none)
+     (send-gnuplot-command
+       (format nil "set terminal windows dashed ~a~%set multiplot~%" (write-font-type)))
+     (setf *multiplot-is-active* t))
+    ($none
+      (send-gnuplot-command
+        (format nil "unset multiplot~%unset output~%"))
+      (setf *multiplot-is-active* nil))
+    (otherwise
+      (merror "draw: ~M is not recognized as a multiplot mode" term))))
 
 
 
@@ -132,9 +136,11 @@
    name command groups points)
 
 (defun make-obj-title (str)
-  (if (> (length str) 80)
-      (concatenate 'string "t '" (subseq str 0 75) " ...'"))
-      (concatenate 'string "t '" str "'"))
+  (if (= (length str) 0)
+    "notitle"
+    (if (> (length str) 80)
+      (concatenate 'string "t '" (subseq str 0 75) " ...'")
+      (concatenate 'string "t '" str "'"))))
 
 
 
@@ -1078,19 +1084,23 @@
            (not ($listp arg2))
            (not (= ($length arg2) 2)))
        (merror "draw (vector): coordinates are not correct"))
-   (let* ((x ($float (cadr arg1)))
-          (y ($float (caddr arg1)))
-          (dx ($float (cadr arg2)))
-          (dy ($float (caddr arg2)))
-          xdx ydy)
+   (let ((xo ($float (cadr arg1)))
+         (yo ($float (caddr arg1)))
+         (dx ($float (cadr arg2)))
+         (dy ($float (caddr arg2)))
+         xdx ydy x y)
       (when (and (get-option '$unit_vectors)
                  (or (/= dx 0) (/= dy 0)))
          (let ((module (sqrt (+ (* dx dx) (* dy dy)))))
             (setf dx (/ dx module)
-                  dy (/ dy module)  )))
-      (setf xdx ($float (+ x dx))
-            ydy ($float (+ y dy)))
-      (update-ranges-2d (min x xdx) (max x xdx) (min y ydy) (max y ydy))
+                  dy (/ dy module) )))
+      (setf xdx ($float (+ xo dx))
+            ydy ($float (+ yo dy)))
+      ;; apply geometric transformation before plotting
+      (setf x (list xo xdx)
+            y (list yo ydy))
+      (transform-lists 2)
+      (update-ranges-2d (apply 'min x) (apply 'max x) (apply 'min y) (apply 'max y))
       (make-gr-object
          :name 'vector
          :command (format nil " ~a w vect ~a size ~a, ~a ~a lw ~a lt ~a lc ~a axis ~a"
@@ -1108,7 +1118,10 @@
                               (axes-to-plot) )
          :groups '((4 0))
          :points `(,(make-array 4 :element-type 'flonum
-                                  :initial-contents (list x y dx dy))) ) ))
+                                  :initial-contents (list (car x)
+                                                          (car y)
+                                                          (- (cadr x) (car x))
+                                                          (- (cadr y) (car y))))) ) ))
 
 
 
@@ -1135,23 +1148,28 @@
            (not ($listp arg2))
            (not (= ($length arg2) 3)))
        (merror "draw (vector): coordinates are not correct"))
-   (let* ((x ($float (cadr arg1)))
-          (y ($float (caddr arg1)))
-          (z ($float (cadddr arg1)))
-          (dx ($float (cadr arg2)))
-          (dy ($float (caddr arg2)))
-          (dz ($float (cadddr arg2)))
-          xdx ydy zdz )
+   (let ((xo ($float (cadr arg1)))
+         (yo ($float (caddr arg1)))
+         (zo ($float (cadddr arg1)))
+         (dx ($float (cadr arg2)))
+         (dy ($float (caddr arg2)))
+         (dz ($float (cadddr arg2)))
+         xdx ydy zdz x y z)
       (when (and (get-option '$unit_vectors)
                  (or (/= dx 0) (/= dy 0) (/= dz 0)))
          (let ((module (sqrt (+ (* dx dx) (* dy dy) (* dz dz)))))
             (setf dx (/ dx module)
                   dy (/ dy module)
                   dz (/ dz module)  )))
-      (setf xdx ($float (+ x dx))
-            ydy ($float (+ y dy))
-            zdz ($float (+ z dz)) )
-      (update-ranges-3d (min x xdx) (max x xdx) (min y ydy) (max y ydy) (min z zdz) (max z zdz))
+      (setf xdx ($float (+ xo dx))
+            ydy ($float (+ yo dy))
+            zdz ($float (+ zo dz)) )
+      ;; apply geometric transformation before plotting
+      (setf x (list xo xdx)
+            y (list yo ydy)
+            z (list zo zdz))
+      (transform-lists 3)
+      (update-ranges-3d (apply 'min x) (apply 'max x) (apply 'min y) (apply 'max y) (apply 'min z) (apply 'max z))
       (make-gr-object
          :name 'vector
          :command (format nil " ~a w vect ~a size ~a, ~a ~a lw ~a lt ~a lc ~a"
@@ -1168,7 +1186,12 @@
                               (hex-to-rgb (get-option '$color)) )
          :groups '((6 0))
          :points `(,(make-array 6 :element-type 'flonum
-                                  :initial-contents (list x y z dx dy dz))) ) ))
+                                  :initial-contents (list (car x)
+                                                          (car y)
+                                                          (car z)
+                                                          (- (cadr x) (car x))
+                                                          (- (cadr y) (car y))
+                                                          (- (cadr z) (car z))))) ) ))
 
 
 
@@ -1242,32 +1265,26 @@
             (let ((items sublst) (item 'nil))
 	      ;; Search for the item in sublist that is the undefined variable
 	      (while items
-		(if
-		    (not
-		     (or (numberp (car items)) (eq (car items) t) (eq (car items) nil)))
-		    (setq item (car items))
-		  )
-		(setq items (cdr items))
-		)
-	      (merror "draw2d (explicit): non defined variable in term: ~M" item)
-	      )
-	    )
-
+		(when (not (or (numberp (car items))
+                               (eq (car items) t)
+                               (eq (car items) nil)))
+		    (setq item (car items)) )
+		(setq items (cdr items)) )
+	      (merror "draw2d (explicit): non defined variable in term: ~M" item) ) )
 
           (when (not (null result))
             (setf sublst (cddr sublst)))
           (do ((lst sublst (cddr lst)))
               ((null lst) 'done)
-            (setf result (append result
-                                 (list
-                                   (if (and (get-option '$logx)
-                                            (numberp (first lst)))
-                                     (exp (first lst))
-                                     (first lst))
-                                   (if (and (get-option '$logy)
-                                            (numberp (second lst)))
-                                     (exp (second lst))
-                                     (second lst)))))))))
+            (setf result (cons (if (and (get-option '$logy) (numberp (second lst)))
+                                 (exp (second lst))
+                                 (second lst))
+                               result)) 
+            (setf result (cons (if (and (get-option '$logx) (numberp (first lst)))
+                                 (exp (first lst))
+                                 (first lst))
+                               result)) ) )))
+
     ; reset x extremes to original values
     (when (get-option '$logx)
       (setf xmin (exp xmin))
@@ -1389,7 +1406,7 @@
          (err (* 0.02 (min dx dy)))
          (xarr (make-array (list (1+ nx) (1+ ny)) :element-type 'flonum))
          (yarr (make-array (list (1+ nx) (1+ ny)) :element-type 'flonum))
-         (barr (make-array (list (1+ nx) (1+ ny)) :element-type 'boolean))
+         (barr (make-array (list (1+ nx) (1+ ny)) :initial-element nil :element-type 'boolean))
          (pts '())
          pltcmd grouping x y)
 
@@ -1991,7 +2008,7 @@
       ; what we now call elevation_grid
       ((and (= (length row) 5)
             ($matrixp (first row)))
-        (print "WARNING: Seems like you want to draw an elevation_grid object...")
+        (print "Warning: Seems like you want to draw an elevation_grid object...")
         (print "         Please, see documentation for object elevation_grid.")
         (apply #'elevation_grid row))
       (t
@@ -2806,8 +2823,8 @@
       ; save in plotcmd the gnuplot preamble
       (setf plotcmd
          (concatenate 'string
-            (if *multiplot-is-active*
-               ""
+            (unless (or *multiplot-is-active*
+                        (member (get-option '$terminal) '($eps $epslatex $epslatex_standalone)))
                (format nil "set obj 1 fc rgb '~a' fs solid 1.0 noborder ~%"
                        (get-option '$background_color)) )
             (if (equal (get-option '$proportional_axes) '$none)
@@ -2871,7 +2888,7 @@
 	    
 	    ( if (equal (car (get-option '$grid)) 0)
 		(format nil "unset grid~%")
-	        (format nil "set grid xtics ytics mxtics mytics~%set mxtics ~a~%set mytics ~d~%"
+	        (format nil "set grid xtics ytics mxtics mytics~%set mxtics ~d~%set mytics ~d~%"
 		      (car  (get-option '$grid))
 		      (cadr (get-option '$grid))
 		      )
@@ -3027,7 +3044,7 @@
                (when (near-equal zi zf)
                   (setf zi (- zi 0.01)
                         zf (+ zf 0.01)))
-               (format nil "set format '%h'~%set xrange [~a:~a]~%set yrange [~a:~a]~%set zrange [~a:~a]~%"
+               (format nil "set xrange [~a:~a]~%set yrange [~a:~a]~%set zrange [~a:~a]~%"
                            xi xf yi yf zi zf))
             (if (get-option '$cbrange)
                (format nil "set cbrange [~a:~a]~%" 
@@ -3035,11 +3052,11 @@
                   (second (get-option '$cbrange)) )
                (format nil "set cbrange [*:*]~%") )
             (case (get-option '$contour)
-               ($surface (format nil "set contour surface;set cntrparam levels ~a~%"
+               ($surface (format nil "set contour surface~%set cntrparam levels ~a~%"
                                       (get-option '$contour_levels) ))
-               ($base    (format nil "set contour base;set cntrparam levels ~a~%"
+               ($base    (format nil "set contour base~%set cntrparam levels ~a~%"
                                       (get-option '$contour_levels) ))
-               ($both    (format nil "set contour both;set cntrparam levels ~a~%"
+               ($both    (format nil "set contour both~%set cntrparam levels ~a~%"
                                       (get-option '$contour_levels) ))
                ($map     (format nil "set contour base~%unset surface~%set cntrparam levels ~a~%"
                                       (get-option '$contour_levels))) )
@@ -3067,7 +3084,7 @@
                (format nil "unset logscale cb~%") )
 	    (if (equal (car (get-option '$grid)) 0)
 		(format nil "unset grid~%")
-	        (format nil "set grid xtics ytics ztics mxtics mytics mztics~%set mxtics ~a~%set mytics ~d~%"
+	        (format nil "set grid xtics ytics ztics mxtics mytics mztics~%set mxtics ~d~%set mytics ~d~%"
 		      (car  (get-option '$grid))
 		      (cadr (get-option '$grid))
 		      )
@@ -3227,13 +3244,18 @@
        gfn (plot-temp-file (get-option '$gnuplot_file_name))
        dfn (plot-temp-file (get-option '$data_file_name)))
 
-    ; we now create two files: maxout.gnuplot and data.gnuplot
+    ;; we now create two files: maxout.gnuplot and data.gnuplot
     (setf cmdstorage
           (open gfn
                 :direction :output :if-exists :supersede))
+    (if (eql cmdstorage nil)
+      (merror "draw: Cannot create file '~a'. Probably maxima_tempdir doesn't point to a writable directory." gfn))
     (setf datastorage
           (open dfn
                 :direction :output :if-exists :supersede))
+    (if (eql datastorage nil)
+      (merror "draw: Cannot create file '~a'. Probably maxima_tempdir doesn't point to a writable directory." dfn))
+    
     (setf datapath (format nil "'~a'" dfn))
     ; when one multiplot window is active, change of terminal is not allowed
     (if (not *multiplot-is-active*)
@@ -3326,21 +3348,36 @@
                            (write-font-type)
                            (round (first (get-option '$dimensions)))
                            (round (second (get-option '$dimensions)))))
-        ($x11 (format cmdstorage "set terminal x11 dashed enhanced ~a ~a size ~a, ~a~%"
+        ($x11 (format cmdstorage "if(GPVAL_VERSION >= 5.0){set terminal x11 dashed enhanced ~a ~a size ~a, ~a replotonresize} else {set terminal x11 dashed enhanced ~a ~a size ~a, ~a}~%"
+                           *draw-terminal-number*
+                           (write-font-type)
+                           (round (first (get-option '$dimensions)))
+                           (round (second (get-option '$dimensions)))
                            *draw-terminal-number*
                            (write-font-type)
                            (round (first (get-option '$dimensions)))
                            (round (second (get-option '$dimensions)))))
+	($windows (format cmdstorage "set terminal windows enhanced ~a ~a size ~a, ~a~%"
+                           *draw-terminal-number*
+                           (write-font-type)
+                           (round (first (get-option '$dimensions)))
+                           (round (second (get-option '$dimensions)))))
+
         (otherwise ; default screen output
           (cond
-            (*windows-OS*  ; running on windows operating system
-              (format cmdstorage "set terminal windows enhanced ~a size ~a, ~a~%"
+            ((string= *autoconf-windows* "true")  ; running on windows operating system
+              (format cmdstorage "set terminal windows enhanced ~a ~a size ~a, ~a~%"
+                          *draw-terminal-number*
                           (write-font-type)
                           (round (first (get-option '$dimensions)))
                           (round (second (get-option '$dimensions)))))
             (t  ; other platforms
-              (format cmdstorage "set terminal x11 dashed enhanced ~a ~a size ~a, ~a~%"
+              (format cmdstorage "if(GPVAL_VERSION >= 5.0){set terminal x11 dashed enhanced ~a ~a size ~a, ~a replotonresize} else {set terminal x11 dashed enhanced ~a ~a size ~a, ~a}~%"
                            *draw-terminal-number*
+                           (write-font-type)
+                           (round (first (get-option '$dimensions)))
+                           (round (second (get-option '$dimensions)))
+			   *draw-terminal-number*
                            (write-font-type)
                            (round (first (get-option '$dimensions)))
                            (round (second (get-option '$dimensions))))))) ))
@@ -3354,7 +3391,14 @@
 
     ; Make gnuplot versions newer than 5.0 understand that linetype means
     ; we try to set the dash type
-    (format cmdstorage "~%if(GPVAL_VERSION >= 5.0){set for [i=1:8] linetype i dashtype i}")
+    (format cmdstorage "~%if(GPVAL_VERSION >= 5.0){set for [i=1:8] linetype i dashtype i; set format '%h'}")
+
+    ;; By default gnuplot assumes everything below 1e-8 to be a rounding error
+    ;; and rounds it down to 0. This is handy for standalone gnuplot as it allows
+    ;; to suppress pixels with imaginary part while allowing for small calculation
+    ;; errors. As plot and draw handle the imaginary part without gnuplot's help
+    ;; this isn't needed here and is turned off as it often surprises users.
+    (format cmdstorage "~%set zero 0.0")
 
     ; write descriptions of 2d and 3d scenes
     (let ((i -1)
@@ -3390,8 +3434,8 @@
                      (incf nilcounter)))
                 (format cmdstorage "~%set size ~a, ~a~%" size1 size2)
                 (format cmdstorage "set origin ~a, ~a~%" origin1 origin2)
-                (when (and (not *multiplot-is-active*)
-                           (not (member (get-option '$terminal) '($epslatex $epslatex_standalone))))
+                (unless (or *multiplot-is-active*
+                            (member (get-option '$terminal) '($epslatex $epslatex_standalone)))
                   (format cmdstorage "set obj 1 rectangle behind from screen ~a,~a to screen ~a,~a~%" 
                                      origin1 origin2 (+ origin1 size1 ) (+ origin2 size2)))  ))
         (setf is1stobj t
@@ -3474,7 +3518,7 @@
 
     (cond ((or isanimatedgif ismultipage)  ; this is an animated gif or multipage plot file
              (if isanimatedgif
-               (format cmdstorage "~%quit~%~%")
+               (format cmdstorage "~%unset output~%quit~%~%")
                (format cmdstorage "~%set term dumb~%~%") )
              (close cmdstorage)
 	     #+(or (and sbcl win32) (and sbcl win64) (and ccl windows))
@@ -3487,7 +3531,7 @@
              ; command file maxout.gnuplot is now ready
              (format cmdstorage "~%")
              (cond ((> (length scenes) 1)
-                      (format cmdstorage "unset multiplot~%"))
+                      (format cmdstorage "unset multiplot~%unset output ~%"))
                    ; if we want to save the coordinates in a file,
                    ; print them when hitting the x key after clicking the mouse button
                    ((not (string= (get-option '$xy_file) ""))
@@ -3495,17 +3539,22 @@
                               "set print \"~a\" append~%bind x \"print MOUSE_X,MOUSE_Y\"~%"
                               (get-option '$xy_file))) )
 
-             ; in svg and pdfcairo terminals, unset output to force
-             ; Gnuplot to write </svg> at the end of the file (what about pdf?)
-             (when (or (equal (get-option '$terminal) '$svg)
-                       (equal (get-option '$terminal) '$pdfcairo))
-                (format cmdstorage "unset output~%"))
+             ; in svg and pdfcairo terminals it is necessary to unset output to force
+	     ; Gnuplot to write the last few bytes ("</svg>" in the svg case)
+	     ; at the end of the file. On windows in all other terminals that write
+	     ; to files if the output isn't unset the file isn't closed and therefore
+	     ; cannot be moved or removed after a plot is finished.
+	     ; 
+	     ; If the plot isn't written to a file the variable "output" is empty and
+	     ; unused and unsetting it a second time doesn't change anything
+	     ; => It is always save to unset the output at the end of a scene.
+             (when (not *multiplot-is-active*) ; not in a one window multiplot
+                 (format cmdstorage "unset output~%"))
              (close cmdstorage)
              ; get the plot
              (cond
                 ; connect to gnuplot via pipes
-                ((and (not *windows-OS*)
-                      (member (get-option '$terminal) '($screen $aquaterm $wxt $x11 $qt))
+                ((and (member (get-option '$terminal) '($screen $aquaterm $wxt $x11 $qt $windows))
                       (equal $draw_renderer '$gnuplot_pipes))
                    (check-gnuplot-process)
                    (when (not *multiplot-is-active*) ; not in a one window multiplot
@@ -3517,11 +3566,11 @@
                 (t
 
 		 #+(or (and sbcl win32) (and sbcl win64) (and ccl windows))
-		 (if (member (get-option '$terminal) '($screen $aquaterm $wxt $x11 $qt))
+		 (if (member (get-option '$terminal) '($screen $aquaterm $wxt $x11 $qt $windows))
 		     ($system $gnuplot_command "-persist" gfn)
 		     ($system $gnuplot_command gfn))
 		 #-(or (and sbcl win32) (and sbcl win64) (and ccl windows))
-		 ($system (if (member (get-option '$terminal) '($screen $aquaterm $wxt $x11 $qt))
+		 ($system (if (member (get-option '$terminal) '($screen $aquaterm $wxt $x11 $qt $windows))
 			      (format nil "~a ~a"
 				      $gnuplot_command
 				      (format nil $gnuplot_view_args gfn))
@@ -3621,8 +3670,6 @@
              (not (integerp num))
              (< num 0) )
       (merror "draw: Incorrect terminal or window number"))
-   (when *windows-OS*
-      (merror "draw: Multiple windows are not allowed in Windows systems"))
    (let (str)
       (case term
          ($wxt      (setf str "wxt"))

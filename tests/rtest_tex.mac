@@ -19,6 +19,9 @@ tex_text (s) := block ([linel: 2^16], print (s));
 (prefix ("fooprefix"), infix ("implies"), infix ("iff"), nary ("foonary"),
  postfix ("foopostfix"), matchfix ("<<", ">>"), nofix ("foonofix"));
 
+infix ("-->");
+texput ("-->", "\\rightarrow", infix);
+
 '((aa or bb) and not (cc or dd));
 
 with_stdout ("tmp-rtest-1.tex",
@@ -42,15 +45,51 @@ with_stdout ("tmp-rtest-1.tex",
     tex (\2F1 + ?lisp_symbol),
     tex (embedded\$dollar + embedded%percent + embedded_underscore + embedded\&ampersand),
 
+    tex_text ("\\subsubsection*{Explicit and implicit subscripts}"),
+    tex_text ("In each of the next several lists, all items in a list should be identical."),
+    tex_text ("Variable name is ``ABC''."),
+    tex ([ABC123, ABC_123, ABC__123, ABC___123, ABC[123]]),
+    tex_text ("Variable name is ``abc''."),
+    tex ([abc123, abc_123, abc__123, abc___123, abc[123]]),
+    tex_text ("Variable name is ``Abc''."),
+    tex ([Abc123, Abc_123, Abc__123, Abc___123, Abc[123]]),
+    tex_text ("Multiple subscripts."),
+    tex ([ABC_1_2_3, ABC[1, 2, 3]]),
+    tex_text ("Ensure that the leading percent sign is preserved in this next one."),
+    tex ([%A_1_B_2_C_3, %A_1_B_2_C[3]]),
+    tex_text ("Expect subscripted ``\\%gamma'' to be displayed as math symbol."),
+    tex ([%gamma3, %gamma_3, %gamma[3]]),
+
+    tex_text ("\\subsubsection*{Pre- and post- superscripts and subscripts}"),
+    tex_text ("Without index properties:"),
+    tex (x[aa,bb,cc,dd]),
+    tex (x[a + 1,b - 1,2*c,d^2]),
+    tex ((1 - x[a + 1,b - 1,2*c,d^2])/(1 + x[a + 1,b - 1,2*c,d^2])),
+    tex (sqrt (x[a + 1,b - 1,2*c,d^2])),
+    texput (U, "\\mathrm{U}"),
+    texput (Th, "\\mathrm{Th}"),
+    texput (Pa, "\\mathrm{Pa}"),
+    tex (U[92,238] --> Th[90,234] --> Pa[234,91] --> U[234,92]),
+    tex_text ("With index properties:"),
+    declare_index_properties (x, [postsubscript, postsuperscript, presuperscript, presubscript]),
+    tex (x[aa,bb,cc,dd]),
+    tex (x[a + 1,b - 1,2*c,d^2]),
+    tex ((1 - x[a + 1,b - 1,2*c,d^2])/(1 + x[a + 1,b - 1,2*c,d^2])),
+    tex (sqrt (x[a + 1,b - 1,2*c,d^2])),
+    declare_index_properties (U, [presubscript, presuperscript]),
+    declare_index_properties (Th, [presubscript, presuperscript]),
+    declare_index_properties (Pa, [presubscript, presuperscript]),
+    tex (U[92,238] --> Th[90,234] --> Pa[234,91] --> U[234,92]),
+
     tex_text ("\\subsubsection*{Gamma functions and variables}"),
     tex_text ("Variables: \\%gamma (Euler-Mascheroni number), Gamma, nounify(gamma), verbify(gamma):"),
     tex ([%gamma = ev (%gamma, numer), Gamma, nounify (gamma), verbify (gamma)]),
     tex_text ("Functions: gamma(z) (gamma function), gamma\\_incomplete(a, z) (upper incomplete gamma function),
 gamma\\_incomplete\\_regularized(a, z) (gamma\\_incomplete normalized by gamma(z)),
 gamma\\_incomplete\\_generalized(a, z[1], z[2]) (upper minus lower incomplete gamma function),
-gamma\\_greek(a, z) (lower incomplete gamma function):"),
+gamma\\_incomplete\\_lower(a, z) (lower incomplete gamma function):"),
     tex ([gamma (z), gamma_incomplete (a, z), gamma_incomplete_regularized (a, z),
-          gamma_incomplete_generalized (a, z[1], z[2]), gamma_greek (a, z)]),
+          gamma_incomplete_generalized (a, z[1], z[2]), gamma_incomplete_lower (a, z)]),
 
     /* Maxima tex function doesn't escape special characters in symbol names,
      * so don't bother with these unless TEX-STRIPDOLLAR is revised or something like that.
@@ -389,6 +428,27 @@ with_stdout (s,
     
     tex (sqrt (u)),
     tex (z - bessel_j (0, sqrt (1/(1 - u)))),
+
+    print ("Typesetting exponents."),
+
+    tex(sin(x)^2),
+    tex(f(x)^2),
+
+    tex(sin(x)^n),
+    tex(f(x)^n),
+
+    tex(sin(x)^-2),
+    tex(f(x)^-2),
+
+    simp:false,
+    tex(sin(x)^-2),
+    tex(f(x)^-2),
+    simp:true,
+
+    tex('integrate(f(x),x,0,inf)^4),
+    tex('sum(f(x),x,0,n)^4),
+    tex('integrate(f(x)^n,x,0,inf)^4),
+    tex('sum(f(x)^x,x,0,n)^4),
 
     print ("The end!"),
     print ("\\end{document}"));

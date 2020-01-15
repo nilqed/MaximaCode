@@ -27,6 +27,10 @@
   "Signals a Maxima user error."
   (apply #'merror (fstringc l)))
 
+(defmfun $warning (&rest l)
+  "Signals a Maxima warning."
+  (apply #'mwarning l))
+
 (defmvar $error_size 60.
   "Expressions greater in SOME size measure over this value
   are replaced by symbols {ERREXP1, ERREXP2,...} in the MAXIMA-ERROR
@@ -60,7 +64,7 @@
 ;;; error variables. However, since we do bind the value of the
 ;;; variable $ERROR, calling the function $ERRORMSG will always
 ;;; set things back. It would be better to bind these variables,
-;;; for, amoung other things, then the values could get garbage 
+;;; for, among other things, then the values could get garbage
 ;;; collected.
 
 (define-condition maxima-$error (error)
@@ -73,7 +77,7 @@
 
 (defun merror (sstring &rest l)
   (declare (special errcatch *mdebug*))
-  (setq $error `((mlist) ,sstring ,@ l))
+  (setq $error `((mlist simp) ,sstring ,@ l))
   (and $errormsg ($errormsg))
   (cond (*mdebug*
 	 (let ((dispflag t) ret)
@@ -89,7 +93,11 @@
 	 (fresh-line *standard-output*)
 	 ($backtrace 3)
 	 (format t (intl:gettext "~& -- an error. To debug this try: debugmode(true);~%"))
+	 (finish-output)
 	 (throw 'macsyma-quit 'maxima-error))))
+
+(defun mwarning (&rest l)
+  (format t "Warning: ~{~a~^ ~}~%" (mapcar #'$sconcat l)))
 
 (defmacro with-$error (&body body)
   "Let MERROR signal a MAXIMA-$ERROR condition."
@@ -161,7 +169,7 @@
     (fresh-line))
   '$done)
 
-(defmfun read-only-assign (var val)
+(defun read-only-assign (var val)
   (if munbindp
       'munbindp
       (merror (intl:gettext "assignment: attempting to assign read-only variable ~:M the value ~M") var val)))
@@ -218,7 +226,7 @@
 ;;; This might also be done at code translation time.
 ;;; This is a bit crude.
 
-(defmfun fstringc (l)
+(defun fstringc (l)
   (do ((sl nil) (s) (sb)
        (se nil))
       ((null l)
